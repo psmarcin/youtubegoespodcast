@@ -18,7 +18,8 @@ jobs:
     steps:
       - checkout
       - run: sudo npm i -g --unsafe-perm now
-      - run: sudo make deploy_prod
+      - run: sudo now -t ${NOWSHTOKEN}
+      - run: sudo now alias -t ${NOWSHTOKEN}
 workflows:
   version: 2
   build-and-deploy:
