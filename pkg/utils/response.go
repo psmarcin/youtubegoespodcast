@@ -19,3 +19,11 @@ func OkResponse(w http.ResponseWriter) {
 func WriteBodyResponse(w http.ResponseWriter, body string) {
 	io.WriteString(w, body)
 }
+
+// AllowCorsResponse set proper CORS headers
+func AllowCorsResponse(w http.ResponseWriter, r *http.Request) {
+	switch origin := r.Header.Get("Origin"); origin {
+	case "http://localhost:8080", "https://yt.psmarcin.dev", "https://yt.psmarcin.me":
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+}

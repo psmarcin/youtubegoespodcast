@@ -13,6 +13,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	response := youtube.GetTrendings()
 	serialied := youtube.SerializeTrending(response)
 	utils.JSONResponse(w)
+	utils.AllowCorsResponse(w, r)
 	utils.OkResponse(w)
 	utils.WriteBodyResponse(w, serialied)
 }
