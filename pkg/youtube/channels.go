@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-// GetTrendings collects trendings from YouTube API
-func GetTrendings() YoutubeResponse {
+// GetChannels collects trendings from YouTube API
+func GetChannels() YoutubeResponse {
 	trendings := YoutubeResponse{}
 	req, err := http.NewRequest("GET", YouTubeURL+"videos", nil)
 	if err != nil {

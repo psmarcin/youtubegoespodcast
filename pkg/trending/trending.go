@@ -11,7 +11,7 @@ import (
 func Handler(w http.ResponseWriter, r *http.Request) {
 	logrus.Infof("[API] request %s %s", r.Method, r.RequestURI)
 	response := youtube.GetTrendings()
-	serialied := youtube.SerializeTrending(response)
+	serialied := youtube.Serialize(response)
 	utils.JSONResponse(w)
 	utils.AllowCorsResponse(w, r)
 	utils.OkResponse(w)
