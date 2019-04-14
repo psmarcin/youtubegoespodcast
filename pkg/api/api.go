@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"ytg/pkg/channels"
 	"ytg/pkg/config"
 	"ytg/pkg/trending"
 	"ytg/pkg/utils"
@@ -19,6 +20,7 @@ func Start() {
 func startMultiplex() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/trending", trending.Handler)
+	http.HandleFunc("/channels", channels.Handler)
 	logrus.Infof("[API] Port %s", config.Cfg.Port)
 	logrus.Fatal(http.ListenAndServe(":"+config.Cfg.Port, nil))
 }
