@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"ytg/pkg/channels"
@@ -21,6 +22,7 @@ func startMultiplex() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/trending", trending.Handler)
 	http.HandleFunc("/channels", channels.Handler)
+	http.Handle("/metrics", promhttp.Handler())
 	logrus.Infof("[API] Port %s", config.Cfg.Port)
 	logrus.Fatal(http.ListenAndServe(":"+config.Cfg.Port, nil))
 }
