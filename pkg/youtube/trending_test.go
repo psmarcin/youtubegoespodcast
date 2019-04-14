@@ -2,7 +2,7 @@ package youtube
 
 import "testing"
 
-func TestSerializeTrending(t *testing.T) {
+func TestSerialize(t *testing.T) {
 	type args struct {
 		channelResponse YoutubeResponse
 	}
@@ -47,8 +47,8 @@ func TestSerializeTrending(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := SerializeTrending(tt.args.channelResponse); got != tt.want {
-				t.Errorf("SerializeTrending() = %v, want %v", got, tt.want)
+			if got := Serialize(tt.args.channelResponse); got != tt.want {
+				t.Errorf("Serialize() = %v, want %v", got, tt.want)
 			}
 		})
 	}
