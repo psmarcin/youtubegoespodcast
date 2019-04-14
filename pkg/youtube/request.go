@@ -16,8 +16,6 @@ var client = &http.Client{
 
 // Request do request to youtube server to get trending videos
 func Request(req *http.Request, y interface{}) {
-	logrus.Infof("[YT] Request to %s", req.URL.String())
-
 	// Set API key
 	query := req.URL.Query()
 	query.Add("key", config.Cfg.GoogleAPIKey)
