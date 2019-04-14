@@ -16,7 +16,7 @@ func TestSerializeTrending(t *testing.T) {
 			args: args{
 				channelResponse: YoutubeResponse{
 					Items: []Items{
-						Items{
+						{
 							Snippet: Snippet{
 								ChannelID:    "ChannelID",
 								ChannelTitle: "ChannelTitle",

@@ -25,10 +25,10 @@ func Request(req *http.Request, y interface{}) {
 
 	// Do request
 	res, err := client.Do(req)
-	defer res.Body.Close()
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing request to youtube api")
 	}
+	defer res.Body.Close()
 
 	// Decode
 	err = json.NewDecoder(res.Body).Decode(y)

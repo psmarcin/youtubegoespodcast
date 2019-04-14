@@ -1,3 +1,6 @@
+dev:
+	realize start
+
 dependencies:
 	go get .
 
