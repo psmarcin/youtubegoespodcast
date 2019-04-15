@@ -12,6 +12,13 @@ func TestSerialize(t *testing.T) {
 		want string
 	}{
 		{
+			name: "serialize empty",
+			args: args{
+				channelResponse: YoutubeResponse{},
+			},
+			want: "[]",
+		},
+		{
 			name: "should serialize youtube response",
 			args: args{
 				channelResponse: YoutubeResponse{
@@ -34,15 +41,6 @@ func TestSerialize(t *testing.T) {
 				},
 			},
 			want: "[{\"channelId\":\"ChannelID\",\"thumbnail\":\"http://google.go\",\"title\":\"ChannelTitle\"}]",
-		},
-		{
-			name: "should serialize youtube response",
-			args: args{
-				channelResponse: YoutubeResponse{
-					Items: []Items{},
-				},
-			},
-			want: "[]",
 		},
 	}
 	for _, tt := range tests {
