@@ -27,3 +27,9 @@ func AllowCorsResponse(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
 }
+
+// Redirect set headers and statusCode to sent redirect response
+func Redirect(w http.ResponseWriter, location string) {
+	w.Header().Set("location", location)
+	w.WriteHeader(http.StatusTemporaryRedirect)
+}
