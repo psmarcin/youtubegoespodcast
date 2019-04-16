@@ -8,6 +8,7 @@ import (
 	"ytg/pkg/config"
 	"ytg/pkg/trending"
 	"ytg/pkg/utils"
+	"ytg/pkg/video"
 )
 
 const RootJSON = "{\"status\": \"OK\"}"
@@ -22,6 +23,7 @@ func startMultiplex() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/trending", trending.Handler)
 	http.HandleFunc("/channels", channels.Handler)
+	http.HandleFunc("/video.mp3", video.Handler)
 	http.Handle("/metrics", promhttp.Handler())
 	logrus.Infof("[API] Port %s", config.Cfg.Port)
 	logrus.Fatal(http.ListenAndServe(":"+config.Cfg.Port, nil))

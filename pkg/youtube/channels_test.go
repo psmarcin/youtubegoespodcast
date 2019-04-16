@@ -21,7 +21,7 @@ func TestGetChannels(t *testing.T) {
 				q: "",
 			},
 			want: YoutubeResponse{
-				Items: []Items{Items{
+				Items: []Items{{
 					Snippet: Snippet{
 						ChannelID:    "UCqrBKQHQVEvD2Q9FP0DCP2g",
 						ChannelTitle: "benny blanco",

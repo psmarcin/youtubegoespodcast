@@ -16,8 +16,8 @@ settings:
     force: false
     interval: 0s
 schema:
-- name: ytg-api
-  path: /Users/psmarcin/projects/ytg
+- name: ygp-api
+  path: /Users/psmarcin/projects/ygp-api
   commands:
     clean:
       status: true
@@ -30,24 +30,11 @@ schema:
     generate:
       status: true
     install:
-      status: false
+      status: true
     build:
-      status: false
+      status: true
     run:
       status: true
-  watcher:
-    extensions:
-    - go
-    paths:
-    - /
-    ignore:
-      paths:
-      - .git
-      - .realize
-      - vendor
-- name: ytg-add
-  path: /Users/psmarcin/projects/ytg
-  commands: {}
   watcher:
     extensions:
     - go
