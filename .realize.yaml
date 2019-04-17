@@ -1,38 +1,23 @@
 settings:
-  files:
-    outputs:
-      status: false
-      path: ""
-      name: .r.outputs.log
-    logs:
-      status: false
-      path: ""
-      name: .r.logs.log
-    errors:
-      status: false
-      path: ""
-      name: .r.errors.log
   legacy:
     force: false
-    interval: 0s
+    interval: 1s
 schema:
 - name: ygp-api
   path: /Users/psmarcin/projects/ygp-api
   commands:
     clean:
-      status: true
+      status: false
     vet:
-      status: true
+      status: false
     fmt:
-      status: true
+      status: false
     test:
-      status: true
+      status: false
     generate:
-      status: true
+      status: false
     install:
-      status: true
-    build:
-      status: true
+      status: false
     run:
       status: true
   watcher:
