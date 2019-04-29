@@ -1,8 +1,16 @@
+<hr>
+<h3 align="center">ygp - YouTube Goes Podcast</h3>
+<hr>
+
 # YgP - API
 It's simple API helper for yt.psmarcin.dev.
 
-## Features
+## Features/Roadmap
 * [x] Return trending channels
+* [x] Redirect to audio stream (if available)
+* [x] Get trending channels (base on trending videos)
+* [ ] Get channel feed
+* [ ] Test channel feed
 
 ## Development
 
