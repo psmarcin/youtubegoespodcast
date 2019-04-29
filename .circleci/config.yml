@@ -18,8 +18,8 @@ jobs:
     steps:
       - checkout
       - run: sudo npm i -g --unsafe-perm now
-      - run: sudo now -t ${NOWSHTOKEN}
-      - run: sudo now alias -t ${NOWSHTOKEN}
+      - run: sudo now -t ${NOWSHTOKEN} --no-verify
+      - run: sudo now alias -t ${NOWSHTOKEN} --no-verify
 workflows:
   version: 2
   build-and-deploy:
