@@ -1,9 +1,6 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"ytg/pkg/channels"
 	"ytg/pkg/config"
@@ -11,6 +8,10 @@ import (
 	"ytg/pkg/trending"
 	"ytg/pkg/utils"
 	"ytg/pkg/video"
+
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sirupsen/logrus"
 )
 
 const RootJSON = "{\"status\": \"OK\"}"

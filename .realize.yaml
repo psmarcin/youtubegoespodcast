@@ -1,25 +1,17 @@
 settings:
   legacy:
     force: false
-    interval: 1s
+    interval: 0s
 schema:
 - name: ygp-api
-  path: /Users/psmarcin/projects/ygp-api
+  path: .
   commands:
-    clean:
-      status: false
-    vet:
-      status: false
-    fmt:
-      status: false
-    test:
-      status: false
-    generate:
-      status: false
     install:
-      status: false
+      status: true
+      method: go build -o ./bin/app
     run:
       status: true
+      method: ./bin/app
   watcher:
     extensions:
     - go

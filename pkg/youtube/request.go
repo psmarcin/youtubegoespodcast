@@ -2,10 +2,11 @@ package youtube
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 	"ytg/pkg/config"
+
+	"github.com/sirupsen/logrus"
 )
 
 const YouTubeURL = "https://www.googleapis.com/youtube/v3/"

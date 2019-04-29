@@ -1,8 +1,9 @@
 package youtube
 
 import (
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 // GetChannels collects trendings from YouTube API

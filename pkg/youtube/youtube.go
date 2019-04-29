@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"encoding/json"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,6 +27,7 @@ type Items struct {
 	Snippet Snippet `json:"snippet"`
 }
 
+// Channel holds metadata about channel
 type Channel struct {
 	ChannelId string `json:"channelId"`
 	Thumbnail string `json:"thumbnail"`

@@ -1,9 +1,10 @@
 package video
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
 	"ytg/pkg/utils"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler handles GET /video?videoId= route

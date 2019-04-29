@@ -1,5 +1,5 @@
 dev:
-	realize start
+	GO111MODULE=on realize start --name="ygp-api"
 
 dependencies:
 	go get .
