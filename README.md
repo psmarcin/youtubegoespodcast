@@ -2,7 +2,6 @@
 <h3 align="center">ygp - YouTube Goes Podcast</h3>
 <hr>
 
-# YgP - API
 It's simple API helper for yt.psmarcin.dev.
 
 ## Features/Roadmap
