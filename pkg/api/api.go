@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ytg/pkg/channels"
 	"ytg/pkg/config"
+	"ytg/pkg/feed"
 	"ytg/pkg/logger"
 	"ytg/pkg/trending"
 	"ytg/pkg/utils"
@@ -28,14 +29,15 @@ func startMultiplex() {
 
 	// middleware
 	router.Use(logger.Middleware)
-	router.Use(utils.MiddlewareJSON)
 	router.Use(utils.MiddlewareCORS)
+	router.Use(utils.MiddlewareJSON)
 	// routes
 	router.HandleFunc("/", rootHandler).Methods("GET")
 	router.HandleFunc("/trending", trending.Handler).Methods("GET")
 	router.HandleFunc("/channels", channels.Handler).Methods("GET")
 	router.HandleFunc("/video/{videoId}.mp3", video.Handler).Methods("GET", "HEAD")
 	router.HandleFunc("/video", video.RedirectHandler).Methods("GET", "HEAD")
+	router.HandleFunc("/feed/channel/{channelId}", feed.Handler).Methods("GET", "HEAD")
 	router.Handle("/metrics", promhttp.Handler())
 	http.Handle("/", router)
 	logrus.Infof("[API] Port %s", config.Cfg.Port)
