@@ -137,6 +137,9 @@ func getVideoFileDetails(videoURL string) (VideoFileDetails, error) {
 	if err != nil {
 		return VideoFileDetails{}, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		return VideoFileDetails{}, errors.New("Can't get file details for " + videoURL)
+	}
 	return VideoFileDetails{
 		ContentType:   resp.Header.Get("Content-Type"),
 		ContentLength: resp.Header.Get("Content-Length"),

@@ -18,7 +18,7 @@ func TestHandler(t *testing.T) {
 		args args
 	}{
 		{
-			name: "status code OK, empty content-type and not emptu body",
+			name: "status code OK, empty content-type and not empty body",
 			args: args{
 				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodGet, "/target", nil),

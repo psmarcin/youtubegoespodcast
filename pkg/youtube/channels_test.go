@@ -1,9 +1,10 @@
 package youtube
 
 import (
-	"gopkg.in/h2non/gock.v1"
 	"reflect"
 	"testing"
+
+	"gopkg.in/h2non/gock.v1"
 )
 
 func TestGetChannels(t *testing.T) {
