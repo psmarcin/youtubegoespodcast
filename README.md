@@ -8,8 +8,8 @@ It's simple API helper for yt.psmarcin.dev.
 * [x] Return trending channels
 * [x] Redirect to audio stream (if available)
 * [x] Get trending channels (base on trending videos)
-* [ ] Get channel feed
-* [ ] Test channel feed
+* [x] Get channel feed
+* [x] Test channel feed
 
 ## Development
 
