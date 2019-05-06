@@ -2,6 +2,7 @@ package feed
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -93,6 +94,7 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 				stream <- Item{}
 				return err
 			}
+
 			stream <- Item{
 				GUID:        video.ID.VideoID,
 				Title:       s.Title,
@@ -113,7 +115,7 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 					Href: getImageURL(s.Thumbnails.High.URL),
 				},
 				ITExplicit: "no",
-				ITDuration: videoDetails.Duration.String(),
+				ITDuration: calculateDuration(videoDetails.Duration),
 				ITOrder:    strconv.Itoa(i),
 			}
 			return nil
@@ -188,4 +190,14 @@ func normalizeDurationString(duration string) string {
 
 func getImageURL(src string) string {
 	return src
+}
+
+func calculateDuration(d time.Duration) string {
+	d = d.Round(time.Second)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	d -= m * time.Minute
+	s := d / time.Second
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
