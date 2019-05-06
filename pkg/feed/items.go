@@ -85,7 +85,7 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 	for i, video := range videos.Items {
 		s := video.Snippet
 		go func(video VideosItems, i int) error {
-			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp3"
+			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp4"
 			fileDetails, _ := getVideoFileDetails(videoURL)
 			videoDetails, err := getVideoDetails(video.ID.VideoID)
 			if err != nil {

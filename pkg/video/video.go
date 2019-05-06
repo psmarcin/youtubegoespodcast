@@ -5,11 +5,14 @@ import (
 )
 
 var audioFormats = []Format{
+	FORMATS[141],
 	FORMATS[140],
+	FORMATS[139],
 	FORMATS[171],
+	FORMATS[251],
 	FORMATS[250],
 	FORMATS[249],
-	FORMATS[251],
+	FORMATS[18],
 }
 
 // GetURL returns video URL based on videoID

@@ -36,6 +36,7 @@ func startMultiplex() {
 	router.HandleFunc("/trending", trending.Handler).Methods("GET")
 	router.HandleFunc("/channels", channels.Handler).Methods("GET")
 	router.HandleFunc("/video/{videoId}.mp3", video.Handler).Methods("GET", "HEAD")
+	router.HandleFunc("/video/{videoId}.mp4", video.Handler).Methods("GET", "HEAD")
 	router.HandleFunc("/video", video.RedirectHandler).Methods("GET", "HEAD")
 	router.HandleFunc("/feed/channel/{channelId}", feed.Handler).Methods("GET", "HEAD")
 	router.Handle("/metrics", promhttp.Handler())
