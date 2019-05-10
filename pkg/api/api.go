@@ -6,6 +6,7 @@ import (
 	"ytg/pkg/config"
 	"ytg/pkg/feed"
 	"ytg/pkg/logger"
+	"ytg/pkg/metrics"
 	"ytg/pkg/trending"
 	"ytg/pkg/utils"
 	"ytg/pkg/video"
@@ -31,6 +32,7 @@ func startMultiplex() {
 	router.Use(logger.Middleware)
 	router.Use(utils.MiddlewareCORS)
 	router.Use(utils.MiddlewareJSON)
+	router.Use(metrics.Middleware)
 	// routes
 	router.HandleFunc("/", rootHandler).Methods("GET")
 	router.HandleFunc("/trending", trending.Handler).Methods("GET")
