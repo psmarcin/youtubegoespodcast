@@ -20,8 +20,8 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 * Plex iOS App
 
 ### Screens
-[[https://github.com/psmarcin/ygp-api/blob/master/assets/iphone-podcast-app.png|alt=octocat]]
-[[https://github.com/psmarcin/ygp-api/blob/master/assets/plex-app.png|alt=octocat]]
+![iPhone Podcast App](assets/iphone-podcast-app.png "iPhone Podcast App")
+![Plex Web App](assets/plex-app.png "Plex Web App")
 
 ## Development
 
