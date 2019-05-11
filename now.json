@@ -1,12 +1,12 @@
 {
   "version": 1,
   "name":"YouTube goes Podcasts - API",
-  "alias": "ytg.psmarcin.dev",
+  "alias": "ygp.psmarcin.dev",
   "type": "docker",
   "env": {
     "APP_ENV":"production",
     "GOOGLE_API_KEY": "@ps_google_api",
     "PORT": "8080",
-    "API_URL": "https://ytg.psmarcin.dev/"
+    "API_URL": "https://ygp.psmarcin.dev/"
   }
 }
