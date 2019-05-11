@@ -270,7 +270,7 @@ func TestFeed_getVideos(t *testing.T) {
 				Get("/youtube/v3/search").
 				Reply(status).
 				BodyString(response)
-			got, err := f.getVideos()
+			got, err := f.getVideos("123")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Feed.getVideos() error = %+v, wantErr %+v", err, tt.wantErr)
 				return

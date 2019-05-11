@@ -58,7 +58,7 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) getVideos() (VideosResponse, error) {
+func (f *Feed) getVideos(q string) (VideosResponse, error) {
 	videos := VideosResponse{}
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
 	if err != nil {
@@ -70,6 +70,7 @@ func (f *Feed) getVideos() (VideosResponse, error) {
 	query.Add("order", "date")
 	query.Add("channelId", f.ChannelID)
 	query.Add("maxResults", "10")
+	query.Add("q", q)
 	query.Add("fields", "items(id,snippet(channelId,channelTitle,description,publishedAt,thumbnails/high,title))")
 	req.URL.RawQuery = query.Encode()
 
