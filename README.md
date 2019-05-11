@@ -3,25 +3,24 @@
 <hr>
 
 🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙
+
 This API is created mainly to receive youtube channel and return audio podcast feed that you can use in your favorite podcast app.
 
 ## Features/Roadmap
-* [x] Return trending channels
-* [x] Redirect to audio stream (if available)
+* [x] Generate podcast feed for youtube channel
+* [x] Filter only wanted videos
+* [x] Use audio file for videos
 * [x] Get trending channels (base on trending videos)
-* [x] Get channel feed
-* [x] Test channel feed
+
+### Examples
+Use this url `
 
 ## Development
 
 ### Requirements
-1. Go >1.9
-1. `now` - for deployment
-1. Docker
-1. Realize https://github.com/oxequa/realize
-
-### Install dependencies
-1. `make dependencies`
+1. Go in version `>=1.9`, more: https://golang.org/dl/
+1. Docker, more: https://docs.docker.com/install/
+1. Realize (auto restart), more https://github.com/oxequa/realize
 
 ### Build
 1. `make build`
