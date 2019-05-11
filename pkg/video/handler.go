@@ -17,6 +17,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	w.Header().Del("Content-Type")
 	utils.Redirect(w, videoURL)
 }
 

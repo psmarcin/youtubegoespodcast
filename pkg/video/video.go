@@ -21,9 +21,8 @@ func GetURL(videoID string) string {
 	if err != nil {
 		logrus.WithError(err).Info("[VIDEO]")
 	}
-
-	for _, format := range details.Formats {
-		for _, audioFormat := range audioFormats {
+	for _, audioFormat := range audioFormats {
+		for _, format := range details.Formats {
 			url, err := getDownloadURL(format, details.htmlPlayerFile)
 			if err != nil {
 				logrus.WithError(err).Info("[VIDEO]")
