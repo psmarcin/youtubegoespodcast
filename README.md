@@ -2,7 +2,8 @@
 <h3 align="center">ygp - YouTube Goes Podcast</h3>
 <hr>
 
-It's simple API helper for yt.psmarcin.dev.
+🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙
+This API is created mainly to receive youtube channel and return audio podcast feed that you can use in your favorite podcast app.
 
 ## Features/Roadmap
 * [x] Return trending channels
