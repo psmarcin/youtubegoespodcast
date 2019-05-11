@@ -15,7 +15,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	videos, err := f.getVideos()
+	searchPhrase := r.FormValue("search")
+	videos, err := f.getVideos(searchPhrase)
 	if err != nil {
 		handleError(w, err)
 		return
