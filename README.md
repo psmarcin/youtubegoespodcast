@@ -14,6 +14,14 @@ This API is created mainly to receive youtube channel and return audio podcast f
 
 ### Examples
 Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
+* iPhone Podcast App
+* iTunes MacOS App
+* Plex Web App
+* Plex iOS App
+
+### Screens
+[[https://github.com/psmarcin/ygp-api/blob/master/assets/iphone-podcast-app.png|alt=octocat]]
+[[https://github.com/psmarcin/ygp-api/blob/master/assets/plex-app.png|alt=octocat]]
 
 ## Development
 
