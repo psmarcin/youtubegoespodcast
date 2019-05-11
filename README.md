@@ -13,7 +13,7 @@ This API is created mainly to receive youtube channel and return audio podcast f
 * [x] Get trending channels (base on trending videos)
 
 ### Examples
-Use this url `
+Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
 
 ## Development
 
