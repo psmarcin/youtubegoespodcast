@@ -11,7 +11,8 @@ func TestGetURL(t *testing.T) {
 		videoID string
 	}
 	type want struct {
-		url string
+		url  string
+		itag string
 	}
 	tests := []struct {
 		name string
@@ -24,7 +25,8 @@ func TestGetURL(t *testing.T) {
 				videoID: "tGL4tKXkA4U",
 			},
 			want: want{
-				url: "googlevideo.com/videoplayback",
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
 			},
 		},
 		{
@@ -33,7 +35,8 @@ func TestGetURL(t *testing.T) {
 				videoID: "oIbEvwzLxgE",
 			},
 			want: want{
-				url: "googlevideo.com/videoplayback",
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
 			},
 		},
 		{
@@ -42,7 +45,8 @@ func TestGetURL(t *testing.T) {
 				videoID: "oIbEvwzLxgE1",
 			},
 			want: want{
-				url: "googlevideo.com/videoplayback",
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
 			},
 		},
 		{
@@ -51,7 +55,8 @@ func TestGetURL(t *testing.T) {
 				videoID: "uwfdFCP3KYM",
 			},
 			want: want{
-				url: "googlevideo.com/videoplayback",
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
 			},
 		},
 		{
@@ -60,7 +65,18 @@ func TestGetURL(t *testing.T) {
 				videoID: "_kMShzhW3KE",
 			},
 			want: want{
-				url: "googlevideo.com/videoplayback",
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
+			},
+		},
+		{
+			name: "videoID: jNQXAC9IVRw",
+			args: args{
+				videoID: "jNQXAC9IVRw",
+			},
+			want: want{
+				url:  "googlevideo.com/videoplayback",
+				itag: "140",
 			},
 		},
 	}
@@ -68,6 +84,7 @@ func TestGetURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := GetURL(tt.args.videoID)
 			containsURL := strings.Contains(got, tt.want.url)
+			containsItag := strings.Contains(got, "itag="+tt.want.itag)
 			foundFormat := false
 			for _, audioFormat := range audioFormats {
 				if strings.Contains(got, strconv.Itoa(audioFormat.Itag)) {
@@ -75,7 +92,7 @@ func TestGetURL(t *testing.T) {
 					break
 				}
 			}
-			if !containsURL || !foundFormat {
+			if !containsURL || !foundFormat || !containsItag {
 				t.Errorf("GetURL() = %v, want url: %v, formatFound %t", got, tt.want.url, foundFormat)
 			}
 		})
