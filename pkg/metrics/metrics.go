@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -57,14 +56,21 @@ var responseSize = prometheus.NewHistogramVec(
 	[]string{},
 )
 
-// Middleware instruments the handlers with all the metrics, injecting the "next"
-func Middleware(next http.Handler) http.Handler {
-	return promhttp.InstrumentHandlerInFlight(inFlightGauge,
-		promhttp.InstrumentHandlerDuration(duration.MustCurryWith(prometheus.Labels{"handler": "all"}),
-			promhttp.InstrumentHandlerCounter(counter,
-				promhttp.InstrumentHandlerResponseSize(responseSize, next),
-			),
-		),
-	)
+func MiddlewareResponseSize(next http.Handler) http.Handler {
+	return promhttp.InstrumentHandlerResponseSize(responseSize, next)
+}
 
+func MiddlewareHandlerCounter(next http.Handler) http.Handler {
+	return promhttp.InstrumentHandlerCounter(counter, next)
+}
+
+func MiddlewareHandlerInFlight(next http.Handler) http.Handler {
+	return promhttp.InstrumentHandlerInFlight(inFlightGauge, next)
+}
+
+func MiddlewareHandlerDuration(name string, handler http.HandlerFunc) http.HandlerFunc {
+	return promhttp.InstrumentHandlerDuration(
+		duration.MustCurryWith(prometheus.Labels{"handler": name}),
+		handler,
+	)
 }
