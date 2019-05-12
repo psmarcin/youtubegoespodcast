@@ -1,8 +1,7 @@
 <hr>
-<h3 align="center">ygp - YouTube Goes Podcast</h3>
+<h2 align="center">YouTube Goes Podcast</h3>
+<h4 align="center">🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙</h3>
 <hr>
-
-🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙
 
 This API is created mainly to receive youtube channel and return audio podcast feed that you can use in your favorite podcast app.
 
@@ -35,7 +34,7 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 ### Test
 1. `make test`
 
-### Development run
+### Develop
 1. `make dev`
 
 ## Credits
