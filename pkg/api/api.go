@@ -29,7 +29,6 @@ func startMultiplex() {
 	router := mux.NewRouter()
 
 	// middleware
-	router.Use(utils.MiddlewareCache)
 	router.Use(logger.Middleware)
 	router.Use(utils.MiddlewareCORS)
 	router.Use(utils.MiddlewareJSON)
