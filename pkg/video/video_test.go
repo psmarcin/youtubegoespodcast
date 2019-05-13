@@ -60,16 +60,6 @@ func TestGetURL(t *testing.T) {
 			},
 		},
 		{
-			name: "videoID: _kMShzhW3KE",
-			args: args{
-				videoID: "_kMShzhW3KE",
-			},
-			want: want{
-				url:  "googlevideo.com/videoplayback",
-				itag: "140",
-			},
-		},
-		{
 			name: "videoID: jNQXAC9IVRw",
 			args: args{
 				videoID: "jNQXAC9IVRw",
