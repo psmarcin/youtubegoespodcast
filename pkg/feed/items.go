@@ -1,6 +1,7 @@
 package feed
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,13 +9,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"ytg/pkg/redis_client"
 	"ytg/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	ytVideoURL = "https://youtube.com/watch?v="
+	ytVideoURL       = "https://youtube.com/watch?v="
+	RedisVideoPrefix = "ytvideo_"
 )
 
 type VideosResponse struct {
@@ -87,11 +90,11 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 	for i, video := range videos.Items {
 		s := video.Snippet
 		go func(video VideosItems, i int) error {
+			vd, err := getVideoDetails(video.ID.VideoID)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp4"
 			fileDetails, _ := getVideoFileDetails(videoURL)
-			videoDetails, err := getVideoDetails(video.ID.VideoID)
 			if err != nil {
-				logrus.Printf("Error %+v", err)
+				logrus.WithError(err).Printf("[ITEM]")
 				stream <- Item{}
 				return err
 			}
@@ -116,7 +119,7 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 					Href: getImageURL(s.Thumbnails.High.URL),
 				},
 				ITExplicit: "no",
-				ITDuration: calculateDuration(videoDetails.Duration),
+				ITDuration: calculateDuration(vd.Duration),
 				ITOrder:    strconv.Itoa(i),
 			}
 			return nil
@@ -150,7 +153,16 @@ func getVideoFileDetails(videoURL string) (VideoFileDetails, error) {
 }
 
 func getVideoDetails(videoID string) (VideoDetails, error) {
+	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
+
+	_, err := redis_client.Client.GetKey(RedisVideoPrefix+videoID, &vd)
+	// got cached value, fast return
+	if err == nil {
+		return vd, nil
+	}
+
+	// no cached value, have to make call to API
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
@@ -174,10 +186,16 @@ func getVideoDetails(videoID string) (VideoDetails, error) {
 	if err != nil {
 		return VideoDetails{}, err
 	}
+	vd.Duration = duration
 
-	return VideoDetails{
-		Duration: duration,
-	}, nil
+	// save videoDetails to cache
+	str, err := json.Marshal(vd)
+	if err != nil {
+		return vd, err
+	}
+	go redis_client.Client.SetKey(RedisVideoPrefix+videoID, string(str), time.Hour*24)
+
+	return vd, nil
 }
 
 func parseDuration(duration string) (time.Duration, error) {
