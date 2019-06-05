@@ -7,6 +7,6 @@ steps:
   args: ['push', 'gcr.io/youtubegoespodcast/ygp-api']
   # Deploy container image to Cloud Run
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['beta', 'run', 'deploy', 'ygp-api', '--image', 'gcr.io/youtubegoespodcast/ygp-api', '--region', '[REGION]']
+  args: ['beta', 'run', 'deploy', 'ygp-api', '--image', 'gcr.io/youtubegoespodcast/ygp-api', '--region', 'us-central1']
 images:
 - gcr.io/youtubegoespodcast/ygp-api
