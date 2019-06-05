@@ -19,6 +19,7 @@ jobs:
       - checkout
       - run: |
           echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+      - run: apt install make
       - run: make build
       - run: make publish
 workflows:
