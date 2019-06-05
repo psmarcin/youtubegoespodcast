@@ -1,5 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'make', 'deploy']
+  args: [ 'build', '-t', 'gcr.io/youtubegoespodcast/ygp-api', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'make', 'publish']
+  args: [ 'beta', 'run', 'deploy', '--image', 'gcr.io/youtubegoespodcast/ygp-api', 'ygp-api' ]
