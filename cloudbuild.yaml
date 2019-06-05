@@ -2,4 +2,4 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'gcr.io/youtubegoespodcast/ygp-api', '.' ]
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'beta', 'run', 'deploy', '--image', 'gcr.io/youtubegoespodcast/ygp-api', 'ygp-api' ]
+  args: [ 'push', 'gcr.io/youtubegoespodcast/ygp-api', '.' ]
