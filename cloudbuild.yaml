@@ -1,12 +1,12 @@
 steps:
   # build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/[SERVICE-NAME]', '.']
+  args: ['build', '-t', 'gcr.io/youtubegoespodcast/ygp-api', '.']
   # push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/[SERVICE-NAME]']
+  args: ['push', 'gcr.io/youtubegoespodcast/ygp-api']
   # Deploy container image to Cloud Run
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['beta', 'run', 'deploy', '[SERVICE-NAME]', '--image', 'gcr.io/$PROJECT_ID/[SERVICE-NAME]', '--region', '[REGION]']
+  args: ['beta', 'run', 'deploy', 'ygp-api', '--image', 'gcr.io/youtubegoespodcast/ygp-api', '--region', '[REGION]']
 images:
-- gcr.io/$PROJECT_ID/[SERVICE-NAME]
+- gcr.io/youtubegoespodcast/ygp-api
