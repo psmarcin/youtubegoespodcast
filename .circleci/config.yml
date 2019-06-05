@@ -13,13 +13,17 @@ jobs:
       - run: make test
   deploy:
     docker:
-      - image: circleci/node:10.15
+      - image: google/cloud-sdk
+        auth:
+          username: _json_key  # default username when using a JSON key file to authenticate
+          password: $GCLOUD_SERVICE_KEY  # JSON service account you created, do not encode to base64
     working_directory: ~/repo
     steps:
       - checkout
-      - run: sudo npm i -g --unsafe-perm now
-      - run: sudo now -t ${NOWSHTOKEN} --no-verify
-      - run: sudo now alias -t ${NOWSHTOKEN} --no-verify
+      - run: |
+          echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+      - run: make build
+      - run: make publish
 workflows:
   version: 2
   build-and-deploy:

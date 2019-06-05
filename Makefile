@@ -1,5 +1,9 @@
+NAME=ygp-api
+PROJECT_ID=youtubegoespodcast
+IMAGE_TAG=gcr.io/$(PROJECT_ID)/$(NAME)
+
 dev:
-	GO111MODULE=on realize start --name="ygp-api"
+	realize start --name=$(NAME)
 
 dependencies:
 	go get .
@@ -10,20 +14,18 @@ test: dependencies
 build: dependencies
 	go build main.go
 
-deploy:
-	now
 
-deploy_ci:
-	echo $NOWSHTOKEN
-	echo ${NOWSHTOKEN}
-	now -t ${NOWSHTOKEN} --no-verify
+setProject:
+	gcloud config set project $(PROJECT_ID)
 
-alias:
-	now alias
+docker-build:
+	docker build -t $(NAME) .
 
-alias_ci:
-	now alias -t ${NOWSHTOKEN} --no-verify
+docker-run: build
+	docker run -p 8080:8080 $(NAME)
 
-deploy_prod: deploy alias
+deploy: setProject
+	gcloud builds submit --tag $(IMAGE_TAG)
 
-deploy_prod_ci: deploy_ci alias_ci
+publish: setProject
+	gcloud beta run deploy --image $(IMAGE_TAG) --allow-unauthenticated --timeout=10 --concurrency=100 --memory=128Mi --region=us-central1 --update-env-vars=APP_ENV=production,API_URL=https://ygp.psmarcin.dev/ $(NAME)
