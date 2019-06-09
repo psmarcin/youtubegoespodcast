@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	ytVideoURL           = "https://youtube.com/watch?v="
-	videoItemCachePrefix = "ytvideo_"
-	videoItemCacheTTL    = time.Hour * 24 * 7
+	ytVideoURL            = "https://youtube.com/watch?v="
+	videoItemCachePrefix  = "ytvideo_"
+	videoItemCacheTTL     = time.Hour * 24 * 7
+	videoItemsCachePrefix = "ytvideos_"
+	videoItemsCacheTTL    = time.Hour
 )
 
 type VideosResponse struct {
@@ -63,6 +65,13 @@ type VideosDetailsContent struct {
 
 func (f *Feed) getVideos(q string) (VideosResponse, error) {
 	videos := VideosResponse{}
+
+	_, err := redis_client.Client.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
+	// got cached value, fast return
+	if err == nil {
+		return videos, nil
+	}
+
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
@@ -81,6 +90,13 @@ func (f *Feed) getVideos(q string) (VideosResponse, error) {
 	if err != nil {
 		return VideosResponse{}, err
 	}
+
+	// save video items to cache
+	str, err := json.Marshal(videos)
+	if err != nil {
+		return videos, err
+	}
+	go redis_client.Client.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
 	return videos, nil
 }
 
