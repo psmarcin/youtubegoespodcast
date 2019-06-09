@@ -39,3 +39,15 @@ func PermanentRedirect(w http.ResponseWriter, location string) {
 	w.Header().Set("location", location)
 	w.WriteHeader(http.StatusPermanentRedirect)
 }
+
+// BadRequestError set header and string error message
+func BadRequestError(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(err.Error()))
+}
+
+// InternalError set header and string error message
+func InternalError(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(err.Error()))
+}

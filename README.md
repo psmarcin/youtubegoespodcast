@@ -35,6 +35,7 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 1. `make test`
 
 ### Develop
+1. `docker-compose up -d`
 1. `make dev`
 
 ## Credits
