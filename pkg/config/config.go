@@ -11,12 +11,7 @@ type Config struct {
 	AppEnv       string `env:"APP_ENV,required" envDefault:"development"`
 	GoogleAPIKey string `env:"GOOGLE_API_KEY,required"`
 	Port         string `env:"PORT" envDefault:"3000"`
-	RedisPort    string `env:"REDIS_PORT" envDefault:"6379"`
-	RedisHost    string `env:"REDIS_HOST" envDefault:"localhost"`
-	// IsProduction bool          `env:"PRODUCTION"`
-	// Hosts        []string      `env:"HOSTS" envSeparator:":"`
-	// Duration     time.Duration `env:"DURATION"`
-	// TempFolder   string        `env:"TEMP_FOLDER" envDefault:"${HOME}/tmp" envExpand:"true"`
+	RedisURI     string `env:"REDIS_URI" envDefault:"redis://localhost:6379"`
 }
 
 // Cfg stores config values

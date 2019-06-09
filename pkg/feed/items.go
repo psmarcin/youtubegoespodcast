@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 	"ytg/pkg/redis_client"
@@ -16,8 +15,9 @@ import (
 )
 
 const (
-	ytVideoURL       = "https://youtube.com/watch?v="
-	RedisVideoPrefix = "ytvideo_"
+	ytVideoURL           = "https://youtube.com/watch?v="
+	videoItemCachePrefix = "ytvideo_"
+	videoItemCacheTTL    = time.Hour * 24 * 7
 )
 
 type VideosResponse struct {
@@ -120,7 +120,6 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 				},
 				ITExplicit: "no",
 				ITDuration: calculateDuration(vd.Duration),
-				ITOrder:    strconv.Itoa(i),
 			}
 			return nil
 		}(video, i)
@@ -156,7 +155,7 @@ func getVideoDetails(videoID string) (VideoDetails, error) {
 	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
 
-	_, err := redis_client.Client.GetKey(RedisVideoPrefix+videoID, &vd)
+	_, err := redis_client.Client.GetKey(videoItemCachePrefix+videoID, &vd)
 	// got cached value, fast return
 	if err == nil {
 		return vd, nil
@@ -193,7 +192,7 @@ func getVideoDetails(videoID string) (VideoDetails, error) {
 	if err != nil {
 		return vd, err
 	}
-	go redis_client.Client.SetKey(RedisVideoPrefix+videoID, string(str), time.Hour*24)
+	go redis_client.Client.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
 
 	return vd, nil
 }

@@ -1,12 +1,19 @@
 package feed
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
+	"ytg/pkg/redis_client"
 	"ytg/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	channelCachePRefix = "ytchannel_"
+	channelCacheTTL    = time.Hour * 1
 )
 
 type ChannelDetailsResponse struct {
@@ -45,23 +52,12 @@ func (f *Feed) addItem(item Item) error {
 
 func (f *Feed) getDetails(channelID string) error {
 	channel := ChannelDetailsResponse{}
-	req, err := http.NewRequest("GET", youtube.YouTubeURL+"channels", nil)
+	_, err := redis_client.Client.GetKey(channelCachePRefix+channelID, &channel)
+	// got cached value, fast return
 	if err != nil {
-		logrus.WithError(err).Fatal("[YT] Can't create new request")
+		getDetailsRequest(channelID, &channel)
 	}
-	query := req.URL.Query()
-	query.Add("part", "snippet")
-	query.Add("id", channelID)
-	query.Add("maxResults", "1")
-	req.URL.RawQuery = query.Encode()
 
-	err = youtube.Request(req, &channel)
-	if err != nil {
-		return nil
-	}
-	if len(channel.Items) == 0 {
-		return errors.New("Can't find channel")
-	}
 	item := channel.Items[0].Snippet
 
 	f.Title = channel.Items[0].Snippet.Title
@@ -85,5 +81,34 @@ func (f *Feed) getDetails(channelID string) error {
 		Href: getImageURL(item.Thumbnails.High.URL),
 	}
 	f.ITExplicit = "no"
+	return nil
+}
+
+func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) error {
+	req, err := http.NewRequest("GET", youtube.YouTubeURL+"channels", nil)
+	if err != nil {
+		logrus.WithError(err).Fatal("[YT] Can't create new request")
+	}
+	query := req.URL.Query()
+	query.Add("part", "snippet")
+	query.Add("id", channelID)
+	query.Add("maxResults", "1")
+	req.URL.RawQuery = query.Encode()
+
+	err = youtube.Request(req, channel)
+	if err != nil {
+		return nil
+	}
+
+	str, err := json.Marshal(channel)
+	if err != nil {
+		return err
+	}
+	go redis_client.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
+
+	if len(channel.Items) == 0 {
+		return errors.New("Can't find channel")
+	}
+
 	return nil
 }
