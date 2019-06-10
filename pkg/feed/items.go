@@ -101,11 +101,18 @@ func (f *Feed) getVideos(q string) (VideosResponse, error) {
 }
 
 func (f *Feed) setVideos(videos VideosResponse) error {
-	stream := make(chan Item, len(videos.Items))
+	stream := make(chan Item, countItems(videos.Items))
 
 	for i, video := range videos.Items {
 		s := video.Snippet
+
 		go func(video VideosItems, i int) error {
+
+			if video.ID.VideoID == "" {
+				stream <- Item{}
+				return nil
+			}
+
 			vd, err := getVideoDetails(video.ID.VideoID)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp4"
 			fileDetails, _ := getVideoFileDetails(videoURL)
@@ -195,7 +202,7 @@ func getVideoDetails(videoID string) (VideoDetails, error) {
 		return VideoDetails{}, err
 	}
 	if len(videoDetails.Items) != 1 {
-		return VideoDetails{}, errors.New("Can't get video details")
+		return VideoDetails{}, errors.New("Can't get video details for " + videoID)
 	}
 	duration, err := parseDuration(videoDetails.Items[0].Details.Duration)
 	if err != nil {
@@ -234,4 +241,14 @@ func calculateDuration(d time.Duration) string {
 	d -= m * time.Minute
 	s := d / time.Second
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+}
+
+func countItems(items []VideosItems) int {
+	counter := 0
+	for _, item := range items {
+		if item.ID.VideoID != "" {
+			counter++
+		}
+	}
+	return counter
 }

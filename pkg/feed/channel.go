@@ -58,9 +58,13 @@ func (f *Feed) getDetails(channelID string) error {
 		getDetailsRequest(channelID, &channel)
 	}
 
+	if len(channel.Items) == 0 {
+		return nil
+	}
+
 	item := channel.Items[0].Snippet
 
-	f.Title = channel.Items[0].Snippet.Title
+	f.Title = item.Title
 	f.Link = ytChannelURL + f.ChannelID
 	f.Description = item.Description
 	f.Category = "category"
