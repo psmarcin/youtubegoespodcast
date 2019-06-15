@@ -2,15 +2,22 @@ package feed
 
 import (
 	"net/http"
+	"ytg/pkg/db"
 
 	"github.com/gorilla/mux"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	params := mux.Vars(r)
 	channelID := params["channelId"]
+
 	f := new(channelID)
 	err := f.getDetails(channelID)
+
+	// save log to database
+	go db.DB.SaveChannel(ctx, channelID, err)
+
 	if err != nil {
 		handleError(w, err)
 		return
