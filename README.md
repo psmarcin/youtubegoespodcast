@@ -28,6 +28,17 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 1. Docker, more: https://docs.docker.com/install/
 1. Realize (auto restart), more https://github.com/oxequa/realize
 
+### Environment variables
+Example environment variables
+```bash
+APP_ENV=development
+GOOGLE_API_KEY=<YOUR_YOUTUBE_API_KEY>
+REDIS_URI=redis://localhost:6379
+PORT=8080
+API_URL=http://localhost:8080/
+DATABASE_CONNECTION_STRING="postgresql://postgres:@localhost:5432/postgres?sslmode=disable"
+```
+
 ### Build
 1. `make build`
 
@@ -37,6 +48,10 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 ### Develop
 1. `docker-compose up -d`
 1. `make dev`
+
+### Debug
+1. `docker-compose up -d`
+1. `make debug`
 
 ## Credits
 This project uses big part of https://github.com/rylio/ytdl. I couldn't use it as dependencies because there was conflict with `logrus`. Will use it as dependency as soon as it will fix that problem.

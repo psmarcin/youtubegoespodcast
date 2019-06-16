@@ -14,6 +14,9 @@ test: dependencies
 build: dependencies
 	go build main.go
 
+debug:
+	dlv debug --headless --listen=:2345 --log --api-version 2
+
 
 setProject:
 	gcloud config set project $(PROJECT_ID)
