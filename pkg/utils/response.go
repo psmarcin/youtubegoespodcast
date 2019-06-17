@@ -3,6 +3,8 @@ package utils
 import (
 	"io"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 // JSONResponse set headers for json response
@@ -17,6 +19,7 @@ func OkResponse(w http.ResponseWriter) {
 
 // WriteBodyResponse writes body to writer
 func WriteBodyResponse(w http.ResponseWriter, body string) {
+	logrus.Printf("[API] Response %+v %s", w.Header(), body)
 	io.WriteString(w, body)
 }
 
@@ -42,12 +45,14 @@ func PermanentRedirect(w http.ResponseWriter, location string) {
 
 // BadRequestError set header and string error message
 func BadRequestError(w http.ResponseWriter, err error) {
+	logrus.WithError(err).Printf("[API] Bad Request")
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write([]byte(err.Error()))
 }
 
 // InternalError set header and string error message
 func InternalError(w http.ResponseWriter, err error) {
+	logrus.WithError(err).Printf("[API] Internal Error")
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte(err.Error()))
 }

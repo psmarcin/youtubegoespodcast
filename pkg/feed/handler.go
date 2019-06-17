@@ -3,6 +3,7 @@ package feed
 import (
 	"net/http"
 	"ytg/pkg/db"
+	"ytg/pkg/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -19,27 +20,27 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	go db.DB.SaveChannel(ctx, channelID, err)
 
 	if err != nil {
-		handleError(w, err)
+		utils.BadRequestError(w, err)
 		return
 	}
 	searchPhrase := r.FormValue("search")
 	videos, err := f.getVideos(searchPhrase)
 	if err != nil {
-		handleError(w, err)
+		utils.BadRequestError(w, err)
 		return
 	}
 	err = f.setVideos(videos)
 	if err != nil {
-		handleError(w, err)
+		utils.BadRequestError(w, err)
 		return
 	}
 	serialized, err := f.serialize()
 	if err != nil {
-		handleError(w, err)
+		utils.BadRequestError(w, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/rss+xml; charset=UTF-8")
-	w.Write([]byte(serialized))
+	utils.WriteBodyResponse(w, string(serialized))
 }
 
 func handleError(w http.ResponseWriter, err error) {
