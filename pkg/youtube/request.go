@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 	"ytg/pkg/config"
@@ -26,6 +27,10 @@ func Request(req *http.Request, y interface{}) error {
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing request to youtube api")
 		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		logrus.WithError(err).Printf("[YT] request status error")
+		return errors.New(res.Status)
 	}
 	defer res.Body.Close()
 

@@ -32,7 +32,11 @@ func GetTrendings() (YoutubeResponse, error) {
 	query.Add("chart", "mostPopular")
 	req.URL.RawQuery = query.Encode()
 
-	Request(req, &trendings)
+	err = Request(req, &trendings)
+
+	if err != nil {
+		return trendings, err
+	}
 
 	// save videoDetails to cache
 	str, err := json.Marshal(trendings)
