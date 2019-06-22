@@ -32,8 +32,8 @@ func Setup() *Database {
 	}
 
 	db.SetConnMaxLifetime(0)
-	db.SetMaxIdleConns(50)
-	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(5)
 	DB.db = db
 
 	return &DB
