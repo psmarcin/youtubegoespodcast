@@ -9,11 +9,10 @@ import (
 // Handler is a entrypoint for router
 func Handler(w http.ResponseWriter, r *http.Request) {
 	response, err := youtube.GetTrendings()
-	if err != nil {
-		utils.InternalError(w, err)
+	if err.IsError() {
+		utils.SendError(w, err)
 		return
 	}
 	serialied := youtube.Serialize(response)
-	utils.OkResponse(w)
-	utils.WriteBodyResponse(w, serialied)
+	utils.Send(w, serialied, http.StatusOK)
 }

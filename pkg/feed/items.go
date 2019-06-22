@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"ytg/pkg/errx"
 	"ytg/pkg/redis_client"
 	"ytg/pkg/youtube"
 
@@ -63,19 +64,19 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) getVideos(q string) (VideosResponse, error) {
+func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 	videos := VideosResponse{}
 
 	_, err := redis_client.Client.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
 	// got cached value, fast return
 	if err == nil {
-		return videos, nil
+		return videos, errx.APIError{}
 	}
 
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideosResponse{}, err
+		return VideosResponse{}, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -86,38 +87,38 @@ func (f *Feed) getVideos(q string) (VideosResponse, error) {
 	query.Add("fields", "items(id,snippet(channelId,channelTitle,description,publishedAt,thumbnails/high,title))")
 	req.URL.RawQuery = query.Encode()
 
-	err = youtube.Request(req, &videos)
-	if err != nil {
-		return VideosResponse{}, err
+	requestErr := youtube.Request(req, &videos)
+	if requestErr.IsError() {
+		return VideosResponse{}, requestErr
 	}
 
 	// save video items to cache
 	str, err := json.Marshal(videos)
 	if err != nil {
-		return videos, err
+		return videos, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	go redis_client.Client.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
-	return videos, nil
+	return videos, errx.APIError{}
 }
 
-func (f *Feed) setVideos(videos VideosResponse) error {
+func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 	stream := make(chan Item, countItems(videos.Items))
 
 	for i, video := range videos.Items {
 		s := video.Snippet
 
-		go func(video VideosItems, i int) error {
+		go func(video VideosItems, i int) errx.APIError {
 
 			if video.ID.VideoID == "" {
 				stream <- Item{}
-				return nil
+				return errx.APIError{}
 			}
 
 			vd, err := getVideoDetails(video.ID.VideoID)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp4"
 			fileDetails, _ := getVideoFileDetails(videoURL)
-			if err != nil {
-				logrus.WithError(err).Printf("[ITEM]")
+			if err.IsError() {
+				logrus.WithError(err.Err).Printf("[ITEM]")
 				stream <- Item{}
 				return err
 			}
@@ -144,7 +145,7 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 				ITExplicit: "no",
 				ITDuration: calculateDuration(vd.Duration),
 			}
-			return nil
+			return errx.APIError{}
 		}(video, i)
 
 	}
@@ -157,38 +158,41 @@ func (f *Feed) setVideos(videos VideosResponse) error {
 		f.addItem(<-stream)
 		counter++
 	}
-	return nil
+	return errx.APIError{}
 }
 
-func getVideoFileDetails(videoURL string) (VideoFileDetails, error) {
+func getVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	resp, err := http.Head(videoURL)
 	if err != nil {
-		return VideoFileDetails{}, err
+		return VideoFileDetails{}, errx.NewAPIError(err, http.StatusBadRequest)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return VideoFileDetails{}, errors.New("Can't get file details for " + videoURL)
+		return VideoFileDetails{}, errx.NewAPIError(
+			errors.New("Can't get file details for "+videoURL),
+			http.StatusBadRequest,
+		)
 	}
 	return VideoFileDetails{
 		ContentType:   resp.Header.Get("Content-Type"),
 		ContentLength: resp.Header.Get("Content-Length"),
-	}, nil
+	}, errx.APIError{}
 }
 
-func getVideoDetails(videoID string) (VideoDetails, error) {
+func getVideoDetails(videoID string) (VideoDetails, errx.APIError) {
 	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
 
 	_, err := redis_client.Client.GetKey(videoItemCachePrefix+videoID, &vd)
 	// got cached value, fast return
 	if err == nil {
-		return vd, nil
+		return vd, errx.APIError{}
 	}
 
 	// no cached value, have to make call to API
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideoDetails{}, err
+		return VideoDetails{}, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "contentDetails")
@@ -197,27 +201,27 @@ func getVideoDetails(videoID string) (VideoDetails, error) {
 	query.Add("fields", "items/contentDetails/duration")
 	req.URL.RawQuery = query.Encode()
 
-	err = youtube.Request(req, &videoDetails)
-	if err != nil {
-		return VideoDetails{}, err
+	requestErr := youtube.Request(req, &videoDetails)
+	if requestErr.IsError() {
+		return VideoDetails{}, requestErr
 	}
 	if len(videoDetails.Items) != 1 {
-		return VideoDetails{}, errors.New("Can't get video details for " + videoID)
+		return VideoDetails{}, errx.NewAPIError(errors.New("Can't get video details for "+videoID), http.StatusBadRequest)
 	}
 	duration, err := parseDuration(videoDetails.Items[0].Details.Duration)
 	if err != nil {
-		return VideoDetails{}, err
+		return VideoDetails{}, errx.NewAPIError(errors.New("Can't parse duration for "+videoID), http.StatusInternalServerError)
 	}
 	vd.Duration = duration
 
 	// save videoDetails to cache
 	str, err := json.Marshal(vd)
 	if err != nil {
-		return vd, err
+		return vd, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	go redis_client.Client.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
 
-	return vd, nil
+	return vd, errx.APIError{}
 }
 
 func parseDuration(duration string) (time.Duration, error) {

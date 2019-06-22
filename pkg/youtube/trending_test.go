@@ -70,7 +70,7 @@ func TestGetTrendings(t *testing.T) {
 				BodyString(response)
 
 			got, err := GetTrendings()
-			if (err != nil) != tt.wantErr {
+			if (err.IsError()) != tt.wantErr {
 				t.Errorf("GetTrendings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

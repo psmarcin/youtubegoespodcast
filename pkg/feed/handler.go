@@ -3,6 +3,7 @@ package feed
 import (
 	"net/http"
 	"ytg/pkg/db"
+	"ytg/pkg/errx"
 	"ytg/pkg/utils"
 
 	"github.com/gorilla/mux"
@@ -17,30 +18,31 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	err := f.getDetails(channelID)
 
 	// save log to database
-	go db.DB.SaveChannel(ctx, channelID, err)
+	go db.DB.SaveChannel(ctx, channelID, err.Err)
 
-	if err != nil {
-		utils.BadRequestError(w, err)
+	if err.IsError() {
+		utils.SendError(w, err)
 		return
 	}
 	searchPhrase := r.FormValue("search")
-	videos, err := f.getVideos(searchPhrase)
-	if err != nil {
-		utils.BadRequestError(w, err)
+	videos, getVideoErr := f.getVideos(searchPhrase)
+	if getVideoErr.IsError() {
+		utils.SendError(w, getVideoErr)
 		return
 	}
-	err = f.setVideos(videos)
-	if err != nil {
-		utils.BadRequestError(w, err)
+
+	setVideosErr := f.setVideos(videos)
+	if setVideosErr.IsError() {
+		utils.SendError(w, setVideosErr)
 		return
 	}
-	serialized, err := f.serialize()
-	if err != nil {
-		utils.BadRequestError(w, err)
+	serialized, serializeErr := f.serialize()
+	if serializeErr != nil {
+		utils.SendError(w, errx.NewAPIError(serializeErr, http.StatusInternalServerError))
 		return
 	}
 	w.Header().Set("Content-Type", "application/rss+xml; charset=UTF-8")
-	utils.WriteBodyResponse(w, string(serialized))
+	utils.Send(w, string(serialized), http.StatusOK)
 }
 
 func handleError(w http.ResponseWriter, err error) {

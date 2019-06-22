@@ -51,6 +51,5 @@ func startMultiplex() {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w)
-	utils.OkResponse(w)
-	utils.WriteBodyResponse(w, RootJSON)
+	utils.Send(w, RootJSON, http.StatusOK)
 }

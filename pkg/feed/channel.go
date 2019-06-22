@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
+	"ytg/pkg/errx"
 	"ytg/pkg/redis_client"
 	"ytg/pkg/youtube"
 
@@ -50,7 +51,7 @@ func (f *Feed) addItem(item Item) error {
 	return nil
 }
 
-func (f *Feed) getDetails(channelID string) error {
+func (f *Feed) getDetails(channelID string) errx.APIError {
 	channel := ChannelDetailsResponse{}
 	_, err := redis_client.Client.GetKey(channelCachePRefix+channelID, &channel)
 	// got cached value, fast return
@@ -59,7 +60,7 @@ func (f *Feed) getDetails(channelID string) error {
 	}
 
 	if len(channel.Items) == 0 {
-		return nil
+		return errx.NewAPIError(errors.New("Can't find items for channel "+channelID), http.StatusNotFound)
 	}
 
 	item := channel.Items[0].Snippet
@@ -85,10 +86,10 @@ func (f *Feed) getDetails(channelID string) error {
 		Href: getImageURL(item.Thumbnails.High.URL),
 	}
 	f.ITExplicit = "no"
-	return nil
+	return errx.APIError{}
 }
 
-func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) error {
+func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.APIError {
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"channels", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
@@ -99,20 +100,20 @@ func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) error 
 	query.Add("maxResults", "1")
 	req.URL.RawQuery = query.Encode()
 
-	err = youtube.Request(req, channel)
-	if err != nil {
-		return nil
+	requestError := youtube.Request(req, channel)
+	if requestError.IsError() {
+		return requestError
 	}
 
 	str, err := json.Marshal(channel)
 	if err != nil {
-		return err
+		return errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	go redis_client.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
 
 	if len(channel.Items) == 0 {
-		return errors.New("Can't find channel")
+		return errx.NewAPIError(errors.New("Can't find channel"), http.StatusInternalServerError)
 	}
 
-	return nil
+	return errx.APIError{}
 }

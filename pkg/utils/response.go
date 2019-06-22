@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"io"
 	"net/http"
+	"ytg/pkg/errx"
 
 	"github.com/sirupsen/logrus"
 )
@@ -10,17 +10,6 @@ import (
 // JSONResponse set headers for json response
 func JSONResponse(w http.ResponseWriter) {
 	w.Header().Set("content-type", "application/json")
-}
-
-// OkResponse set statusCode for response
-func OkResponse(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusOK)
-}
-
-// WriteBodyResponse writes body to writer
-func WriteBodyResponse(w http.ResponseWriter, body string) {
-	logrus.Printf("[API] Response %+v %s", w.Header(), body)
-	io.WriteString(w, body)
 }
 
 // AllowCorsResponse set proper CORS headers
@@ -43,16 +32,15 @@ func PermanentRedirect(w http.ResponseWriter, location string) {
 	w.WriteHeader(http.StatusPermanentRedirect)
 }
 
-// BadRequestError set header and string error message
-func BadRequestError(w http.ResponseWriter, err error) {
-	logrus.WithError(err).Printf("[API] Bad Request")
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(err.Error()))
+// Send check if error exists if so return serialized version if it doesn't it return conetent
+func Send(w http.ResponseWriter, body string, statusCode int) {
+	w.WriteHeader(statusCode)
+	w.Write([]byte(body))
 }
 
-// InternalError set header and string error message
-func InternalError(w http.ResponseWriter, err error) {
-	logrus.WithError(err).Printf("[API] Internal Error")
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(err.Error()))
+// Send check if error exists if so return serialized version if it doesn't it return conetent
+func SendError(w http.ResponseWriter, err errx.APIError) {
+	logrus.WithError(err.Err).Printf("[API] Error response")
+	w.WriteHeader(err.StatusCode)
+	w.Write([]byte(err.Serialize()))
 }

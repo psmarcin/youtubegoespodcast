@@ -67,7 +67,11 @@ func TestGetChannels(t *testing.T) {
 					]
 					}
 				`)
-			if got := GetChannels(tt.args.q); !reflect.DeepEqual(got, tt.want) {
+			got, err := GetChannels(tt.args.q)
+			if err.IsError() {
+				t.Errorf(err.Err.Error())
+			}
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetChannels() = %v, want %v", got, tt.want)
 			}
 		})

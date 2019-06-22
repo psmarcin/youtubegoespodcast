@@ -116,7 +116,7 @@ func Test_getVideoDetails(t *testing.T) {
 				BodyString(response)
 
 			got, err := getVideoDetails(tt.args.videoID)
-			if (err != nil) != tt.wantErr {
+			if (err.IsError()) != tt.wantErr {
 				t.Errorf("getVideoDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -172,7 +172,7 @@ func Test_getVideoFileDetails(t *testing.T) {
 				AddHeader("Content-Length", tt.want.ContentLength)
 
 			got, err := getVideoFileDetails(tt.args.videoURL)
-			if (err != nil) != tt.wantErr {
+			if (err.IsError()) != tt.wantErr {
 				t.Errorf("getVideoFileDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -271,7 +271,7 @@ func TestFeed_getVideos(t *testing.T) {
 				Reply(status).
 				BodyString(response)
 			got, err := f.getVideos("123")
-			if (err != nil) != tt.wantErr {
+			if (err.IsError()) != tt.wantErr {
 				t.Errorf("Feed.getVideos() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
 			}
