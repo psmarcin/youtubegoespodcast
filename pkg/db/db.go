@@ -36,7 +36,13 @@ func Setup() *Database {
 	db.SetMaxOpenConns(5)
 	DB.db = db
 
+	logrus.Printf("[DB] Connected to %s", config.Cfg.DatabaseConnectionString)
 	return &DB
+}
+
+// Teardown shutdown all remaining connections
+func Teardown() {
+	DB.db.Close()
 }
 
 // SaveChannel insert row into DB

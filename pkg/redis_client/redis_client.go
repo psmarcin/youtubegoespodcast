@@ -20,7 +20,7 @@ type redisClient struct {
 	connected bool
 }
 
-// Client hold all informations and instance to do queries
+// Client hold all information and instance to do queries
 var Client redisClient
 
 func (r *redisClient) SetKey(key, value string, exp time.Duration) error {
@@ -62,5 +62,12 @@ func Connect() redisClient {
 
 	Client.client = redis.NewClient(opt)
 	Client.connected = true
+	logrus.Printf("[CACHE] Connected to %s", config.Cfg.RedisURI)
 	return Client
+}
+
+// Teardown closes connection and cleanup after cache connection
+func Teardown() {
+	Client.client.Close()
+	Client.connected = false
 }
