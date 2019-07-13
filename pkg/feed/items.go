@@ -82,7 +82,7 @@ func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 	query.Add("part", "snippet")
 	query.Add("order", "date")
 	query.Add("channelId", f.ChannelID)
-	query.Add("maxResults", "10")
+	query.Add("maxResults", "5")
 	query.Add("q", q)
 	query.Add("fields", "items(id,snippet(channelId,channelTitle,description,publishedAt,thumbnails/high,title))")
 	req.URL.RawQuery = query.Encode()
