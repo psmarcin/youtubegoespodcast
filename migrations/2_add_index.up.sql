@@ -1,0 +1,1 @@
+CREATE INDEX channels_logs_channel_id ON channels_logs(channel_id text_ops);
