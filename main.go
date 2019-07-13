@@ -15,6 +15,7 @@ func main() {
 	logger.Setup()
 	// DB
 	db.Setup()
+	db.Migrate()
 	defer db.Teardown()
 	// Cache
 	redis_client.Connect()

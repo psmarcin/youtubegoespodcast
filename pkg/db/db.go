@@ -3,6 +3,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"time"
 	"ygp/pkg/config"
 
@@ -59,5 +62,27 @@ func (d Database) SaveChannel(ctx context.Context, channelID string, e error) er
 		return err
 	}
 	logrus.Printf("[DB] Saved to db %s", channelID)
+	return nil
+}
+
+// Migrate starts process of migrating sql files in order
+func Migrate() error {
+	driver, err := postgres.WithInstance(DB.db, &postgres.Config{})
+	if err != nil {
+		logrus.WithError(err).Printf("[DB] Migration can't start...")
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres", driver)
+	if err != nil {
+		logrus.WithError(err).Printf("[DB] Can't migrate to existing database...")
+		return err
+	}
+	err = m.Steps(2)
+	if err != nil {
+		logrus.WithError(err).Printf("[DB] Migration can't start...")
+		return err
+	}
 	return nil
 }
