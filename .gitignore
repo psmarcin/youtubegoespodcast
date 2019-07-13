@@ -16,3 +16,7 @@ bin
 
 # debug
 __debug_bin
+
+
+# goland
+.idea

@@ -21,5 +21,4 @@ func main() {
 	defer redis_client.Teardown()
 	// API
 	api.Start()
-
 }

@@ -42,15 +42,18 @@ func Setup() *Database {
 
 // Teardown shutdown all remaining connections
 func Teardown() {
-	DB.db.Close()
+	err := DB.db.Close()
+	if err != nil {
+		logrus.WithError(err).Print("[DB] can't teardown")
+	}
 }
 
 // SaveChannel insert row into DB
 func (d Database) SaveChannel(ctx context.Context, channelID string, e error) error {
 	now := time.Now()
-	uuid, _ := uuid.NewV4()
+	id, _ := uuid.NewV4()
 	_, err := d.db.ExecContext(ctx, `INSERT INTO channels_logs (id, channel_id, date, error) VALUES ($1, $2, $3, $4)`,
-		uuid, channelID, now.UTC(), e)
+		id, channelID, now.UTC(), e)
 	if err != nil {
 		logrus.WithError(err).Printf("[DB] On save channel")
 		return err
