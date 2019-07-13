@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"time"
-	"ytg/pkg/config"
+	"ygp/pkg/config"
 
 	"github.com/sirupsen/logrus"
 

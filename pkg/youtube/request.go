@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
-	"ytg/pkg/config"
-	"ytg/pkg/errx"
+	"ygp/pkg/config"
+	"ygp/pkg/errx"
 
 	"github.com/sirupsen/logrus"
 )

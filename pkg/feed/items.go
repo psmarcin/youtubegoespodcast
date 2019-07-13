@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 	"time"
-	"ytg/pkg/errx"
-	"ytg/pkg/redis_client"
-	"ytg/pkg/youtube"
+	"ygp/pkg/errx"
+	"ygp/pkg/redis_client"
+	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
 )

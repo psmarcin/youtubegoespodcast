@@ -2,9 +2,9 @@ package feed
 
 import (
 	"net/http"
-	"ytg/pkg/db"
-	"ytg/pkg/errx"
-	"ytg/pkg/utils"
+	"ygp/pkg/db"
+	"ygp/pkg/errx"
+	"ygp/pkg/utils"
 
 	"github.com/gorilla/mux"
 )

@@ -2,7 +2,7 @@ package youtube
 
 import (
 	"net/http"
-	"ytg/pkg/errx"
+	"ygp/pkg/errx"
 
 	"github.com/sirupsen/logrus"
 )

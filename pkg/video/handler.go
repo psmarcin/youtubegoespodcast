@@ -2,7 +2,7 @@ package video
 
 import (
 	"net/http"
-	"ytg/pkg/utils"
+	"ygp/pkg/utils"
 
 	"github.com/gorilla/mux"
 )

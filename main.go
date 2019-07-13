@@ -1,11 +1,11 @@
 package main
 
 import (
-	"ytg/pkg/api"
-	"ytg/pkg/config"
-	"ytg/pkg/db"
-	"ytg/pkg/logger"
-	"ytg/pkg/redis_client"
+	"ygp/pkg/api"
+	"ygp/pkg/config"
+	"ygp/pkg/db"
+	"ygp/pkg/logger"
+	"ygp/pkg/redis_client"
 )
 
 func main() {

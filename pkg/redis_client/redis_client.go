@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
-	"ytg/pkg/config"
+	"ygp/pkg/config"
 
 	"github.com/sirupsen/logrus"
 

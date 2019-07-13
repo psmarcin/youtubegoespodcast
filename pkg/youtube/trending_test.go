@@ -69,14 +69,14 @@ func TestGetTrendings(t *testing.T) {
 				Reply(tt.status).
 				BodyString(response)
 
-			got, err := GetTrendings()
+			got, err := GetTrending()
 			if (err.IsError()) != tt.wantErr {
-				t.Errorf("GetTrendings() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetTrending() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			for i, item := range got.Items {
 				if item.Snippet.ChannelID != tt.want.Items[i].Snippet.ChannelID || item.Snippet.Title != tt.want.Items[i].Snippet.Title {
-					t.Errorf("GetTrendings() = %v, want %v", got, tt.want)
+					t.Errorf("GetTrending() = %v, want %v", got, tt.want)
 				}
 			}
 		})

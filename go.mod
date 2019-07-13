@@ -1,4 +1,4 @@
-module ytg
+module ygp
 
 go 1.12
 

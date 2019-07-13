@@ -2,8 +2,8 @@ package channels
 
 import (
 	"net/http"
-	"ytg/pkg/utils"
-	"ytg/pkg/youtube"
+	"ygp/pkg/utils"
+	"ygp/pkg/youtube"
 )
 
 // Handler is default router handler for GET /channel endpoint

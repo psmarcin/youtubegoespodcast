@@ -2,14 +2,14 @@ package api
 
 import (
 	"net/http"
-	"ytg/pkg/channels"
-	"ytg/pkg/config"
-	"ytg/pkg/feed"
-	"ytg/pkg/logger"
-	"ytg/pkg/metrics"
-	"ytg/pkg/trending"
-	"ytg/pkg/utils"
-	"ytg/pkg/video"
+	"ygp/pkg/channels"
+	"ygp/pkg/config"
+	"ygp/pkg/feed"
+	"ygp/pkg/logger"
+	"ygp/pkg/metrics"
+	"ygp/pkg/trending"
+	"ygp/pkg/utils"
+	"ygp/pkg/video"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

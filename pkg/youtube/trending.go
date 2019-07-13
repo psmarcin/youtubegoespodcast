@@ -4,47 +4,47 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"ytg/pkg/errx"
-	"ytg/pkg/redis_client"
+	"ygp/pkg/errx"
+	"ygp/pkg/redis_client"
 
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	trendingCacheTTL    = time.Hour * 24
-	trendingCachePrefix = "yttrending_main"
+	trendingCacheTTL    time.Duration = time.Hour * 24
+	trendingCachePrefix               = "yttrending_main"
 )
 
-// GetTrendings collects trendings from YouTube API
-func GetTrendings() (YoutubeResponse, errx.APIError) {
-	trendings := YoutubeResponse{}
-	_, err := redis_client.Client.GetKey(trendingCachePrefix, &trendings)
+// GetTrending collects trending from YouTube API
+func GetTrending() (YoutubeResponse, errx.APIError) {
+	trending := YoutubeResponse{}
+	_, err := redis_client.Client.GetKey(trendingCachePrefix, &trending)
 	if err == nil {
-		return trendings, errx.APIError{}
+		return trending, errx.APIError{}
 	}
 
 	req, err := http.NewRequest("GET", YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trendings, errx.NewAPIError(err, http.StatusInternalServerError)
+		return trending, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
 	query.Add("chart", "mostPopular")
 	req.URL.RawQuery = query.Encode()
 
-	requestErr := Request(req, &trendings)
+	requestErr := Request(req, &trending)
 
 	if requestErr.IsError() {
-		return trendings, requestErr
+		return trending, requestErr
 	}
 
 	// save videoDetails to cache
-	str, err := json.Marshal(trendings)
+	str, err := json.Marshal(trending)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trendings, errx.NewAPIError(err, http.StatusInternalServerError)
+		return trending, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
 	go redis_client.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
-	return trendings, errx.APIError{}
+	return trending, errx.APIError{}
 }
