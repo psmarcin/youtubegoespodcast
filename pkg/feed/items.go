@@ -20,7 +20,7 @@ const (
 	videoItemCachePrefix  = "ytvideo_"
 	videoItemCacheTTL     = time.Hour * 24 * 7
 	videoItemsCachePrefix = "ytvideos_"
-	videoItemsCacheTTL    = time.Hour
+	videoItemsCacheTTL    = time.Hour * 24
 )
 
 type VideosResponse struct {

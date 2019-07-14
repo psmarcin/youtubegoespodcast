@@ -14,7 +14,7 @@ import (
 
 const (
 	channelCachePRefix = "ytchannel_"
-	channelCacheTTL    = time.Hour * 1
+	channelCacheTTL    = time.Hour * 24
 )
 
 type ChannelDetailsResponse struct {
