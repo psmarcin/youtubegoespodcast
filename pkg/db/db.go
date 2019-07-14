@@ -40,6 +40,7 @@ func Setup() *Database {
 	DB.db = db
 
 	logrus.Printf("[DB] Connected to %s", config.Cfg.DatabaseConnectionString)
+	go Migrate()
 	return &DB
 }
 
