@@ -18,7 +18,7 @@ import (
 const (
 	ytVideoURL            = "https://youtube.com/watch?v="
 	videoItemCachePrefix  = "ytvideo_"
-	videoItemCacheTTL     = time.Hour * 24 * 7
+	videoItemCacheTTL     = time.Hour * 24 * 60
 	videoItemsCachePrefix = "ytvideos_"
 	videoItemsCacheTTL    = time.Hour * 24
 )
