@@ -15,7 +15,7 @@ func TestHandler(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/video/videoId.mp3", nil)
-	req = mux.SetURLVars(req, map[string]string{"videoId": "NtQkz0aRDe8"})
+	req = mux.SetURLVars(req, map[string]string{"videoId": "ulCdoCfw-bY"})
 
 	tests := []struct {
 		name string
