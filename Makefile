@@ -31,4 +31,4 @@ deploy: setProject
 	gcloud builds submit --tag $(IMAGE_TAG)
 
 publish: setProject
-	gcloud beta run deploy --image $(IMAGE_TAG) --allow-unauthenticated --timeout=10 --concurrency=100 --memory=128Mi --region=us-central1 --update-env-vars=APP_ENV=production,API_URL=https://ygp.psmarcin.dev/ $(NAME)
+	gcloud beta run deploy --image $(IMAGE_TAG) --allow-unauthenticated --timeout=10 --concurrency=100 --memory=128Mi --region=us-central1 --update-env-vars=APP_ENV=production,API_URL=https://ygp.psmarcin.dev/ --platform managed $(NAME)
