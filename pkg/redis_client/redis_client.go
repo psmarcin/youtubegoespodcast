@@ -15,15 +15,15 @@ var (
 	errNotConnected = errors.New("Redis client not connected")
 )
 
-type redisClient struct {
+type RedisClient struct {
 	client    *redis.Client
 	connected bool
 }
 
 // Client hold all information and instance to do queries
-var Client redisClient
+var Client RedisClient
 
-func (r *redisClient) SetKey(key, value string, exp time.Duration) error {
+func (r *RedisClient) SetKey(key, value string, exp time.Duration) error {
 	if !r.connected {
 		return errNotConnected
 	}
@@ -32,7 +32,7 @@ func (r *redisClient) SetKey(key, value string, exp time.Duration) error {
 	return err
 }
 
-func (r *redisClient) GetKey(key string, to interface{}) (string, error) {
+func (r *RedisClient) GetKey(key string, to interface{}) (string, error) {
 	if !r.connected {
 		return "", errNotConnected
 	}
@@ -50,20 +50,25 @@ func (r *redisClient) GetKey(key string, to interface{}) (string, error) {
 }
 
 // Connect creates connection to redis base on config package
-func Connect() redisClient {
+func Connect() (RedisClient, error) {
 	opt, err := redis.ParseURL(config.Cfg.RedisURI)
 	if err != nil {
 		panic(err)
 	}
 
-	Client = redisClient{
+	Client = RedisClient{
 		connected: false,
 	}
 
 	Client.client = redis.NewClient(opt)
+	_, err = Client.client.Ping().Result()
+	if err != nil {
+		logrus.Errorf("[CACHE] Can't connect to %s", config.Cfg.RedisURI)
+		return RedisClient{}, err
+	}
 	Client.connected = true
 	logrus.Printf("[CACHE] Connected to %s", config.Cfg.RedisURI)
-	return Client
+	return Client, nil
 }
 
 // Teardown closes connection and cleanup after cache connection
