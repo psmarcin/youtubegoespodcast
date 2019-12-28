@@ -31,7 +31,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		utils.SendError(w, errx.NewAPIError(cacheErr, http.StatusInternalServerError))
 		return
 	}
-	if cache != "" && cacheErr == nil {
+	if cache != "" {
 		utils.Send(w, cache, http.StatusOK)
 		return
 	}
