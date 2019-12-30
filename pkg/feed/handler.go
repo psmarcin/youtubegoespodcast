@@ -26,11 +26,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/rss+xml; charset=UTF-8")
 
 	// get cache
-	cache, cacheErr := redis_client.Client.GetKey(cacheKey, nil)
-	if cacheErr != nil {
-		utils.SendError(w, errx.NewAPIError(cacheErr, http.StatusInternalServerError))
-		return
-	}
+	cache, _ := redis_client.Client.GetKey(cacheKey, nil)
+
 	if cache != "" {
 		utils.Send(w, cache, http.StatusOK)
 		return
