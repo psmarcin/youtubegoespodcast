@@ -1,49 +1,50 @@
 package video
 
-import (
-	"bytes"
-	"encoding/json"
-	"encoding/xml"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
+// import (
+// 	"bytes"
+// 	"encoding/json"
+// 	"encoding/xml"
+// 	"fmt"
+// 	"io"
+// 	"io/ioutil"
+// 	"net/http"
+// 	"net/url"
+// 	"regexp"
+// 	"strconv"
+// 	"strings"
+// 	"time"
 
-	"github.com/PuerkitoBio/goquery"
-	log "github.com/sirupsen/logrus"
-)
+// 	"github.com/PuerkitoBio/goquery"
+// 	"github.com/iawia002/annie/request"
+// 	log "github.com/sirupsen/logrus"
+// )
 
-// VideoInfo contains the info a youtube video
-type VideoInfo struct {
-	// The video ID
-	ID string `json:"id"`
-	// The video title
-	Title string `json:"title"`
-	// The video description
-	Description string `json:"description"`
-	// The date the video was published
-	DatePublished time.Time `json:"datePublished"`
-	// Formats the video is available in
-	Formats FormatList `json:"formats"`
-	// List of keywords associated with the video
-	Keywords []string `json:"keywords"`
-	// Author of the video
-	Author string `json:"author"`
-	// Duration of the video
-	Duration time.Duration
+// // VideoInfo contains the info a youtube video
+// type VideoInfo struct {
+// 	// The video ID
+// 	ID string `json:"id"`
+// 	// The video title
+// 	Title string `json:"title"`
+// 	// The video description
+// 	Description string `json:"description"`
+// 	// The date the video was published
+// 	DatePublished time.Time `json:"datePublished"`
+// 	// Formats the video is available in
+// 	Formats FormatList `json:"formats"`
+// 	// List of keywords associated with the video
+// 	Keywords []string `json:"keywords"`
+// 	// Author of the video
+// 	Author string `json:"author"`
+// 	// Duration of the video
+// 	Duration time.Duration
 
-	htmlPlayerFile string
-}
+// 	htmlPlayerFile string
+// }
 
-// FormatList is a slice of formats with filtering functionality
-type FormatList []Format
+// // FormatList is a slice of formats with filtering functionality
+// type FormatList []Format
 
-// Format is a youtube is a static youtube video format
+// // Format is a youtube is a static youtube video format
 type Format struct {
 	Itag          int    `json:"itag"`
 	Extension     string `json:"extension"`
@@ -54,406 +55,400 @@ type Format struct {
 	meta          map[string]interface{}
 }
 
-// FormatKey is a string type containing a key in a video format map
-type FormatKey string
+// // FormatKey is a string type containing a key in a video format map
+// type FormatKey string
 
 const youtubeBaseURL = "https://www.youtube.com/watch"
-const youtubeEmbededBaseURL = "https://www.youtube.com/embed/"
-const youtubeVideoEURL = "https://youtube.googleapis.com/v/"
-const youtubeVideoInfoURL = "https://www.youtube.com/get_video_info"
-const youtubeDateFormat = "2006-01-02"
 
-// Available format Keys
-const (
-	FormatExtensionKey     FormatKey = "ext"
-	FormatResolutionKey    FormatKey = "res"
-	FormatVideoEncodingKey FormatKey = "videnc"
-	FormatAudioEncodingKey FormatKey = "audenc"
-	FormatItagKey          FormatKey = "itag"
-	FormatAudioBitrateKey  FormatKey = "audbr"
-	FormatFPSKey           FormatKey = "fps"
-)
+// const youtubeEmbededBaseURL = "https://www.youtube.com/embed/"
+// const youtubeVideoEURL = "https://youtube.googleapis.com/v/"
+// const youtubeVideoInfoURL = "https://www.youtube.com/get_video_info"
+// const youtubeDateFormat = "2006-01-02"
+// const referer = "https://www.youtube.com"
 
-func GetVideoInfoFromID(id string) (*VideoInfo, error) {
-	u, _ := url.ParseRequestURI(youtubeBaseURL)
-	values := u.Query()
-	values.Set("v", id)
-	u.RawQuery = values.Encode()
+// // Available format Keys
+// const (
+// 	FormatExtensionKey     FormatKey = "ext"
+// 	FormatResolutionKey    FormatKey = "res"
+// 	FormatVideoEncodingKey FormatKey = "videnc"
+// 	FormatAudioEncodingKey FormatKey = "audenc"
+// 	FormatItagKey          FormatKey = "itag"
+// 	FormatAudioBitrateKey  FormatKey = "audbr"
+// 	FormatFPSKey           FormatKey = "fps"
+// )
 
-	resp, err := http.Get(u.String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Invalid status code: %d", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return getVideoInfoFromHTML(id, body)
-}
+// func GetVideoInfoFromID(id string) (*VideoInfo, error) {
+// 	u, _ := url.ParseRequestURI(youtubeBaseURL)
+// 	values := u.Query()
+// 	values.Set("v", id)
+// 	u.RawQuery = values.Encode()
 
-func getVideoInfoFromHTML(id string, html []byte) (*VideoInfo, error) {
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
-	if err != nil {
-		return nil, err
-	}
+// 	resp, err := http.Get(u.String())
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+// 	if resp.StatusCode != 200 {
+// 		return nil, fmt.Errorf("Invalid status code: %d", resp.StatusCode)
+// 	}
+// 	body, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return getVideoInfoFromHTML(id, body)
+// }
 
-	info := &VideoInfo{}
+// func getVideoInfoFromHTML(id string, html []byte) (*VideoInfo, error) {
+// 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// extract description and title
-	info.Description = strings.TrimSpace(doc.Find("#eow-description").Text())
-	info.Title = strings.TrimSpace(doc.Find("#eow-title").Text())
-	info.ID = id
-	dateStr, ok := doc.Find("meta[itemprop=\"datePublished\"]").Attr("content")
-	if !ok {
-		log.Debug("Unable to extract date published")
-	} else {
-		date, err := time.Parse(youtubeDateFormat, dateStr)
-		if err == nil {
-			info.DatePublished = date
-		} else {
-			log.Debug("Unable to parse date published", err.Error())
-		}
-	}
+// 	info := &VideoInfo{}
 
-	// match json in javascript
-	re := regexp.MustCompile("ytplayer.config = (.*?);ytplayer.load")
-	matches := re.FindSubmatch(html)
-	var jsonConfig map[string]interface{}
-	if len(matches) > 1 {
-		err = json.Unmarshal(matches[1], &jsonConfig)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		log.Debug("Unable to extract json from default url, trying embedded url")
-		var resp *http.Response
-		resp, err = http.Get(youtubeEmbededBaseURL + id)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != 200 {
-			return nil, fmt.Errorf("Embeded url request returned status code %d	", resp.StatusCode)
-		}
-		html, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		//	re = regexp.MustCompile("\"sts\"\\s*:\\s*(\\d+)")
-		re = regexp.MustCompile("yt.setConfig\\({'PLAYER_CONFIG': (.*?)}\\);")
+// 	// extract description and title
+// 	info.Description = strings.TrimSpace(doc.Find("#eow-description").Text())
+// 	info.Title = strings.TrimSpace(doc.Find("#eow-title").Text())
+// 	info.ID = id
+// 	dateStr, ok := doc.Find("meta[itemprop=\"datePublished\"]").Attr("content")
+// 	if !ok {
+// 		log.Debug("Unable to extract date published")
+// 	} else {
+// 		date, err := time.Parse(youtubeDateFormat, dateStr)
+// 		if err == nil {
+// 			info.DatePublished = date
+// 		} else {
+// 			log.Debug("Unable to parse date published", err.Error())
+// 		}
+// 	}
 
-		matches := re.FindSubmatch(html)
-		if len(matches) < 2 {
-			return nil, fmt.Errorf("Error extracting sts from embedded url response")
-		}
-		dec := json.NewDecoder(bytes.NewBuffer(matches[1]))
-		err = dec.Decode(&jsonConfig)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to extract json from embedded url: %s", err.Error())
-		}
-		query := url.Values{
-			"sts":      []string{strconv.Itoa(int(jsonConfig["sts"].(float64)))},
-			"video_id": []string{id},
-			"eurl":     []string{youtubeVideoEURL + id},
-		}
+// 	// match json in javascript
+// 	re := regexp.MustCompile("ytplayer.config = (.*?);ytplayer.load")
+// 	matches := re.FindSubmatch(html)
+// 	var jsonConfig map[string]interface{}
+// 	if len(matches) > 1 {
+// 		err = json.Unmarshal(matches[1], &jsonConfig)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	} else {
+// 		log.Debug("Unable to extract json from default url, trying embedded url")
+// 		var resp *http.Response
+// 		resp, err = http.Get(youtubeEmbededBaseURL + id)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		defer resp.Body.Close()
+// 		if resp.StatusCode != 200 {
+// 			return nil, fmt.Errorf("Embeded url request returned status code %d	", resp.StatusCode)
+// 		}
+// 		html, err = ioutil.ReadAll(resp.Body)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		//	re = regexp.MustCompile("\"sts\"\\s*:\\s*(\\d+)")
+// 		re = regexp.MustCompile("yt.setConfig\\({'PLAYER_CONFIG': (.*?)}\\);")
 
-		resp, err = http.Get(youtubeVideoInfoURL + "?" + query.Encode())
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching video info: %s", err.Error())
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != 200 {
-			return nil, fmt.Errorf("Video info response invalid status code")
-		}
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to read video info response body: %s", err.Error())
-		}
-		query, err = url.ParseQuery(string(body))
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse video info data: %s", err.Error())
-		}
-		args := make(map[string]interface{})
-		for k, v := range query {
-			if len(v) > 0 {
-				args[k] = v[0]
-			}
-		}
-		jsonConfig["args"] = args
-	}
+// 		matches := re.FindSubmatch(html)
+// 		if len(matches) < 2 {
+// 			return nil, fmt.Errorf("Error extracting sts from embedded url response")
+// 		}
+// 		dec := json.NewDecoder(bytes.NewBuffer(matches[1]))
+// 		err = dec.Decode(&jsonConfig)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Unable to extract json from embedded url: %s", err.Error())
+// 		}
+// 		query := url.Values{
+// 			"sts":      []string{strconv.Itoa(int(jsonConfig["sts"].(float64)))},
+// 			"video_id": []string{id},
+// 			"eurl":     []string{youtubeVideoEURL + id},
+// 		}
 
-	inf := jsonConfig["args"].(map[string]interface{})
-	if status, ok := inf["status"].(string); ok && status == "fail" {
-		return nil, fmt.Errorf("Error %d:%s", inf["errorcode"], inf["reason"])
-	}
-	if a, ok := inf["author"].(string); ok {
-		info.Author = a
-	} else {
-		log.Debug("Unable to extract author")
-	}
+// 		resp, err = http.Get(youtubeVideoInfoURL + "?" + query.Encode())
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Error fetching video info: %s", err.Error())
+// 		}
+// 		defer resp.Body.Close()
+// 		if resp.StatusCode != 200 {
+// 			return nil, fmt.Errorf("Video info response invalid status code")
+// 		}
+// 		body, err := ioutil.ReadAll(resp.Body)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Unable to read video info response body: %s", err.Error())
+// 		}
+// 		query, err = url.ParseQuery(string(body))
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Unable to parse video info data: %s", err.Error())
+// 		}
+// 		args := make(map[string]interface{})
+// 		for k, v := range query {
+// 			if len(v) > 0 {
+// 				args[k] = v[0]
+// 			}
+// 		}
+// 		jsonConfig["args"] = args
+// 	}
 
-	if length, ok := inf["length_seconds"].(string); ok {
-		if duration, err := strconv.ParseInt(length, 10, 64); err == nil {
-			info.Duration = time.Second * time.Duration(duration)
-		} else {
-			log.Debug("Unable to parse duration string: ", length)
-		}
-	} else {
-		log.Debug("Unable to extract duration")
-	}
+// 	inf := jsonConfig["args"].(map[string]interface{})
+// 	if status, ok := inf["status"].(string); ok && status == "fail" {
+// 		return nil, fmt.Errorf("Error %d:%s", inf["errorcode"], inf["reason"])
+// 	}
+// 	if a, ok := inf["author"].(string); ok {
+// 		info.Author = a
+// 	} else {
+// 		log.Debug("Unable to extract author")
+// 	}
 
-	// For the future maybe
-	parseKey := func(key string) []string {
-		val, ok := inf[key].(string)
-		if !ok {
-			return nil
-		}
-		vals := []string{}
-		split := strings.Split(val, ",")
-		for _, v := range split {
-			if v != "" {
-				vals = append(vals, v)
-			}
-		}
-		return vals
-	}
-	info.Keywords = parseKey("keywords")
-	info.htmlPlayerFile = jsonConfig["assets"].(map[string]interface{})["js"].(string)
+// 	if length, ok := inf["length_seconds"].(string); ok {
+// 		if duration, err := strconv.ParseInt(length, 10, 64); err == nil {
+// 			info.Duration = time.Second * time.Duration(duration)
+// 		} else {
+// 			log.Debug("Unable to parse duration string: ", length)
+// 		}
+// 	} else {
+// 		log.Debug("Unable to extract duration")
+// 	}
 
-	/*
-		fmtList := parseKey("fmt_list")
-		fexp := parseKey("fexp")
-		watermark := parseKey("watermark")
+// 	// For the future maybe
+// 	parseKey := func(key string) []string {
+// 		val, ok := inf[key].(string)
+// 		if !ok {
+// 			return nil
+// 		}
+// 		vals := []string{}
+// 		split := strings.Split(val, ",")
+// 		for _, v := range split {
+// 			if v != "" {
+// 				vals = append(vals, v)
+// 			}
+// 		}
+// 		return vals
+// 	}
+// 	info.Keywords = parseKey("keywords")
+// 	info.htmlPlayerFile = jsonConfig["assets"].(map[string]interface{})["js"].(string)
 
-		if len(fmtList) != 0 {
-			vals := []string{}
-			for _, v := range fmtList {
-				vals = append(vals, strings.Split(v, "/")...)
-		} else {
-			info["fmt_list"] = []string{}
-		}
+// 	/*
+// 		fmtList := parseKey("fmt_list")
+// 		fexp := parseKey("fexp")
+// 		watermark := parseKey("watermark")
 
-		videoVerticals := []string{}
-		if videoVertsStr, ok := inf["video_verticals"].(string); ok {
-			videoVertsStr = string([]byte(videoVertsStr)[1 : len(videoVertsStr)-2])
-			videoVertsSplit := strings.Split(videoVertsStr, ", ")
-			for _, v := range videoVertsSplit {
-				if v != "" {
-					videoVerticals = append(videoVerticals, v)
-				}
-			}
-		}
-	*/
-	var formatStrings []string
-	if fmtStreamMap, ok := inf["url_encoded_fmt_stream_map"].(string); ok {
-		formatStrings = append(formatStrings, strings.Split(fmtStreamMap, ",")...)
-	}
+// 		if len(fmtList) != 0 {
+// 			vals := []string{}
+// 			for _, v := range fmtList {
+// 				vals = append(vals, strings.Split(v, "/")...)
+// 		} else {
+// 			info["fmt_list"] = []string{}
+// 		}
 
-	if adaptiveFormats, ok := inf["adaptive_fmts"].(string); ok {
-		formatStrings = append(formatStrings, strings.Split(adaptiveFormats, ",")...)
-	}
-	var formats FormatList
-	for _, v := range formatStrings {
-		query, err := url.ParseQuery(v)
-		if err == nil {
-			itag, _ := strconv.Atoi(query.Get("itag"))
-			if format, ok := newFormat(itag); ok {
-				if strings.HasPrefix(query.Get("conn"), "rtmp") {
-					format.meta["rtmp"] = true
-				}
-				for k, v := range query {
-					if len(v) == 1 {
-						format.meta[k] = v[0]
-					} else {
-						format.meta[k] = v
-					}
-				}
-				formats = append(formats, format)
-			} else {
-				log.Debug("No metadata found for itag: ", itag, ", skipping...")
-			}
-		} else {
-			log.Debug("Unable to format string", err.Error())
-		}
-	}
+// 		videoVerticals := []string{}
+// 		if videoVertsStr, ok := inf["video_verticals"].(string); ok {
+// 			videoVertsStr = string([]byte(videoVertsStr)[1 : len(videoVertsStr)-2])
+// 			videoVertsSplit := strings.Split(videoVertsStr, ", ")
+// 			for _, v := range videoVertsSplit {
+// 				if v != "" {
+// 					videoVerticals = append(videoVerticals, v)
+// 				}
+// 			}
+// 		}
+// 	*/
+// 	var formatStrings []string
+// 	if fmtStreamMap, ok := inf["url_encoded_fmt_stream_map"].(string); ok {
+// 		formatStrings = append(formatStrings, strings.Split(fmtStreamMap, ",")...)
+// 	}
 
-	if dashManifestURL, ok := inf["dashmpd"].(string); ok {
-		tokens, err := getSigTokens(info.htmlPlayerFile)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to extract signature tokens: %s", err.Error())
-		}
-		regex := regexp.MustCompile("\\/s\\/([a-fA-F0-9\\.]+)")
-		regexSub := regexp.MustCompile("([a-fA-F0-9\\.]+)")
-		dashManifestURL = regex.ReplaceAllStringFunc(dashManifestURL, func(str string) string {
-			return "/signature/" + decipherTokens(tokens, regexSub.FindString(str))
-		})
-		dashFormats, err := getDashManifest(dashManifestURL)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to extract dash manifest: %s", err.Error())
-		}
+// 	if adaptiveFormats, ok := inf["adaptive_fmts"].(string); ok {
+// 		formatStrings = append(formatStrings, strings.Split(adaptiveFormats, ",")...)
+// 	}
+// 	var formats FormatList
+// 	for _, v := range formatStrings {
+// 		query, err := url.ParseQuery(v)
+// 		if err == nil {
+// 			itag, _ := strconv.Atoi(query.Get("itag"))
+// 			if format, ok := newFormat(itag); ok {
+// 				if strings.HasPrefix(query.Get("conn"), "rtmp") {
+// 					format.meta["rtmp"] = true
+// 				}
+// 				for k, v := range query {
+// 					if len(v) == 1 {
+// 						format.meta[k] = v[0]
+// 					} else {
+// 						format.meta[k] = v
+// 					}
+// 				}
+// 				formats = append(formats, format)
+// 			} else {
+// 				log.Debug("No metadata found for itag: ", itag, ", skipping...")
+// 			}
+// 		} else {
+// 			log.Debug("Unable to format string", err.Error())
+// 		}
+// 	}
 
-		for _, dashFormat := range dashFormats {
-			added := false
-			for j, format := range formats {
-				if dashFormat.Itag == format.Itag {
-					formats[j] = dashFormat
-					added = true
-					break
-				}
-			}
-			if !added {
-				formats = append(formats, dashFormat)
-			}
-		}
-	}
-	info.Formats = formats
-	return info, nil
-}
+// 	if dashManifestURL, ok := inf["dashmpd"].(string); ok {
+// 		tokens, err := getSigTokens(info.htmlPlayerFile)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Unable to extract signature tokens: %s", err.Error())
+// 		}
+// 		regex := regexp.MustCompile("\\/s\\/([a-fA-F0-9\\.]+)")
+// 		regexSub := regexp.MustCompile("([a-fA-F0-9\\.]+)")
+// 		dashManifestURL = regex.ReplaceAllStringFunc(dashManifestURL, func(str string) string {
+// 			return "/signature/" + decipherTokens(tokens, regexSub.FindString(str))
+// 		})
+// 		dashFormats, err := getDashManifest(dashManifestURL)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("Unable to extract dash manifest: %s", err.Error())
+// 		}
 
-func newFormat(itag int) (Format, bool) {
-	if f, ok := FORMATS[itag]; ok {
-		f.meta = make(map[string]interface{})
-		return f, true
-	}
-	return Format{}, false
-}
+// 		for _, dashFormat := range dashFormats {
+// 			added := false
+// 			for j, format := range formats {
+// 				if dashFormat.Itag == format.Itag {
+// 					formats[j] = dashFormat
+// 					added = true
+// 					break
+// 				}
+// 			}
+// 			if !added {
+// 				formats = append(formats, dashFormat)
+// 			}
+// 		}
+// 	}
+// 	info.Formats = formats
+// 	return info, nil
+// }
 
-func getSigTokens(htmlPlayerFile string) ([]string, error) {
-	u, _ := url.Parse(youtubeBaseURL)
-	p, err := url.Parse(htmlPlayerFile)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := http.Get(u.ResolveReference(p).String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error fetching signature tokens, status code %d", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	bodyString := string(body)
-	if err != nil {
-		return nil, err
-	}
+// func newFormat(itag int) (Format, bool) {
+// 	if f, ok := FORMATS[itag]; ok {
+// 		f.meta = make(map[string]interface{})
+// 		return f, true
+// 	}
+// 	return Format{}, false
+// }
 
-	objResult := actionsObjRegexp.FindStringSubmatch(bodyString)
-	funcResult := actionsFuncRegexp.FindStringSubmatch(bodyString)
+// func getSigTokens(htmlPlayerFile string) ([]string, error) {
+// 	u, _ := url.Parse("https://www.youtube.com/watch")
+// 	p, err := url.Parse(htmlPlayerFile)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if len(objResult) < 3 || len(funcResult) < 2 {
-		return nil, fmt.Errorf("Error parsing signature tokens")
-	}
-	obj := strings.Replace(objResult[1], "$", "\\$", -1)
-	objBody := strings.Replace(objResult[2], "$", "\\$", -1)
-	funcBody := strings.Replace(funcResult[1], "$", "\\$", -1)
+// 	body, err := request.Get(u.ResolveReference(p).String(), referer, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var reverseKey, sliceKey, spliceKey, swapKey string
-	var result []string
+// 	objResult := actionsObjRegexp.FindStringSubmatch(body)
+// 	funcResult := actionsFuncRegexp.FindStringSubmatch(body)
 
-	if result = reverseRegexp.FindStringSubmatch(objBody); len(result) > 1 {
-		reverseKey = strings.Replace(result[1], "$", "\\$", -1)
-	}
-	if result = sliceRegexp.FindStringSubmatch(objBody); len(result) > 1 {
-		sliceKey = strings.Replace(result[1], "$", "\\$", -1)
-	}
-	if result = spliceRegexp.FindStringSubmatch(objBody); len(result) > 1 {
-		spliceKey = strings.Replace(result[1], "$", "\\$", -1)
-	}
-	if result = swapRegexp.FindStringSubmatch(objBody); len(result) > 1 {
-		swapKey = strings.Replace(result[1], "$", "\\$", -1)
-	}
+// 	if len(objResult) < 3 || len(funcResult) < 2 {
+// 		return nil, fmt.Errorf("error parsing signature tokens")
+// 	}
+// 	obj := strings.Replace(objResult[1], "$", "\\$", -1)
+// 	objBody := strings.Replace(objResult[2], "$", "\\$", -1)
+// 	funcBody := strings.Replace(funcResult[1], "$", "\\$", -1)
 
-	keys := []string{reverseKey, sliceKey, spliceKey, swapKey}
-	regex, err := regexp.Compile(fmt.Sprintf("(?:a=)?%s\\.(%s)\\(a,(\\d+)\\)", obj, strings.Join(keys, "|")))
-	if err != nil {
-		return nil, err
-	}
-	results := regex.FindAllStringSubmatch(funcBody, -1)
-	var tokens []string
-	for _, s := range results {
-		switch s[1] {
-		case swapKey:
-			tokens = append(tokens, "w"+s[2])
-		case reverseKey:
-			tokens = append(tokens, "r")
-		case sliceKey:
-			tokens = append(tokens, "s"+s[2])
-		case spliceKey:
-			tokens = append(tokens, "p"+s[2])
-		}
-	}
-	return tokens, nil
-}
+// 	var reverseKey, sliceKey, spliceKey, swapKey string
+// 	var result []string
 
-func decipherTokens(tokens []string, sig string) string {
-	var pos int
-	sigSplit := strings.Split(sig, "")
-	for i, l := 0, len(tokens); i < l; i++ {
-		tok := tokens[i]
-		if len(tok) > 1 {
-			pos, _ = strconv.Atoi(string(tok[1:]))
-			pos = ^^pos
-		}
-		switch string(tok[0]) {
-		case "r":
-			reverseStringSlice(sigSplit)
-		case "w":
-			s := sigSplit[0]
-			sigSplit[0] = sigSplit[pos]
-			sigSplit[pos] = s
-		case "s":
-			sigSplit = sigSplit[pos:]
-		case "p":
-			sigSplit = sigSplit[pos:]
-		}
-	}
-	return strings.Join(sigSplit, "")
-}
+// 	if result = reverseRegexp.FindStringSubmatch(objBody); len(result) > 1 {
+// 		reverseKey = strings.Replace(result[1], "$", "\\$", -1)
+// 	}
+// 	if result = sliceRegexp.FindStringSubmatch(objBody); len(result) > 1 {
+// 		sliceKey = strings.Replace(result[1], "$", "\\$", -1)
+// 	}
+// 	if result = spliceRegexp.FindStringSubmatch(objBody); len(result) > 1 {
+// 		spliceKey = strings.Replace(result[1], "$", "\\$", -1)
+// 	}
+// 	if result = swapRegexp.FindStringSubmatch(objBody); len(result) > 1 {
+// 		swapKey = strings.Replace(result[1], "$", "\\$", -1)
+// 	}
 
-func getDashManifest(urlString string) (formats []Format, err error) {
+// 	keys := []string{reverseKey, sliceKey, spliceKey, swapKey}
+// 	regex, err := regexp.Compile(fmt.Sprintf("(?:a=)?%s\\.(%s)\\(a,(\\d+)\\)", obj, strings.Join(keys, "|")))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	results := regex.FindAllStringSubmatch(funcBody, -1)
+// 	var tokens []string
+// 	for _, s := range results {
+// 		switch s[1] {
+// 		case swapKey:
+// 			tokens = append(tokens, "w"+s[2])
+// 		case reverseKey:
+// 			tokens = append(tokens, "r")
+// 		case sliceKey:
+// 			tokens = append(tokens, "s"+s[2])
+// 		case spliceKey:
+// 			tokens = append(tokens, "p"+s[2])
+// 		}
+// 	}
+// 	return tokens, nil
+// }
 
-	resp, err := http.Get(urlString)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Invalid status code %d", resp.StatusCode)
-	}
-	dec := xml.NewDecoder(resp.Body)
-	var token xml.Token
-	for ; err == nil; token, err = dec.Token() {
-		if el, ok := token.(xml.StartElement); ok && el.Name.Local == "Representation" {
-			var rep representation
-			err = dec.DecodeElement(&rep, &el)
-			if err != nil {
-				break
-			}
-			if format, ok := newFormat(rep.Itag); ok {
-				format.meta["url"] = rep.URL
-				if rep.Height != 0 {
-					format.Resolution = strconv.Itoa(rep.Height) + "p"
-				} else {
-					format.Resolution = ""
-				}
-				formats = append(formats, format)
-			} else {
-				log.Debug("No metadata found for itag: ", rep.Itag, ", skipping...")
-			}
-		}
-	}
-	if err != io.EOF {
-		return nil, err
-	}
-	return formats, nil
-}
+// func decipherTokens(tokens []string, sig string) string {
+// 	var pos int
+// 	sigSplit := strings.Split(sig, "")
+// 	for i, l := 0, len(tokens); i < l; i++ {
+// 		tok := tokens[i]
+// 		if len(tok) > 1 {
+// 			pos, _ = strconv.Atoi(string(tok[1:]))
+// 			pos = ^^pos
+// 		}
+// 		switch string(tok[0]) {
+// 		case "r":
+// 			reverseStringSlice(sigSplit)
+// 		case "w":
+// 			s := sigSplit[0]
+// 			sigSplit[0] = sigSplit[pos]
+// 			sigSplit[pos] = s
+// 		case "s":
+// 			sigSplit = sigSplit[pos:]
+// 		case "p":
+// 			sigSplit = sigSplit[pos:]
+// 		}
+// 	}
+// 	return strings.Join(sigSplit, "")
+// }
 
-// FORMATS is a map of all itags and their formats
+// func getDashManifest(urlString string) (formats []Format, err error) {
+
+// 	resp, err := http.Get(urlString)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+// 	if resp.StatusCode != 200 {
+// 		return nil, fmt.Errorf("Invalid status code %d", resp.StatusCode)
+// 	}
+// 	dec := xml.NewDecoder(resp.Body)
+// 	var token xml.Token
+// 	for ; err == nil; token, err = dec.Token() {
+// 		if el, ok := token.(xml.StartElement); ok && el.Name.Local == "Representation" {
+// 			var rep representation
+// 			err = dec.DecodeElement(&rep, &el)
+// 			if err != nil {
+// 				break
+// 			}
+// 			if format, ok := newFormat(rep.Itag); ok {
+// 				format.meta["url"] = rep.URL
+// 				if rep.Height != 0 {
+// 					format.Resolution = strconv.Itoa(rep.Height) + "p"
+// 				} else {
+// 					format.Resolution = ""
+// 				}
+// 				formats = append(formats, format)
+// 			} else {
+// 				log.Debug("No metadata found for itag: ", rep.Itag, ", skipping...")
+// 			}
+// 		}
+// 	}
+// 	if err != io.EOF {
+// 		return nil, err
+// 	}
+// 	return formats, nil
+// }
+
+// // FORMATS is a map of all itags and their formats
 var FORMATS = map[int]Format{
 	5: {
 		Extension:     "flv",
@@ -947,98 +942,101 @@ var FORMATS = map[int]Format{
 	},
 }
 
-var actionsObjRegexp = regexp.MustCompile(fmt.Sprintf(
-	"var (%s)=\\{((?:(?:%s%s|%s%s|%s%s|%s%s),?\\n?)+)\\};", jsvarStr, jsvarStr, reverseStr, jsvarStr, sliceStr, jsvarStr, spliceStr, jsvarStr, swapStr))
+// var actionsObjRegexp = regexp.MustCompile(fmt.Sprintf(
+// 	"var (%s)=\\{((?:(?:%s%s|%s%s|%s%s|%s%s),?\\n?)+)\\};",
+// 	jsvarStr, jsvarStr, reverseStr, jsvarStr, sliceStr, jsvarStr, spliceStr, jsvarStr, swapStr,
+// ))
 
-var actionsFuncRegexp = regexp.MustCompile(fmt.Sprintf(
-	"function(?: %s)?\\(a\\)\\{"+
-		"a=a\\.split\\(\"\"\\);\\s*"+
-		"((?:(?:a=)?%s\\.%s\\(a,\\d+\\);)+)"+
-		"return a\\.join\\(\"\"\\)"+
-		"\\}", jsvarStr, jsvarStr, jsvarStr))
+// var actionsFuncRegexp = regexp.MustCompile(fmt.Sprintf(
+// 	"function(?: %s)?\\(a\\)\\{"+
+// 		"a=a\\.split\\(\"\"\\);\\s*"+
+// 		"((?:(?:a=)?%s\\.%s\\(a,\\d+\\);)+)"+
+// 		"return a\\.join\\(\"\"\\)"+
+// 		"\\}", jsvarStr, jsvarStr, jsvarStr,
+// ))
 
-var reverseRegexp = regexp.MustCompile(fmt.Sprintf(
-	"(?m)(?:^|,)(%s)%s", jsvarStr, reverseStr))
-var sliceRegexp = regexp.MustCompile(fmt.Sprintf(
-	"(?m)(?:^|,)(%s)%s", jsvarStr, sliceStr))
-var spliceRegexp = regexp.MustCompile(fmt.Sprintf(
-	"(?m)(?:^|,)(%s)%s", jsvarStr, spliceStr))
-var swapRegexp = regexp.MustCompile(fmt.Sprintf(
-	"(?m)(?:^|,)(%s)%s", jsvarStr, swapStr))
+// var reverseRegexp = regexp.MustCompile(fmt.Sprintf("(?m)(?:^|,)(%s)%s", jsvarStr, reverseStr))
+// var sliceRegexp = regexp.MustCompile(fmt.Sprintf("(?m)(?:^|,)(%s)%s", jsvarStr, sliceStr))
+// var spliceRegexp = regexp.MustCompile(fmt.Sprintf("(?m)(?:^|,)(%s)%s", jsvarStr, spliceStr))
+// var swapRegexp = regexp.MustCompile(fmt.Sprintf("(?m)(?:^|,)(%s)%s", jsvarStr, swapStr))
 
-const (
-	jsvarStr   = "[a-zA-Z_\\$][a-zA-Z_0-9]*"
-	reverseStr = ":function\\(a\\)\\{" +
-		"(?:return )?a\\.reverse\\(\\)" +
-		"\\}"
-	sliceStr = ":function\\(a,b\\)\\{" +
-		"return a\\.slice\\(b\\)" +
-		"\\}"
-	spliceStr = ":function\\(a,b\\)\\{" +
-		"a\\.splice\\(0,b\\)" +
-		"\\}"
-	swapStr = ":function\\(a,b\\)\\{" +
-		"var c=a\\[0\\];a\\[0\\]=a\\[b(?:%a\\.length)?\\];a\\[b(?:%a\\.length)?\\]=c(?:;return a)?" +
-		"\\}"
-)
+// const (
+// 	jsvarStr   = "[a-zA-Z_\\$][a-zA-Z_0-9]*"
+// 	reverseStr = ":function\\(a\\)\\{" +
+// 		"(?:return )?a\\.reverse\\(\\)" +
+// 		"\\}"
+// 	sliceStr = ":function\\(a,b\\)\\{" +
+// 		"return a\\.slice\\(b\\)" +
+// 		"\\}"
+// 	spliceStr = ":function\\(a,b\\)\\{" +
+// 		"a\\.splice\\(0,b\\)" +
+// 		"\\}"
+// 	swapStr = ":function\\(a,b\\)\\{" +
+// 		"var c=a\\[0\\];a\\[0\\]=a\\[b(?:%a\\.length)?\\];a\\[b(?:%a\\.length)?\\]=c(?:;return a)?" +
+// 		"\\}"
+// )
 
-func reverseStringSlice(s []string) {
-	for i, j := 0, len(s)-1; i < len(s)/2; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
-}
+// func reverseStringSlice(s []string) {
+// 	for i, j := 0, len(s)-1; i < len(s)/2; i, j = i+1, j-1 {
+// 		s[i], s[j] = s[j], s[i]
+// 	}
+// }
 
-type representation struct {
-	Itag   int    `xml:"id,attr"`
-	Height int    `xml:"height,attr"`
-	URL    string `xml:"BaseURL"`
-}
+// type representation struct {
+// 	Itag   int    `xml:"id,attr"`
+// 	Height int    `xml:"height,attr"`
+// 	URL    string `xml:"BaseURL"`
+// }
 
-// GetDownloadURL gets the download url for a format
-func (info *VideoInfo) GetDownloadURL(format Format) (*url.URL, error) {
-	return getDownloadURL(format, info.htmlPlayerFile)
-}
+// // GetDownloadURL gets the download url for a format
+// func (info *VideoInfo) GetDownloadURL(format Format) (*url.URL, error) {
+// 	return getDownloadURL(format, info.htmlPlayerFile)
+// }
 
-func getDownloadURL(format Format, htmlPlayerFile string) (*url.URL, error) {
-	var sig string
-	if s, ok := format.meta["s"]; ok && len(s.(string)) > 0 {
-		tokens, err := getSigTokens(htmlPlayerFile)
-		if err != nil {
-			return nil, err
-		}
-		sig = decipherTokens(tokens, s.(string))
-	} else {
-		if s, ok := format.meta["sig"]; ok {
-			sig = s.(string)
-		}
-	}
-	var urlString string
-	if s, ok := format.meta["url"]; ok {
-		urlString = s.(string)
-	} else if s, ok := format.meta["stream"]; ok {
-		if c, ok := format.meta["conn"]; ok {
-			urlString = c.(string)
-			if urlString[len(urlString)-1] != '/' {
-				urlString += "/"
-			}
-		}
-		urlString += s.(string)
-	} else {
-		return nil, fmt.Errorf("Couldn't extract url from format")
-	}
-	urlString, err := url.QueryUnescape(urlString)
-	if err != nil {
-		return nil, err
-	}
-	u, err := url.Parse(urlString)
-	if err != nil {
-		return nil, err
-	}
-	query := u.Query()
-	query.Set("ratebypass", "yes")
-	if len(sig) > 0 {
-		query.Set("signature", sig)
-	}
-	u.RawQuery = query.Encode()
-	return u, nil
-}
+// func getDownloadURL(stream url.Values, htmlPlayerFile string) (string, error) {
+// 	var signature string
+// 	if s := stream.Get("s"); len(s) > 0 {
+// 		tokens, err := getSigTokens(htmlPlayerFile)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		signature = decipherTokens(tokens, s)
+// 	} else {
+// 		if sig := stream.Get("sig"); len(sig) > 0 {
+// 			signature = sig
+// 		}
+// 	}
+// 	var urlString string
+// 	if s := stream.Get("url"); len(s) > 0 {
+// 		urlString = s
+// 	} else if s := stream.Get("stream"); len(s) > 0 {
+// 		if c := stream.Get("conn"); len(c) > 0 {
+// 			urlString = c
+// 			if urlString[len(urlString)-1] != '/' {
+// 				urlString += "/"
+// 			}
+// 		}
+// 		urlString += s
+// 	} else {
+// 		return "", fmt.Errorf("couldn't extract url from format")
+// 	}
+// 	urlString, err := url.QueryUnescape(urlString)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	u, err := url.Parse(urlString)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	query := u.Query()
+// 	query.Set("ratebypass", "yes")
+// 	if len(signature) > 0 {
+// 		if sp := stream.Get("sp"); sp != "" {
+// 			query.Set(sp, signature)
+// 		} else {
+// 			query.Set("signature", signature)
+// 		}
+// 	}
+// 	u.RawQuery = query.Encode()
+// 	return u.String(), nil
+// }
