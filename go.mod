@@ -3,13 +3,12 @@ module ygp
 go 1.12
 
 require (
-	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.5.0
 	github.com/gorilla/mux v1.7.1
-	github.com/iawia002/annie v0.0.0-20191219103833-4da6cdfe5196
+	github.com/iawia002/annie v0.0.0-20200226031654-f3ef980c190b
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.1.1
 	github.com/onsi/ginkgo v1.8.0 // indirect
