@@ -2,6 +2,9 @@ package video
 
 import (
 	"net/http"
+
+	"github.com/sirupsen/logrus"
+
 	"ygp/pkg/utils"
 
 	"github.com/gorilla/mux"
@@ -14,6 +17,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	videoURL := GetURL(videoID)
 	if videoURL == "" {
+		logrus.Infof("didn't find video (%s) with audio", videoID)
 		http.NotFound(w, r)
 		return
 	}

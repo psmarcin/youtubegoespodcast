@@ -7,51 +7,36 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var audioFormats = []Format{
-	FORMATS[141],
-	FORMATS[140],
-	FORMATS[139],
-	FORMATS[171],
-	FORMATS[251],
-	FORMATS[250],
-	FORMATS[249],
-	FORMATS[18],
-}
-
 var audioFormat = "audio/mp4"
+
 // GetURL returns video URL based on videoID
 func GetURL(videoID string) string {
-	var toReturn = ""
+	var foundUrl = ""
+	var randomStreamKey = ""
 	var url = youtubeBaseURL + "?v=" + videoID
+
+	// extract details about video
 	det, err := youtube.Extract(url)
 	if err != nil {
 		logrus.WithError(err).Info("[VIDEO]")
 	}
 
+	// try to find audio stream
 	for _, detail := range det {
-		for _, stream := range detail.Streams{
-			if(strings.Contains(stream.Quality, audioFormat)){
-				toReturn = stream.URLs[0].URL
-				return toReturn
+		for streamKey, stream := range detail.Streams{
+			randomStreamKey = streamKey
+
+			if strings.Contains(stream.Quality, audioFormat) {
+				foundUrl = stream.URLs[0].URL
+				return foundUrl
 			}
 		}
 	}
 
-	return toReturn
+	// fallback if no audio stream
+	if foundUrl == "" && randomStreamKey != ""  {
+		foundUrl = det[0].Streams[randomStreamKey].URLs[0].URL
+	}
 
-	//for _, audioFormat := range audioFormats {
-	//	for _, format := range details.Formats {
-	//		url, err := getDownloadURL(format, details.htmlPlayerFile)
-	//		if err != nil {
-	//			logrus.WithError(err).Info("[VIDEO]")
-	//			break
-	//		}
-	//		if url != nil && audioFormat.Itag == format.Itag {
-	//			return url.String()
-	//		}
-	//	}
-	//}
-	// fallbackFormat := details.Formats[0]
-	// url, err := getDownloadURL(fallbackFormat, details.htmlPlayerFile)
-	// return url.String()
+	return foundUrl
 }
