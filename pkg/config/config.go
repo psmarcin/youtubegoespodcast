@@ -12,7 +12,6 @@ type Config struct {
 	GoogleAPIKey             string `env:"GOOGLE_API_KEY,required"`
 	Port                     string `env:"PORT" envDefault:"3000"`
 	RedisURI                 string `env:"REDIS_URI" envDefault:"redis://localhost:6379"`
-	DatabaseConnectionString string `env:"DATABASE_CONNECTION_STRING"`
 }
 
 // Cfg stores config values
@@ -22,6 +21,7 @@ var Cfg = Config{}
 func Init() {
 	_ = godotenv.Load(".env")
 	logrus.Info("[CONFIG] env variables loaded")
+
 	loadConfig()
 }
 

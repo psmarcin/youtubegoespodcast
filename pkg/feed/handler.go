@@ -3,7 +3,6 @@ package feed
 import (
 	"net/http"
 	"time"
-	"ygp/pkg/db"
 	"ygp/pkg/errx"
 	"ygp/pkg/redis_client"
 	"ygp/pkg/utils"
@@ -17,7 +16,6 @@ const (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
 	params := mux.Vars(r)
 	channelID := params["channelId"]
 	searchPhrase := r.FormValue("search")
@@ -35,9 +33,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	f := new(channelID)
 	err := f.getDetails(channelID)
-
-	// save log to database
-	go db.DB.SaveChannel(ctx, channelID, err.Err)
 
 	if err.IsError() {
 		utils.SendError(w, err)
