@@ -3,8 +3,8 @@ package feed
 import (
 	"net/http"
 	"time"
+	"ygp/pkg/cache"
 	"ygp/pkg/errx"
-	"ygp/pkg/redis_client"
 	"ygp/pkg/utils"
 
 	"github.com/gorilla/mux"
@@ -24,10 +24,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/rss+xml; charset=UTF-8")
 
 	// get cache
-	cache, _ := redis_client.Client.GetKey(cacheKey, nil)
+	c, _ := cache.Client.GetKey(cacheKey, nil)
 
-	if cache != "" {
-		utils.Send(w, cache, http.StatusOK)
+	if c != "" {
+		utils.Send(w, c, http.StatusOK)
 		return
 	}
 
@@ -56,7 +56,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set cache
-	go redis_client.Client.SetKey(cacheKey, string(serialized), cacheFeedTTL)
+	go cache.Client.SetKey(cacheKey, string(serialized), cacheFeedTTL)
 
 	utils.Send(w, string(serialized), http.StatusOK)
 }
