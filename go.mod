@@ -3,6 +3,7 @@ module ygp
 go 1.12
 
 require (
+	cloud.google.com/go/firestore v1.1.1
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/gofrs/uuid v3.2.0+incompatible

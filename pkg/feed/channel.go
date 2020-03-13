@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
+	"ygp/pkg/cache"
 	"ygp/pkg/errx"
-	"ygp/pkg/redis_client"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
@@ -53,7 +53,7 @@ func (f *Feed) addItem(item Item) error {
 
 func (f *Feed) getDetails(channelID string) errx.APIError {
 	channel := ChannelDetailsResponse{}
-	_, err := redis_client.Client.GetKey(channelCachePRefix+channelID, &channel)
+	_, err := cache.Client.GetKey(channelCachePRefix+channelID, &channel)
 	// got cached value, fast return
 	if err != nil {
 		getDetailsRequest(channelID, &channel)
@@ -109,7 +109,7 @@ func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.A
 	if err != nil {
 		return errx.NewAPIError(err, http.StatusInternalServerError)
 	}
-	go redis_client.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
+	go cache.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
 
 	if len(channel.Items) == 0 {
 		return errx.NewAPIError(errors.New("Can't find channel"), http.StatusInternalServerError)

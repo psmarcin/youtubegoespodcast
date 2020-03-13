@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"ygp/pkg/errx"
-	"ygp/pkg/redis_client"
 
 	"github.com/sirupsen/logrus"
+
+	"ygp/pkg/cache"
+	"ygp/pkg/errx"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 // GetTrending collects trending from YouTube API
 func GetTrending() (YoutubeResponse, errx.APIError) {
 	trending := YoutubeResponse{}
-	_, err := redis_client.Client.GetKey(trendingCachePrefix, &trending)
+	_, err := cache.Client.GetKey(trendingCachePrefix, &trending)
 	if err == nil {
 		return trending, errx.APIError{}
 	}
@@ -45,6 +46,6 @@ func GetTrending() (YoutubeResponse, errx.APIError) {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
 		return trending, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
-	go redis_client.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
+	go cache.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
 	return trending, errx.APIError{}
 }

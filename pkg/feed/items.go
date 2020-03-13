@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"ygp/pkg/cache"
 	"ygp/pkg/errx"
-	"ygp/pkg/redis_client"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
@@ -67,7 +67,7 @@ type VideosDetailsContent struct {
 func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 	videos := VideosResponse{}
 
-	_, err := redis_client.Client.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
+	_, err := cache.Client.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
 	// got cached value, fast return
 	if err == nil {
 		return videos, errx.APIError{}
@@ -97,7 +97,7 @@ func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 	if err != nil {
 		return videos, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
-	go redis_client.Client.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
+	go cache.Client.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
 	return videos, errx.APIError{}
 }
 
@@ -182,7 +182,7 @@ func getVideoDetails(videoID string) (VideoDetails, errx.APIError) {
 	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
 
-	_, err := redis_client.Client.GetKey(videoItemCachePrefix+videoID, &vd)
+	_, err := cache.Client.GetKey(videoItemCachePrefix+videoID, &vd)
 	// got cached value, fast return
 	if err == nil {
 		return vd, errx.APIError{}
@@ -219,7 +219,7 @@ func getVideoDetails(videoID string) (VideoDetails, errx.APIError) {
 	if err != nil {
 		return vd, errx.NewAPIError(err, http.StatusInternalServerError)
 	}
-	go redis_client.Client.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
+	go cache.Client.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
 
 	return vd, errx.APIError{}
 }

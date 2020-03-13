@@ -2,9 +2,9 @@ package main
 
 import (
 	"ygp/pkg/api"
+	"ygp/pkg/cache"
 	"ygp/pkg/config"
 	"ygp/pkg/logger"
-	"ygp/pkg/redis_client"
 )
 
 func main() {
@@ -13,8 +13,7 @@ func main() {
 	// Logger
 	logger.Setup()
 	// Cache
-	redis_client.Connect()
-	defer redis_client.Teardown()
+	_, _ = cache.Connect()
 	// API
 	api.Start()
 }

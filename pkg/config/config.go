@@ -8,10 +8,10 @@ import (
 
 // Config stores all data from env variables
 type Config struct {
-	AppEnv                   string `env:"APP_ENV,required" envDefault:"development"`
-	GoogleAPIKey             string `env:"GOOGLE_API_KEY,required"`
-	Port                     string `env:"PORT" envDefault:"3000"`
-	RedisURI                 string `env:"REDIS_URI" envDefault:"redis://localhost:6379"`
+	AppEnv                 string `env:"APP_ENV,required" envDefault:"development"`
+	GoogleAPIKey           string `env:"GOOGLE_API_KEY,required"`
+	Port                   string `env:"PORT" envDefault:"3000"`
+	FirestoreCollection    string `env:"FIRESTORE_COLLECTION" envDefault:"dev"`
 }
 
 // Cfg stores config values
