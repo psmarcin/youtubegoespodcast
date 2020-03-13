@@ -12,11 +12,11 @@ steps:
         "beta",
         "run",
         "deploy",
-        "ygp-api",
+        "yt-api",
         "--image",
         "gcr.io/youtubegoespodcast/ygp-api",
         "--region",
-        "us-central1",
+        "europe-west4",
         "--platform",
         "managed",
       ]
