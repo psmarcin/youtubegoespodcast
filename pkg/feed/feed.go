@@ -53,9 +53,10 @@ type Item struct {
 	Enclosure   Enclosure `xml:"enclosure"`
 	ITAuthor    string    `xml:"itunes:author"`
 	ITSubtitle  string    `xml:"itunes:subtitle"`
+	ITTitle     string    `xml:"itunes:title"`
 	ITSummary   ITSummary `xml:"itunes:summary"`
 	ITImage     ITImage   `xml:"itunes:image"`
-	ITDuration  string    `xml:"itunes:duration"`
+	ITDuration  float64    `xml:"itunes:duration"`
 	ITExplicit  string    `xml:"itunes:explicit"`
 	ITOrder     string    `xml:"itunes:order"`
 }

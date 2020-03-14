@@ -69,9 +69,9 @@ func (f *Feed) getDetails(channelID string) errx.APIError {
 	f.Link = ytChannelURL + f.ChannelID
 	f.Description = item.Description
 	f.Category = "category"
-	f.Language = "en"
-	f.LastBuildDate = item.PublishedAt.String()
-	f.PubDate = item.PublishedAt.String()
+	f.Language = item.Country
+	f.LastBuildDate = item.PublishedAt.Format(time.RFC1123Z)
+	f.PubDate = item.PublishedAt.Format(time.RFC1123Z)
 	f.Image = Image{
 		URL:   getImageURL(item.Thumbnails.High.URL),
 		Title: item.Title,

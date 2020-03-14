@@ -104,6 +104,13 @@ func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 	stream := make(chan Item, countItems(videos.Items))
 
+	// set channel last updated at field as latest item publishing date
+	if len(videos.Items) != 0 {
+		lastItem := videos.Items[0]
+		f.LastBuildDate = lastItem.Snippet.PublishedAt.Format(time.RFC1123Z)
+		f.PubDate = f.LastBuildDate
+	}
+
 	for i, video := range videos.Items {
 		s := video.Snippet
 
@@ -126,9 +133,9 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 			stream <- Item{
 				GUID:        video.ID.VideoID,
 				Title:       s.Title,
-				Link:        videoURL,
+				Link:        ytVideoURL+video.ID.VideoID,
 				Description: s.Description,
-				PubDate:     s.PublishedAt.String(),
+				PubDate:     s.PublishedAt.Format(time.RFC1123Z),
 				Enclosure: Enclosure{
 					URL:    videoURL,
 					Length: fileDetails.ContentLength,
@@ -136,6 +143,7 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 				},
 				ITAuthor:   f.ITAuthor,
 				ITSubtitle: s.Title,
+				ITTitle:    s.Title,
 				ITSummary: ITSummary{
 					Text: s.Description,
 				},
@@ -143,7 +151,7 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 					Href: getImageURL(s.Thumbnails.High.URL),
 				},
 				ITExplicit: "no",
-				ITDuration: calculateDuration(vd.Duration),
+				ITDuration: vd.Duration.Seconds(),
 			}
 			return errx.APIError{}
 		}(video, i)
