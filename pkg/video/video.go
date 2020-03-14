@@ -7,10 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var audioFormat = "audio/mp4"
 
 // GetURL returns video URL based on videoID
-func GetURL(videoID string) string {
+func GetURL(videoID, format string) string {
 	var foundUrl = ""
 	var randomStreamKey = ""
 	var url = youtubeBaseURL + "?v=" + videoID
@@ -26,7 +25,7 @@ func GetURL(videoID string) string {
 		for streamKey, stream := range detail.Streams{
 			randomStreamKey = streamKey
 
-			if strings.Contains(stream.Quality, audioFormat) {
+			if strings.Contains(stream.Quality, format) {
 				foundUrl = stream.URLs[0].URL
 				return foundUrl
 			}

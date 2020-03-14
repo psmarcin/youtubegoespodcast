@@ -122,7 +122,7 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 			}
 
 			vd, err := getVideoDetails(video.ID.VideoID)
-			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp4"
+			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp3"
 			fileDetails, _ := getVideoFileDetails(videoURL)
 			if err.IsError() {
 				logrus.WithError(err.Err).Printf("[ITEM]")

@@ -39,7 +39,7 @@ func startMultiplex() {
 	router.Handle("/", metrics.MiddlewareHandlerDuration("/", rootHandler)).Methods("GET")
 	router.Handle("/trending", metrics.MiddlewareHandlerDuration("/trending", trending.Handler)).Methods("GET")
 	router.Handle("/channels", metrics.MiddlewareHandlerDuration("/channels", channels.Handler)).Methods("GET")
-	router.Handle("/video/{videoId}.mp3", metrics.MiddlewareHandlerDuration("/video/{videoId}.mp3", video.Handler)).Methods("GET", "HEAD")
+	router.Handle("/video/{videoId}.mp3", metrics.MiddlewareHandlerDuration("/video/{videoId}.mp3", video.HandlerMP3)).Methods("GET", "HEAD")
 	router.Handle("/video/{videoId}.mp4", metrics.MiddlewareHandlerDuration("/video/{videoId}.mp4", video.Handler)).Methods("GET", "HEAD")
 	router.Handle("/video", metrics.MiddlewareHandlerDuration("/video", video.RedirectHandler)).Methods("GET", "HEAD")
 	router.Handle("/feed/channel/{channelId}", metrics.MiddlewareHandlerDuration("/feed/channel/{channelId}", feed.Handler)).Methods("GET", "HEAD")
