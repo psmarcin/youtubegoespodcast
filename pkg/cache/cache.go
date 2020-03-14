@@ -35,7 +35,7 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 		Ttl: exp,
 	})
 	if err != nil {
-		logrus.WithError(err).Fatalf("[CACHE] Failed adding alovelace")
+		logrus.WithError(err).Fatalf("[CACHE] Set failed for %s", key)
 		return err
 	}
 
