@@ -115,13 +115,13 @@ func Test_getVideoDetails(t *testing.T) {
 				Reply(status).
 				BodyString(response)
 
-			got, err := getVideoDetails(tt.args.videoID, true)
+			got, err := GetVideoDetails(tt.args.videoID, true)
 			if (err.IsError()) != tt.wantErr {
-				t.Errorf("getVideoDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetVideoDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getVideoDetails() = %v, want %v", got, tt.want)
+				t.Errorf("GetVideoDetails() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -171,13 +171,13 @@ func Test_getVideoFileDetails(t *testing.T) {
 				AddHeader("Content-Type", tt.want.ContentType).
 				AddHeader("Content-Length", tt.want.ContentLength)
 
-			got, err := getVideoFileDetails(tt.args.videoURL)
+			got, err := GetVideoFileDetails(tt.args.videoURL)
 			if (err.IsError()) != tt.wantErr {
-				t.Errorf("getVideoFileDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetVideoFileDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getVideoFileDetails() = %v, want %v", got, tt.want)
+				t.Errorf("GetVideoFileDetails() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -270,13 +270,13 @@ func TestFeed_getVideos(t *testing.T) {
 				Get("/youtube/v3/search").
 				Reply(status).
 				BodyString(response)
-			got, err := f.getVideos("123", true)
+			got, err := f.GetVideos("123", true)
 			if (err.IsError()) != tt.wantErr {
-				t.Errorf("Feed.getVideos() error = %+v, wantErr %+v", err, tt.wantErr)
+				t.Errorf("Feed.GetVideos() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Feed.getVideos() = %+v, want %+v", got, tt.want)
+				t.Errorf("Feed.GetVideos() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}

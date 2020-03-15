@@ -35,7 +35,7 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 		Ttl:   exp,
 	})
 	if err != nil {
-		logrus.WithError(err).Fatalf("[CACHE] Set failed for %s", key)
+		logrus.WithError(err).Errorf("[CACHE] Set failed for %s", key)
 		return err
 	}
 
@@ -92,5 +92,6 @@ func Connect() (Cache, error) {
 	cache.firestore = store
 	cache.collection = store.Collection(config.Cfg.FirestoreCollection)
 	Client = cache
+
 	return cache, nil
 }

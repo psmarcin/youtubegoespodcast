@@ -1,4 +1,4 @@
-package video
+package api
 
 import (
 	"net/http"
@@ -31,7 +31,7 @@ func TestHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			Handler(tt.args.w, tt.args.r)
+			VideoHandler(tt.args.w, tt.args.r)
 			if tt.args.w.Code != http.StatusFound {
 				t.Errorf("Handler(): %+v want %+v ", tt.args.w.Code, http.StatusFound)
 			}

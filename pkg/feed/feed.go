@@ -67,7 +67,7 @@ type Enclosure struct {
 	Type   string `xml:"type,attr"`
 }
 
-func (f *Feed) serialize() ([]byte, error) {
+func (f *Feed) Serialize() ([]byte, error) {
 	xml, err := xml.MarshalIndent(f, "", "  ")
 	if err != nil {
 		return []byte{}, err
@@ -78,7 +78,7 @@ func (f *Feed) serialize() ([]byte, error) {
 			</rss>`), nil
 }
 
-func new(channelID string) Feed {
+func New(channelID string) Feed {
 	feed := Feed{
 		XMLName:   "channel",
 		ChannelID: channelID,

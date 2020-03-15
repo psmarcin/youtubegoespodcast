@@ -1,14 +1,14 @@
-package feed
+package api
 
 import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"ygp/pkg/cache"
 	"ygp/pkg/errx"
-	"ygp/pkg/utils"
-
-	"github.com/gorilla/mux"
+	"ygp/pkg/feed"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 	cacheFeedTTL    = time.Hour * 24 * 1
 )
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+func FeedHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelID := params["channelId"]
 	searchPhrase := r.FormValue("search")
@@ -28,38 +28,38 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	c, _ := cache.Client.GetKey(cacheKey, nil)
 
 	if c != "" {
-		utils.Send(w, c, http.StatusOK)
+		Send(w, c, http.StatusOK)
 		return
 	}
 
-	f := new(channelID)
-	err := f.getDetails(channelID)
+	f := feed.New(channelID)
+	err := f.GetDetails(channelID)
 
 	if err.IsError() {
-		utils.SendError(w, err)
+		SendError(w, err)
 		return
 	}
-	videos, getVideoErr := f.getVideos(searchPhrase, false)
+	videos, getVideoErr := f.GetVideos(searchPhrase, false)
 	if getVideoErr.IsError() {
-		utils.SendError(w, getVideoErr)
+		SendError(w, getVideoErr)
 		return
 	}
 
-	setVideosErr := f.setVideos(videos)
+	setVideosErr := f.SetVideos(videos)
 	if setVideosErr.IsError() {
-		utils.SendError(w, setVideosErr)
+		SendError(w, setVideosErr)
 		return
 	}
-	serialized, serializeErr := f.serialize()
+	serialized, serializeErr := f.Serialize()
 	if serializeErr != nil {
-		utils.SendError(w, errx.New(serializeErr, http.StatusInternalServerError))
+		SendError(w, errx.New(serializeErr, http.StatusInternalServerError))
 		return
 	}
 
 	// set cache
 	go cache.Client.SetKey(cacheKey, string(serialized), cacheFeedTTL)
 
-	utils.Send(w, string(serialized), http.StatusOK)
+	Send(w, string(serialized), http.StatusOK)
 }
 
 func handleError(w http.ResponseWriter, err error) {

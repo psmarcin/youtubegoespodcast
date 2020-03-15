@@ -45,19 +45,19 @@ type ChannelDetailsItems struct {
 	Snippet ChannelDetailsSnippet `json:"snippet"`
 }
 
-func (f *Feed) addItem(item Item) error {
+func (f *Feed) AddItem(item Item) error {
 	if item.Title != "" && item.Enclosure.URL != "" {
 		f.Items = append(f.Items, item)
 	}
 	return nil
 }
 
-func (f *Feed) getDetails(channelID string) errx.APIError {
+func (f *Feed) GetDetails(channelID string) errx.APIError {
 	channel := ChannelDetailsResponse{}
 	_, err := cache.Client.GetKey(channelCachePRefix+channelID, &channel)
 	// got cached value, fast return
 	if err != nil {
-		getDetailsRequest(channelID, &channel)
+		GetDetailsRequest(channelID, &channel)
 	}
 
 	if len(channel.Items) == 0 {
@@ -90,7 +90,7 @@ func (f *Feed) getDetails(channelID string) errx.APIError {
 	return errx.APIError{}
 }
 
-func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.APIError {
+func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.APIError {
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"channels", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")

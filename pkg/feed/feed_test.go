@@ -36,7 +36,7 @@ func TestFeed_serialize(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "serialize success empty channel",
+			name:    "Serialize success empty channel",
 			fields:  fields{},
 			wantErr: false,
 		},
@@ -63,13 +63,13 @@ func TestFeed_serialize(t *testing.T) {
 				ITCategory:    tt.fields.ITCategory,
 				Items:         tt.fields.Items,
 			}
-			got, err := f.serialize()
+			got, err := f.Serialize()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Feed.serialize() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Feed.Serialize() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !strings.Contains(string(got), emptyTitle) {
-				t.Errorf("Feed.serialize() = %v, want %v", got, emptyTitle)
+				t.Errorf("Feed.Serialize() = %v, want %v", got, emptyTitle)
 			}
 		})
 	}

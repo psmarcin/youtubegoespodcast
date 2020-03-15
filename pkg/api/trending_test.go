@@ -1,4 +1,4 @@
-package trending
+package api
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestHandler(t *testing.T) {
+func TestTrendingHandler(t *testing.T) {
 	type args struct {
 		w *httptest.ResponseRecorder
 		r *http.Request
@@ -36,7 +36,7 @@ func TestHandler(t *testing.T) {
 				Reply(http.StatusOK).
 				BodyString("{}")
 			disableCache = true
-			Handler(tt.args.w, tt.args.r)
+			TrendingHandler(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.status)
 			assert.NotEqual(t, tt.args.w.HeaderMap.Get("content-type"), "application/json")
 			assert.NotEmpty(t, tt.args.w.Body)

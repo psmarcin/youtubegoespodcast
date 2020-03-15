@@ -1,4 +1,4 @@
-package channels
+package api
 
 import (
 	"log"
@@ -11,7 +11,7 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestHandler(t *testing.T) {
+func TestChannelsHandler(t *testing.T) {
 	type args struct {
 		w *httptest.ResponseRecorder
 		r *http.Request
@@ -69,7 +69,7 @@ func TestHandler(t *testing.T) {
 				Reply(tt.mock.statusCode).
 				BodyString(tt.mock.body)
 
-			Handler(tt.args.w, tt.args.r)
+			ChannelsHandler(tt.args.w, tt.args.r)
 			log.Printf("[TEST] CODE %d", tt.args.w.Code)
 			assert.Equal(t, tt.args.w.Code, tt.expect.statusCode)
 			assert.Equal(t, tt.args.w.Body.String(), tt.expect.body)

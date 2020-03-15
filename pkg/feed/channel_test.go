@@ -94,11 +94,11 @@ func TestFeed_addItem(t *testing.T) {
 				ITCategory:    tt.fields.ITCategory,
 				Items:         tt.fields.Items,
 			}
-			if err := f.addItem(tt.args.item); (err != nil) != tt.wantErr {
-				t.Errorf("Feed.addItem() error = %v, wantErr %v", err, tt.wantErr)
+			if err := f.AddItem(tt.args.item); (err != nil) != tt.wantErr {
+				t.Errorf("Feed.AddItem() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if len(f.Items) != tt.wantCount {
-				t.Errorf("Feed.addItem() error = %v, want %v", len(f.Items), tt.wantCount)
+				t.Errorf("Feed.AddItem() error = %v, want %v", len(f.Items), tt.wantCount)
 			}
 		})
 	}

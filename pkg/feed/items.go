@@ -66,7 +66,7 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) getVideos(q string, disbleCache bool) (VideosResponse, errx.APIError) {
+func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIError) {
 	videos := VideosResponse{}
 
 	if !disbleCache {
@@ -108,7 +108,7 @@ func (f *Feed) getVideos(q string, disbleCache bool) (VideosResponse, errx.APIEr
 	return videos, errx.APIError{}
 }
 
-func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
+func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 	stream := make(chan Item, countItems(videos.Items))
 
 	// set channel last updated at field as latest item publishing date
@@ -128,9 +128,9 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 				return errx.APIError{}
 			}
 
-			vd, err := getVideoDetails(video.ID.VideoID, false)
+			vd, err := GetVideoDetails(video.ID.VideoID, false)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp3"
-			fileDetails, _ := getVideoFileDetails(videoURL)
+			fileDetails, _ := GetVideoFileDetails(videoURL)
 			if err.IsError() {
 				logrus.WithError(err.Err).Printf("[ITEM]")
 				stream <- Item{}
@@ -170,13 +170,13 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 			break
 		}
 
-		f.addItem(<-stream)
+		f.AddItem(<-stream)
 		counter++
 	}
 	return errx.APIError{}
 }
 
-func getVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
+func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	resp, err := http.Head(videoURL)
 	if err != nil {
 		return VideoFileDetails{}, errx.New(err, http.StatusBadRequest)
@@ -193,7 +193,7 @@ func getVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	}, errx.APIError{}
 }
 
-func getVideoDetails(videoID string, disableCache bool) (VideoDetails, errx.APIError) {
+func GetVideoDetails(videoID string, disableCache bool) (VideoDetails, errx.APIError) {
 	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
 

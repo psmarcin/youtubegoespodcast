@@ -10,8 +10,9 @@ import (
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI != "/metrics" {
-			logrus.Infof("[API] Request %s %s %+v", r.Method, r.RequestURI, r.Header)
+			logrus.WithField("headers", r.Header).Infof("[API] Request %s %s", r.Method, r.RequestURI)
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
