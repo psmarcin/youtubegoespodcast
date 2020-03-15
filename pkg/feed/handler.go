@@ -3,6 +3,7 @@ package feed
 import (
 	"net/http"
 	"time"
+
 	"ygp/pkg/cache"
 	"ygp/pkg/errx"
 	"ygp/pkg/utils"
@@ -38,7 +39,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		utils.SendError(w, err)
 		return
 	}
-	videos, getVideoErr := f.getVideos(searchPhrase)
+	videos, getVideoErr := f.getVideos(searchPhrase, false)
 	if getVideoErr.IsError() {
 		utils.SendError(w, getVideoErr)
 		return
@@ -51,7 +52,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	serialized, serializeErr := f.serialize()
 	if serializeErr != nil {
-		utils.SendError(w, errx.NewAPIError(serializeErr, http.StatusInternalServerError))
+		utils.SendError(w, errx.New(serializeErr, http.StatusInternalServerError))
 		return
 	}
 

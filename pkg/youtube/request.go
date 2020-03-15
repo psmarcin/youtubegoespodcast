@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
 	"ygp/pkg/config"
 	"ygp/pkg/errx"
 
@@ -27,13 +28,13 @@ func Request(req *http.Request, y interface{}) errx.APIError {
 	res, err := client.Do(req)
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing request to youtube api")
-		return errx.NewAPIError(err, http.StatusInternalServerError)
+		return errx.New(err, http.StatusInternalServerError)
 	}
 
 	if res.StatusCode != http.StatusOK {
 		err = errors.New(res.Status)
 		logrus.WithError(err).Printf("[YT] Request error and response: %+v", res)
-		return errx.NewAPIError(err, res.StatusCode)
+		return errx.New(err, res.StatusCode)
 	}
 	defer res.Body.Close()
 
@@ -41,7 +42,7 @@ func Request(req *http.Request, y interface{}) errx.APIError {
 	err = json.NewDecoder(res.Body).Decode(y)
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing parsing body content")
-		return errx.NewAPIError(err, http.StatusInternalServerError)
+		return errx.New(err, http.StatusInternalServerError)
 	}
 	return errx.APIError{}
 }

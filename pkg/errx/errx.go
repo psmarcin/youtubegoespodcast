@@ -41,8 +41,8 @@ func (e *APIError) Serialize() string {
 	return "err undefined"
 }
 
-// NewAPIError creates new api error
-func NewAPIError(err error, statusCode int) APIError {
+// New creates new api error
+func New(err error, statusCode int) APIError {
 	return APIError{
 		Err:        err,
 		StatusCode: statusCode,

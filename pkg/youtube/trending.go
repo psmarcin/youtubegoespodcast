@@ -12,22 +12,24 @@ import (
 )
 
 const (
-	trendingCacheTTL    time.Duration = time.Hour * 24 * 30
-	trendingCachePrefix               = "yttrending_main"
+	trendingCacheTTL           = time.Hour * 24 * 30
+	trendingCachePrefix string = "yttrending_main"
 )
 
 // GetTrending collects trending from YouTube API
-func GetTrending() (YoutubeResponse, errx.APIError) {
+func GetTrending(disableCache bool) (YoutubeResponse, errx.APIError) {
 	trending := YoutubeResponse{}
-	_, err := cache.Client.GetKey(trendingCachePrefix, &trending)
-	if err == nil {
-		return trending, errx.APIError{}
+	if !disableCache {
+		_, err := cache.Client.GetKey(trendingCachePrefix, &trending)
+		if err == nil {
+			return trending, errx.APIError{}
+		}
 	}
 
 	req, err := http.NewRequest("GET", YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trending, errx.NewAPIError(err, http.StatusInternalServerError)
+		return trending, errx.New(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -41,11 +43,14 @@ func GetTrending() (YoutubeResponse, errx.APIError) {
 	}
 
 	// save videoDetails to cache
-	str, err := json.Marshal(trending)
-	if err != nil {
-		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trending, errx.NewAPIError(err, http.StatusInternalServerError)
+	if !disableCache {
+		str, err := json.Marshal(trending)
+		if err != nil {
+			logrus.WithError(err).Fatal("[YT] Can't create new request")
+			return trending, errx.New(err, http.StatusInternalServerError)
+		}
+		go cache.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
 	}
-	go cache.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
+
 	return trending, errx.APIError{}
 }

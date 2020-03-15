@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
 	"ygp/pkg/cache"
 	"ygp/pkg/errx"
 	"ygp/pkg/youtube"
@@ -60,7 +61,7 @@ func (f *Feed) getDetails(channelID string) errx.APIError {
 	}
 
 	if len(channel.Items) == 0 {
-		return errx.NewAPIError(errors.New("Can't find items for channel "+channelID), http.StatusNotFound)
+		return errx.New(errors.New("Can't find items for channel "+channelID), http.StatusNotFound)
 	}
 
 	item := channel.Items[0].Snippet
@@ -107,12 +108,12 @@ func getDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.A
 
 	str, err := json.Marshal(channel)
 	if err != nil {
-		return errx.NewAPIError(err, http.StatusInternalServerError)
+		return errx.New(err, http.StatusInternalServerError)
 	}
 	go cache.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
 
 	if len(channel.Items) == 0 {
-		return errx.NewAPIError(errors.New("Can't find channel"), http.StatusInternalServerError)
+		return errx.New(errors.New("Can't find channel"), http.StatusInternalServerError)
 	}
 
 	return errx.APIError{}

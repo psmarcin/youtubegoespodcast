@@ -2,13 +2,16 @@ package trending
 
 import (
 	"net/http"
+
 	"ygp/pkg/utils"
 	"ygp/pkg/youtube"
 )
 
+var disableCache = false
+
 // Handler is a entrypoint for router
 func Handler(w http.ResponseWriter, r *http.Request) {
-	response, err := youtube.GetTrending()
+	response, err := youtube.GetTrending(disableCache)
 	if err.IsError() {
 		utils.SendError(w, err)
 		return

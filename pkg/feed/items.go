@@ -3,17 +3,19 @@ package feed
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
 	"ygp/pkg/cache"
 	"ygp/pkg/errx"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
 )
+
+var _cacheClient = cache.Client
 
 const (
 	ytVideoURL            = "https://youtube.com/watch?v="
@@ -64,19 +66,21 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
+func (f *Feed) getVideos(q string, disbleCache bool) (VideosResponse, errx.APIError) {
 	videos := VideosResponse{}
 
-	_, err := cache.Client.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
-	// got cached value, fast return
-	if err == nil {
-		return videos, errx.APIError{}
+	if !disbleCache {
+		_, err := _cacheClient.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
+		// got cached value, fast return
+		if err == nil {
+			return videos, errx.APIError{}
+		}
 	}
 
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideosResponse{}, errx.NewAPIError(err, http.StatusInternalServerError)
+		return VideosResponse{}, errx.New(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -92,12 +96,15 @@ func (f *Feed) getVideos(q string) (VideosResponse, errx.APIError) {
 		return VideosResponse{}, requestErr
 	}
 
-	// save video items to cache
-	str, err := json.Marshal(videos)
-	if err != nil {
-		return videos, errx.NewAPIError(err, http.StatusInternalServerError)
+	if !disbleCache {
+		// save video items to cache
+		str, err := json.Marshal(videos)
+		if err != nil {
+			return videos, errx.New(err, http.StatusInternalServerError)
+		}
+		go _cacheClient.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
+
 	}
-	go cache.Client.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
 	return videos, errx.APIError{}
 }
 
@@ -121,7 +128,7 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 				return errx.APIError{}
 			}
 
-			vd, err := getVideoDetails(video.ID.VideoID)
+			vd, err := getVideoDetails(video.ID.VideoID, false)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + ".mp3"
 			fileDetails, _ := getVideoFileDetails(videoURL)
 			if err.IsError() {
@@ -133,7 +140,7 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 			stream <- Item{
 				GUID:        video.ID.VideoID,
 				Title:       s.Title,
-				Link:        ytVideoURL+video.ID.VideoID,
+				Link:        ytVideoURL + video.ID.VideoID,
 				Description: s.Description,
 				PubDate:     s.PublishedAt.Format(time.RFC1123Z),
 				Enclosure: Enclosure{
@@ -172,10 +179,10 @@ func (f *Feed) setVideos(videos VideosResponse) errx.APIError {
 func getVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	resp, err := http.Head(videoURL)
 	if err != nil {
-		return VideoFileDetails{}, errx.NewAPIError(err, http.StatusBadRequest)
+		return VideoFileDetails{}, errx.New(err, http.StatusBadRequest)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return VideoFileDetails{}, errx.NewAPIError(
+		return VideoFileDetails{}, errx.New(
 			errors.New("Can't get file details for "+videoURL),
 			http.StatusBadRequest,
 		)
@@ -186,21 +193,22 @@ func getVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	}, errx.APIError{}
 }
 
-func getVideoDetails(videoID string) (VideoDetails, errx.APIError) {
+func getVideoDetails(videoID string, disableCache bool) (VideoDetails, errx.APIError) {
 	vd := VideoDetails{}
 	videoDetails := VideosDetailsResponse{}
 
-	_, err := cache.Client.GetKey(videoItemCachePrefix+videoID, &vd)
-	// got cached value, fast return
-	if err == nil {
-		return vd, errx.APIError{}
+	if !disableCache {
+		_, err := _cacheClient.GetKey(videoItemCachePrefix+videoID, &vd)
+		// got cached value, fast return
+		if err == nil {
+			return vd, errx.APIError{}
+		}
 	}
-
 	// no cached value, have to make call to API
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideoDetails{}, errx.NewAPIError(err, http.StatusInternalServerError)
+		return VideoDetails{}, errx.New(err, http.StatusInternalServerError)
 	}
 	query := req.URL.Query()
 	query.Add("part", "contentDetails")
@@ -214,20 +222,21 @@ func getVideoDetails(videoID string) (VideoDetails, errx.APIError) {
 		return VideoDetails{}, requestErr
 	}
 	if len(videoDetails.Items) != 1 {
-		return VideoDetails{}, errx.NewAPIError(errors.New("Can't get video details for "+videoID), http.StatusBadRequest)
+		return VideoDetails{}, errx.New(errors.New("Can't get video details for "+videoID), http.StatusBadRequest)
 	}
 	duration, err := parseDuration(videoDetails.Items[0].Details.Duration)
 	if err != nil {
-		return VideoDetails{}, errx.NewAPIError(errors.New("Can't parse duration for "+videoID), http.StatusInternalServerError)
+		return VideoDetails{}, errx.New(errors.New("Can't parse duration for "+videoID), http.StatusInternalServerError)
 	}
 	vd.Duration = duration
 
-	// save videoDetails to cache
-	str, err := json.Marshal(vd)
-	if err != nil {
-		return vd, errx.NewAPIError(err, http.StatusInternalServerError)
+	if !disableCache { // save videoDetails to cache
+		str, err := json.Marshal(vd)
+		if err != nil {
+			return vd, errx.New(err, http.StatusInternalServerError)
+		}
+		go _cacheClient.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
 	}
-	go cache.Client.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
 
 	return vd, errx.APIError{}
 }
@@ -243,16 +252,6 @@ func normalizeDurationString(duration string) string {
 
 func getImageURL(src string) string {
 	return src
-}
-
-func calculateDuration(d time.Duration) string {
-	d = d.Round(time.Second)
-	h := d / time.Hour
-	d -= h * time.Hour
-	m := d / time.Minute
-	d -= m * time.Minute
-	s := d / time.Second
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
 func countItems(items []VideosItems) int {

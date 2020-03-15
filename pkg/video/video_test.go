@@ -21,21 +21,21 @@ func TestGetURL(t *testing.T) {
 			name: "videoID: tGL4tKXkA4U",
 			args: args{
 				videoID: "tGL4tKXkA4U",
-				format: FormatMp4,
+				format:  FormatMp4,
 			},
 		},
 		{
 			name: "videoID: uwfdFCP3KYM",
 			args: args{
 				videoID: "uwfdFCP3KYM",
-				format: FormatMp4,
+				format:  FormatMp4,
 			},
 		},
 		{
 			name: "videoID: jNQXAC9IVRw",
 			args: args{
 				videoID: "jNQXAC9IVRw",
-				format: FormatMp4,
+				format:  FormatMp4,
 			},
 		},
 	}

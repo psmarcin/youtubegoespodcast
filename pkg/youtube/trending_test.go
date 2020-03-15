@@ -18,31 +18,31 @@ func TestGetTrendings(t *testing.T) {
 			name: "get trending",
 			want: YoutubeResponse{
 				Items: []Items{
-					Items{
+					{
 						Snippet: Snippet{
 							ChannelID: "UCANLZYMidaCbLQFWXBC95Jg",
 							Title:     "Taylor Swift - You Need To Calm Down",
 						},
 					},
-					Items{
+					{
 						Snippet: Snippet{
 							ChannelID: "UClW4jraMKz6Qj69lJf-tODA",
 							Title:     "NBA Youngboy - 4 Sons of a King (Official Audio)",
 						},
 					},
-					Items{
+					{
 						Snippet: Snippet{
 							ChannelID: "UCuVHOs0H5hvAHGr8O4yIBNQ",
 							Title:     "Swapping Boyfriends on Vacation",
 						},
 					},
-					Items{
+					{
 						Snippet: Snippet{
 							ChannelID: "UCX6OQ3DkcsbYNE6H8uQQuVA",
 							Title:     "I Opened The World's First FREE Store",
 						},
 					},
-					Items{
+					{
 						Snippet: Snippet{
 							ChannelID: "UCpi8TJfiA4lKGkaXs__YdBA",
 							Title:     "Why I'm Coming Out As Gay",
@@ -69,14 +69,14 @@ func TestGetTrendings(t *testing.T) {
 				Reply(tt.status).
 				BodyString(response)
 
-			got, err := GetTrending()
+			got, err := GetTrending(true)
 			if (err.IsError()) != tt.wantErr {
-				t.Errorf("GetTrending() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetTrending(true) error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			for i, item := range got.Items {
 				if item.Snippet.ChannelID != tt.want.Items[i].Snippet.ChannelID || item.Snippet.Title != tt.want.Items[i].Snippet.Title {
-					t.Errorf("GetTrending() = %v, want %v", got, tt.want)
+					t.Errorf("GetTrending(true) = %v, want %v", got, tt.want)
 				}
 			}
 		})

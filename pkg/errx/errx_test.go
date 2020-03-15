@@ -167,8 +167,8 @@ func TestNewAPIError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAPIError(tt.args.err, tt.args.statusCode); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAPIError() = %v, want %v", got, tt.want)
+			if got := New(tt.args.err, tt.args.statusCode); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
 		})
 	}

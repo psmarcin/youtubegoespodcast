@@ -35,7 +35,7 @@ func TestHandler(t *testing.T) {
 				Get("/youtube/v3/videos").
 				Reply(http.StatusOK).
 				BodyString("{}")
-
+			disableCache = true
 			Handler(tt.args.w, tt.args.r)
 			assert.Equal(t, tt.args.w.Code, tt.status)
 			assert.NotEqual(t, tt.args.w.HeaderMap.Get("content-type"), "application/json")

@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
 // GetURL returns video URL based on videoID
 func GetURL(videoID, format string) string {
 	var foundUrl = ""
@@ -22,7 +21,7 @@ func GetURL(videoID, format string) string {
 
 	// try to find audio stream
 	for _, detail := range det {
-		for streamKey, stream := range detail.Streams{
+		for streamKey, stream := range detail.Streams {
 			randomStreamKey = streamKey
 
 			if strings.Contains(stream.Quality, format) {
@@ -33,7 +32,7 @@ func GetURL(videoID, format string) string {
 	}
 
 	// fallback if no audio stream
-	if foundUrl == "" && randomStreamKey != ""  {
+	if foundUrl == "" && randomStreamKey != "" {
 		foundUrl = det[0].Streams[randomStreamKey].URLs[0].URL
 	}
 

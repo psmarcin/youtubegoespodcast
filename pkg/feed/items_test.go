@@ -115,7 +115,7 @@ func Test_getVideoDetails(t *testing.T) {
 				Reply(status).
 				BodyString(response)
 
-			got, err := getVideoDetails(tt.args.videoID)
+			got, err := getVideoDetails(tt.args.videoID, true)
 			if (err.IsError()) != tt.wantErr {
 				t.Errorf("getVideoDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -270,50 +270,13 @@ func TestFeed_getVideos(t *testing.T) {
 				Get("/youtube/v3/search").
 				Reply(status).
 				BodyString(response)
-			got, err := f.getVideos("123")
+			got, err := f.getVideos("123", true)
 			if (err.IsError()) != tt.wantErr {
 				t.Errorf("Feed.getVideos() error = %+v, wantErr %+v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Feed.getVideos() = %+v, want %+v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_calculateDuration(t *testing.T) {
-	type args struct {
-		d time.Duration
-	}
-
-	duration1h00m10s, _ := time.ParseDuration("1h00m10s")
-	duration123h59m59s, _ := time.ParseDuration("123h59m59s")
-
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "1h00m10s",
-			args: args{
-				d: duration1h00m10s,
-			},
-			want: "01:00:10",
-		},
-		{
-			name: "123h59m59s",
-			args: args{
-				d: duration123h59m59s,
-			},
-			want: "123:59:59",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := calculateDuration(tt.args.d); got != tt.want {
-				t.Errorf("calculateDuration() = %v, want %v", got, tt.want)
 			}
 		})
 	}

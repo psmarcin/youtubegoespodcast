@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"net/http"
+
 	"ygp/pkg/errx"
 
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,7 @@ func GetChannels(q string) (YoutubeResponse, errx.APIError) {
 	req, err := http.NewRequest("GET", YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trendings, errx.NewAPIError(err, http.StatusBadRequest)
+		return trendings, errx.New(err, http.StatusBadRequest)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")

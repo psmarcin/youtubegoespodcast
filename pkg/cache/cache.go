@@ -18,9 +18,9 @@ type Cache struct {
 }
 
 type Entity struct {
-	Key   string `firestore:"key"`
-	Value string `firestore:"value"`
-	Ttl time.Duration `firestore:"ttl"`
+	Key   string        `firestore:"key"`
+	Value string        `firestore:"value"`
+	Ttl   time.Duration `firestore:"ttl"`
 }
 
 var Client Cache
@@ -32,7 +32,7 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 	document, err := c.collection.Doc(key).Set(ctx, Entity{
 		Key:   key,
 		Value: value,
-		Ttl: exp,
+		Ttl:   exp,
 	})
 	if err != nil {
 		logrus.WithError(err).Fatalf("[CACHE] Set failed for %s", key)
@@ -55,7 +55,7 @@ func (c *Cache) GetKey(key string, to interface{}) (string, error) {
 
 	var e Entity
 	err = raw.DataTo(&e)
-	if err != nil{
+	if err != nil {
 		logrus.WithError(err).Errorf("[CACHE] Can't parse document %s", key)
 		return "", err
 	}

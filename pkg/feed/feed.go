@@ -56,7 +56,7 @@ type Item struct {
 	ITTitle     string    `xml:"itunes:title"`
 	ITSummary   ITSummary `xml:"itunes:summary"`
 	ITImage     ITImage   `xml:"itunes:image"`
-	ITDuration  float64    `xml:"itunes:duration"`
+	ITDuration  float64   `xml:"itunes:duration"`
 	ITExplicit  string    `xml:"itunes:explicit"`
 	ITOrder     string    `xml:"itunes:order"`
 }
