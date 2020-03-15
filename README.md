@@ -26,17 +26,15 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 ### Requirements
 1. Go in version `>=1.9`, more: https://golang.org/dl/
 1. Docker, more: https://docs.docker.com/install/
-1. Realize (auto restart), more https://github.com/oxequa/realize
+1. Air (auto restart), more https://github.com/cosmtrek/air
 
 ### Environment variables
 Example environment variables
 ```bash
 APP_ENV=development
 GOOGLE_API_KEY=<YOUR_YOUTUBE_API_KEY>
-REDIS_URI=redis://localhost:6379
 PORT=8080
 API_URL=http://localhost:8080/
-DATABASE_CONNECTION_STRING="postgresql://postgres:@localhost:5432/postgres?sslmode=disable"
 ```
 
 ### Build

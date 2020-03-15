@@ -20,3 +20,6 @@ __debug_bin
 
 # goland
 .idea
+
+# air
+./air

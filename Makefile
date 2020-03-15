@@ -3,7 +3,7 @@ PROJECT_ID=youtubegoespodcast
 IMAGE_TAG=gcr.io/$(PROJECT_ID)/$(NAME)
 
 dev:
-	realize start --name=$(NAME)
+	air
 
 dependencies:
 	go get .
