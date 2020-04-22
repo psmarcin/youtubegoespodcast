@@ -26,7 +26,7 @@ Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in
 ### Requirements
 1. Go in version `>=1.9`, more: https://golang.org/dl/
 1. Docker, more: https://docs.docker.com/install/
-1. Air (auto restart), more https://github.com/cosmtrek/air
+1. Modd (auto restart), more https://github.com/cortesi/modd
 
 ### Environment variables
 Example environment variables
