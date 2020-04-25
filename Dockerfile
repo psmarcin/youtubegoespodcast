@@ -11,9 +11,6 @@ WORKDIR /app
 ADD . /app
 RUN make build
 
-# Tests
-RUN make test
-
 FROM gcr.io/distroless/base
 COPY --from=build-env /app /
 ENV APP_ENV=production
