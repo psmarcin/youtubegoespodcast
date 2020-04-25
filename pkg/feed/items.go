@@ -3,8 +3,11 @@ package feed
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/eduncan911/podcast"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -109,13 +112,13 @@ func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIEr
 }
 
 func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
-	stream := make(chan Item, countItems(videos.Items))
+	stream := make(chan podcast.Item, countItems(videos.Items))
 
 	// set channel last updated at field as latest item publishing date
 	if len(videos.Items) != 0 {
 		lastItem := videos.Items[0]
-		f.LastBuildDate = lastItem.Snippet.PublishedAt.Format(time.RFC1123Z)
-		f.PubDate = f.LastBuildDate
+		f.Content.LastBuildDate = lastItem.Snippet.PublishedAt.Format(time.RFC1123Z)
+		f.Content.PubDate = f.Content.LastBuildDate
 	}
 
 	for i, video := range videos.Items {
@@ -124,7 +127,7 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 		go func(video VideosItems, i int) errx.APIError {
 
 			if video.ID.VideoID == "" {
-				stream <- Item{}
+				stream <- podcast.Item{}
 				return errx.APIError{}
 			}
 
@@ -133,33 +136,32 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 			fileDetails, _ := GetVideoFileDetails(videoURL)
 			if err.IsError() {
 				logrus.WithError(err.Err).Printf("[ITEM]")
-				stream <- Item{}
+				stream <- podcast.Item{}
 				return err
 			}
 
-			stream <- Item{
+			encodeLength, erro := strconv.ParseInt(fileDetails.ContentLength, 10, 32)
+
+			if erro != nil {
+				stream <- podcast.Item{}
+				return errx.New(erro, 500)
+			}
+			it := podcast.Item{
 				GUID:        video.ID.VideoID,
 				Title:       s.Title,
 				Link:        ytVideoURL + video.ID.VideoID,
 				Description: s.Description,
-				PubDate:     s.PublishedAt.Format(time.RFC1123Z),
-				Enclosure: Enclosure{
+				PubDate:     &s.PublishedAt,
+				Enclosure: &podcast.Enclosure{
 					URL:    videoURL,
-					Length: fileDetails.ContentLength,
-					Type:   fileDetails.ContentType,
+					Length: encodeLength,
+					Type:   podcast.MP3,
 				},
-				ITAuthor:   f.ITAuthor,
-				ITSubtitle: s.Title,
-				ITTitle:    s.Title,
-				ITSummary: ITSummary{
-					Text: s.Description,
-				},
-				ITImage: ITImage{
-					Href: getImageURL(s.Thumbnails.High.URL),
-				},
-				ITExplicit: "no",
-				ITDuration: vd.Duration.Seconds(),
+				IDuration: fmt.Sprintf("%f", vd.Duration.Seconds()),
+				IExplicit: "no",
+				IOrder:    fmt.Sprintf("%d", i+1),
 			}
+			stream <- it
 			return errx.APIError{}
 		}(video, i)
 
@@ -169,8 +171,10 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 		if counter >= len(videos.Items) {
 			break
 		}
-
-		f.AddItem(<-stream)
+		err := f.AddItem(<-stream)
+		if err != nil {
+			return errx.New(err, 500)
+		}
 		counter++
 	}
 	return errx.APIError{}

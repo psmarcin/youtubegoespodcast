@@ -1,40 +1,99 @@
 package video
 
 import (
+	"context"
+	"fmt"
+	"github.com/psmarcin/ytdl"
 	"strings"
-
-	"github.com/iawia002/annie/extractors/youtube"
-	"github.com/sirupsen/logrus"
 )
 
 // GetURL returns video URL based on videoID
 func GetURL(videoID, format string) string {
-	var foundUrl = ""
-	var randomStreamKey = ""
-	var url = youtubeBaseURL + "?v=" + videoID
+	client := ytdl.DefaultClient
 
-	// extract details about video
-	det, err := youtube.Extract(url)
+	info, err := client.GetVideoInfo(context.Background(), videoID)
 	if err != nil {
-		logrus.WithError(err).Info("[VIDEO]")
+		err = fmt.Errorf("Unable to fetch video info: %w", err)
+	}
+	formats := info.Formats
+	filters := []string{
+		"audio-only",
 	}
 
-	// try to find audio stream
-	for _, detail := range det {
-		for streamKey, stream := range detail.Streams {
-			randomStreamKey = streamKey
-
-			if strings.Contains(stream.Quality, format) {
-				foundUrl = stream.URLs[0].URL
-				return foundUrl
-			}
+	// parse filter arguments, and filter through formats
+	for _, filter := range filters {
+		filter, err := parseFilter(filter)
+		if err == nil {
+			formats = filter(formats)
 		}
 	}
 
-	// fallback if no audio stream
-	if foundUrl == "" && randomStreamKey != "" {
-		foundUrl = det[0].Streams[randomStreamKey].URLs[0].URL
+	if len(formats) == 0 {
+		err = fmt.Errorf("No formats available that match criteria")
+		return ""
 	}
 
-	return foundUrl
+	f, _ := client.GetDownloadURL(context.Background(), info, formats[0])
+
+	return f.String()
+}
+
+func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, error) {
+
+	filterString = strings.TrimSpace(filterString)
+	switch filterString {
+	case "best", "worst":
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			return formats.Extremes(ytdl.FormatResolutionKey, filterString == "best").Extremes(ytdl.FormatAudioBitrateKey, filterString == "best")
+		}, nil
+	case "best-fps", "worst-fps":
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			return formats.Extremes(ytdl.FormatFPSKey, filterString == "best-fps").Extremes(ytdl.FormatResolutionKey, filterString == "best-fps").Extremes(ytdl.FormatAudioBitrateKey, filterString == "best-fps")
+		}, nil
+	case "best-video", "worst-video":
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			return formats.Extremes(ytdl.FormatResolutionKey, strings.HasPrefix(filterString, "best"))
+		}, nil
+	case "best-audio", "worst-audio":
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			return formats.Extremes(ytdl.FormatAudioBitrateKey, strings.HasPrefix(filterString, "best"))
+		}, nil
+	case "audio-only":
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			return formats.
+				Extremes(ytdl.FormatResolutionKey, filterString == "")
+		}, nil
+	}
+	err := fmt.Errorf("Invalid filter")
+	split := strings.SplitN(filterString, ":", 2)
+	if len(split) != 2 {
+		return nil, err
+	}
+	key := ytdl.FormatKey(split[0])
+	exclude := key[0] == '!'
+	if exclude {
+		key = key[1:]
+	}
+	value := strings.TrimSpace(split[1])
+	if value == "best" || value == "worst" {
+		return func(formats ytdl.FormatList) ytdl.FormatList {
+			f := formats.Extremes(key, value == "best")
+			if exclude {
+				f = formats.Subtract(f)
+			}
+			return f
+		}, nil
+	}
+	vals := strings.Split(value, ",")
+	values := make([]interface{}, len(vals))
+	for i, v := range vals {
+		values[i] = strings.TrimSpace(v)
+	}
+	return func(formats ytdl.FormatList) ytdl.FormatList {
+		f := formats.Filter(key, values)
+		if exclude {
+			f = formats.Subtract(f)
+		}
+		return f
+	}, nil
 }
