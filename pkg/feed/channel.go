@@ -3,6 +3,7 @@ package feed
 import (
 	"encoding/json"
 	"errors"
+	"github.com/eduncan911/podcast"
 	"net/http"
 	"time"
 
@@ -45,9 +46,12 @@ type ChannelDetailsItems struct {
 	Snippet ChannelDetailsSnippet `json:"snippet"`
 }
 
-func (f *Feed) AddItem(item Item) error {
+func (f *Feed) AddItem(item podcast.Item) error {
 	if item.Title != "" && item.Enclosure.URL != "" {
-		f.Items = append(f.Items, item)
+		_, err := f.Content.AddItem(item)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -65,28 +69,21 @@ func (f *Feed) GetDetails(channelID string) errx.APIError {
 	}
 
 	item := channel.Items[0].Snippet
+	fee := podcast.New(item.Title, ytChannelURL+f.ChannelID, item.Description, &item.PublishedAt, &item.PublishedAt)
 
-	f.Title = item.Title
-	f.Link = ytChannelURL + f.ChannelID
-	f.Description = item.Description
-	f.Category = "category"
-	f.Language = item.Country
-	f.LastBuildDate = item.PublishedAt.Format(time.RFC1123Z)
-	f.PubDate = item.PublishedAt.Format(time.RFC1123Z)
-	f.Image = Image{
-		URL:   getImageURL(item.Thumbnails.High.URL),
-		Title: item.Title,
-		Link:  ytChannelURL + f.ChannelID,
+	// TODO: map categories from youtube to apple categories
+	fee.AddCategory("Arts", []string{"Design"})
+	fee.Language = item.Country
+	fee.Image = &podcast.Image{
+		URL:         getImageURL(item.Thumbnails.High.URL),
+		Title:       item.Title,
+		Link:        ytChannelURL + f.ChannelID,
+		Description: item.Description,
+		Width:       0,
+		Height:      0,
 	}
-	f.ITAuthor = item.CustomURL
-	f.ITSubtitle = item.Title
-	f.ITSummary = ITSummary{
-		Text: item.Description,
-	}
-	f.ITImage = ITImage{
-		Href: getImageURL(item.Thumbnails.High.URL),
-	}
-	f.ITExplicit = "no"
+	f.Content = fee
+
 	return errx.APIError{}
 }
 
@@ -95,6 +92,7 @@ func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.A
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
 	}
+
 	query := req.URL.Query()
 	query.Add("part", "snippet")
 	query.Add("id", channelID)
@@ -110,6 +108,7 @@ func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.A
 	if err != nil {
 		return errx.New(err, http.StatusInternalServerError)
 	}
+
 	go cache.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
 
 	if len(channel.Items) == 0 {
