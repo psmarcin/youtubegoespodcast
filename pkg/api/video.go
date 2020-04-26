@@ -25,5 +25,5 @@ func VideoHandler(ctx *fiber.Ctx) {
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
-	ctx.Redirect(videoURL)
+	ctx.Redirect(videoURL, http.StatusFound)
 }
