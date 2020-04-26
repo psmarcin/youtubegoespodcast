@@ -19,6 +19,10 @@ func (f *Feed) Serialize() ([]byte, error) {
 	return f.Content.Bytes(), nil
 }
 
+func (f *Feed) SortItems() {
+	f.Content.Items = sortByOrder(f.Content.Items)
+}
+
 func New(channelID string) Feed {
 	feed := Feed{
 		ChannelID: channelID,

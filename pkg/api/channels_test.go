@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,7 +13,6 @@ import (
 
 func TestChannelsHandler(t *testing.T) {
 	type args struct {
-		w *httptest.ResponseRecorder
 		r *http.Request
 	}
 	type mock struct {
@@ -33,7 +32,6 @@ func TestChannelsHandler(t *testing.T) {
 		{
 			name: "should return collection of channels",
 			args: args{
-				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodGet, "/channels", nil),
 			},
 			mock: mock{
@@ -48,7 +46,6 @@ func TestChannelsHandler(t *testing.T) {
 		{
 			name: "should return 400 error on youtube 400",
 			args: args{
-				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodGet, "/channels", nil),
 			},
 			mock: mock{
@@ -56,11 +53,13 @@ func TestChannelsHandler(t *testing.T) {
 				body:       "",
 			},
 			expect: expect{
-				statusCode: http.StatusBadRequest,
-				body:       "{\"message\":\"400 Bad Request\",\"statusCode\":400}",
+				statusCode: http.StatusNotFound,
+				body:       "Not Found",
 			},
 		},
 	}
+
+	app := Start()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer gock.Off() // Flush pending mocks after test execution
@@ -69,10 +68,11 @@ func TestChannelsHandler(t *testing.T) {
 				Reply(tt.mock.statusCode).
 				BodyString(tt.mock.body)
 
-			ChannelsHandler(tt.args.w, tt.args.r)
-			log.Printf("[TEST] CODE %d", tt.args.w.Code)
-			assert.Equal(t, tt.args.w.Code, tt.expect.statusCode)
-			assert.Equal(t, tt.args.w.Body.String(), tt.expect.body)
+			resp, _ := app.Test(tt.args.r)
+			body, _ := ioutil.ReadAll(resp.Body)
+
+			assert.Equal(t, tt.expect.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.expect.body, string(body))
 		})
 	}
 }

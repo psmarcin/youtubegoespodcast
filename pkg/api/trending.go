@@ -1,20 +1,22 @@
 package api
 
 import (
-	"net/http"
-
+	"github.com/gofiber/fiber"
 	"ygp/pkg/youtube"
 )
 
 var disableCache = false
 
-// Handler is a entrypoint for router
-func TrendingHandler(w http.ResponseWriter, r *http.Request) {
+// TrendingHandler is a handler for GET /trending endpoint
+func TrendingHandler(ctx *fiber.Ctx) {
 	response, err := youtube.GetTrending(disableCache)
 	if err.IsError() {
-		SendError(w, err)
+		ctx.Next(err.Err)
 		return
 	}
-	serialized := youtube.Serialize(response)
-	Send(w, serialized, http.StatusOK)
+
+	jsonError := ctx.JSON(response)
+	if jsonError != nil {
+		ctx.Next(jsonError)
+	}
 }

@@ -34,7 +34,7 @@ type Channel struct {
 	Title     string `json:"title"`
 }
 
-// Serialize returns mapped channels with channelId, thumbnail and title
+// SortItems returns mapped channels with channelId, thumbnail and title
 func Serialize(channelResponse YoutubeResponse) string {
 	channels := []Channel{}
 	for _, item := range channelResponse.Items {

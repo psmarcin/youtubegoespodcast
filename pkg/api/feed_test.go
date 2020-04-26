@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,8 +10,7 @@ import (
 
 func Test_handleError(t *testing.T) {
 	type args struct {
-		w   *httptest.ResponseRecorder
-		err error
+		r *http.Request
 	}
 	tests := []struct {
 		name string
@@ -24,16 +22,20 @@ func Test_handleError(t *testing.T) {
 		{
 			name: "Write error",
 			args: args{
-				w:   httptest.NewRecorder(),
-				err: errors.New("Bad request"),
+				r: httptest.NewRequest(http.MethodGet, "/", nil),
 			},
 		},
 	}
+	app := Start()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handleError(tt.args.w, tt.args.err)
-			assert.Equal(t, tt.args.w.Code, http.StatusBadRequest)
-			assert.Equal(t, tt.args.w.Body.String(), tt.args.err.Error())
+
+			resp, err := app.Test(tt.args.r)
+			if err != nil {
+				t.Errorf("should not throw error on app start")
+			}
+
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
 		})
 	}
 }

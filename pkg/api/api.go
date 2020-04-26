@@ -1,47 +1,58 @@
 package api
 
 import (
-	"net/http"
+	"github.com/gofiber/cors"
+	"github.com/gofiber/helmet"
+	"github.com/gofiber/logger"
+	"github.com/gofiber/recover"
+	"github.com/gofiber/requestid"
+	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/gofiber/fiber"
 	"github.com/sirupsen/logrus"
-
 	"ygp/pkg/config"
-	"ygp/pkg/logger"
-	"ygp/pkg/metrics"
 )
 
-const RootJSON = "{\"status\": \"OK\"}"
-
 // Start starts API
-func Start() {
-	startMultiplex()
-	logrus.Infof("[API] started on port :%s", config.Cfg.Port)
-}
+func Start() *fiber.App {
+	appConfig := fiber.Settings{
+		CaseSensitive: true,
+		Immutable:     true,
+		ReadTimeout:   1 * time.Second,
+		WriteTimeout:  1 * time.Second,
+		IdleTimeout:   1 * time.Second,
+	}
+	corsConfig := cors.Config{
+		Filter:       nil,
+		AllowOrigins: config.Cfg.CorsOrigins,
+		AllowMethods: []string{"GET"},
+	}
 
-func startMultiplex() {
-	// router init
-	router := mux.NewRouter()
+	// init fiber application
+	app := fiber.New(&appConfig)
 
-	// middleware
-	router.Use(logger.Middleware)
-	router.Use(MiddlewareCORS)
-	router.Use(MiddlewareJSON)
-	router.Use(metrics.MiddlewareHandlerCounter)
-	router.Use(metrics.MiddlewareHandlerInFlight)
-	router.Use(metrics.MiddlewareResponseSize)
-	// routes
-	router.Handle("/", metrics.MiddlewareHandlerDuration("/", rootHandler)).Methods("GET")
-	router.Handle("/trending", metrics.MiddlewareHandlerDuration("/trending", TrendingHandler)).Methods("GET")
-	router.Handle("/channels", metrics.MiddlewareHandlerDuration("/channels", ChannelsHandler)).Methods("GET")
-	router.Handle("/video/{videoId}.mp3", metrics.MiddlewareHandlerDuration("/video/{videoId}.mp3", VideoHandlerMP3)).Methods("GET", "HEAD")
-	router.Handle("/video/{videoId}.mp4", metrics.MiddlewareHandlerDuration("/video/{videoId}.mp4", VideoHandler)).Methods("GET", "HEAD")
-	router.Handle("/video", metrics.MiddlewareHandlerDuration("/video", VideoRedirectHandler)).Methods("GET", "HEAD")
-	router.Handle("/feed/channel/{channelId}", metrics.MiddlewareHandlerDuration("/feed/channel/{channelId}", FeedHandler)).Methods("GET", "HEAD")
-	router.Handle("/metrics", promhttp.Handler())
-	http.Handle("/", router)
+	// middlewares
+	app.Use(cors.New(corsConfig))
+	app.Use(logger.New())
+	app.Use(recover.New())
+	app.Use(requestid.New())
+	app.Use(helmet.New())
+
+	// define routes
+	app.Get("/", rootHandler)
+	app.Get("/trending", TrendingHandler)
+	app.Get("/channels", ChannelsHandler)
+	app.Get("/video/:videoId/track.mp3", VideoHandler)
+	app.Head("/video/:videoId/track.mp3", VideoHandler)
+	app.Get("/feed/channel/:"+ParamChannelId, FeedHandler)
+	app.Head("/feed/channel/:"+ParamChannelId, FeedHandler)
+
+	// not found handler
+	// Last middleware to match anything
+	app.Use(func(c *fiber.Ctx) {
+		c.SendStatus(404) // => 404 "Not Found"
+	})
 
 	logrus.Infof("[API] Port %s", config.Cfg.Port)
-	logrus.Fatal(http.ListenAndServe(":"+config.Cfg.Port, nil))
+	return app
 }

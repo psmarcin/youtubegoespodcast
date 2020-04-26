@@ -7,11 +7,6 @@ import (
 func TestGetURL(t *testing.T) {
 	type args struct {
 		videoID string
-		format  string
-	}
-	type want struct {
-		url  string
-		itag string
 	}
 	tests := []struct {
 		name string
@@ -21,31 +16,37 @@ func TestGetURL(t *testing.T) {
 			name: "videoID: tGL4tKXkA4U",
 			args: args{
 				videoID: "tGL4tKXkA4U",
-				format:  "audio/mp4",
 			},
 		},
 		{
 			name: "videoID: uwfdFCP3KYM",
 			args: args{
 				videoID: "uwfdFCP3KYM",
-				format:  "audio/mp4",
 			},
 		},
 		{
 			name: "videoID: jNQXAC9IVRw",
 			args: args{
 				videoID: "jNQXAC9IVRw",
-				format:  "audio/mp4",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := GetURL(tt.args.videoID, tt.args.format)
+			got, err := GetURL(tt.args.videoID)
 
-			if got == "" {
+			if got == "" || err != nil {
 				t.Errorf("GetURL() = %v, want url not empty", got)
 			}
 		})
+	}
+}
+
+func TestGetURLGetNotExistedVideo(t *testing.T) {
+	notExistingVideoID := "xxx"
+	got, err := GetURL(notExistingVideoID)
+
+	if got != "" && err == nil {
+		t.Errorf("GetURL() = %v, want url to be empty", got)
 	}
 }

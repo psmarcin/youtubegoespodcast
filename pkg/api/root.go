@@ -1,8 +1,27 @@
 package api
 
-import "net/http"
+import (
+	"github.com/gofiber/fiber"
+	"time"
+)
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	JSONResponse(w)
-	Send(w, RootJSON, http.StatusOK)
+type Root struct {
+	Status    bool      `json:"status"`
+	StartedAt time.Time `json:"startedAt"`
+}
+
+var r Root
+
+func init() {
+	r = Root{
+		Status:    true,
+		StartedAt: time.Now(),
+	}
+}
+
+func rootHandler(ctx *fiber.Ctx) {
+	err := ctx.JSON(r)
+	if err != nil {
+		ctx.Next(err)
+	}
 }

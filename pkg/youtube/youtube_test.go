@@ -46,7 +46,7 @@ func TestSerialize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Serialize(tt.args.channelResponse); got != tt.want {
-				t.Errorf("Serialize() = %v, want %v", got, tt.want)
+				t.Errorf("SortItems() = %v, want %v", got, tt.want)
 			}
 		})
 	}

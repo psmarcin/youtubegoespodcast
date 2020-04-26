@@ -8,12 +8,13 @@ import (
 )
 
 // GetURL returns video URL based on videoID
-func GetURL(videoID, format string) string {
+func GetURL(videoID string) (string, error) {
 	client := ytdl.DefaultClient
 
 	info, err := client.GetVideoInfo(context.Background(), videoID)
 	if err != nil {
-		err = fmt.Errorf("Unable to fetch video info: %w", err)
+		err = fmt.Errorf("Unable to fetch video info: %s", err)
+		return "", err
 	}
 	formats := info.Formats
 	filters := []string{
@@ -30,12 +31,16 @@ func GetURL(videoID, format string) string {
 
 	if len(formats) == 0 {
 		err = fmt.Errorf("No formats available that match criteria")
-		return ""
+		return "", err
 	}
 
-	f, _ := client.GetDownloadURL(context.Background(), info, formats[0])
+	bestFormat := formats[0]
+	f, err := client.GetDownloadURL(context.Background(), info, bestFormat)
+	if err != nil {
+		return "", err
+	}
 
-	return f.String()
+	return f.String(), nil
 }
 
 func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, error) {

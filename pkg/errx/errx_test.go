@@ -137,7 +137,7 @@ func TestAPIError_Serialize(t *testing.T) {
 				StatusCode: tt.fields.StatusCode,
 			}
 			if got := e.Serialize(); got != tt.want {
-				t.Errorf("APIError.Serialize() = %v, want %v", got, tt.want)
+				t.Errorf("APIError.SortItems() = %v, want %v", got, tt.want)
 			}
 		})
 	}
