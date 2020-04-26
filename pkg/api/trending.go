@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
+	"net/http"
 	"ygp/pkg/youtube"
 )
 
@@ -15,8 +16,6 @@ func TrendingHandler(ctx *fiber.Ctx) {
 		return
 	}
 
-	jsonError := ctx.JSON(response)
-	if jsonError != nil {
-		ctx.Next(jsonError)
-	}
+	serialized := youtube.Serialize(response)
+	ctx.Status(http.StatusOK).Send(serialized)
 }
