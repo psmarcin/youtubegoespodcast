@@ -1,1 +1,0 @@
-DROP INDEX channels_logs_channel_id
