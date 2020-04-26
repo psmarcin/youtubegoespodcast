@@ -1,40 +1,38 @@
 package api
 
 import (
+	"github.com/stretchr/testify/assert"
 	"net/http"
-	"net/http/httptest"
 	"testing"
-
-	"github.com/gorilla/mux"
 )
 
 func TestHandler(t *testing.T) {
 	type args struct {
-		w *httptest.ResponseRecorder
 		r *http.Request
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/video/videoId.mp3", nil)
-	req = mux.SetURLVars(req, map[string]string{"videoId": "ulCdoCfw-bY"})
+	req, _ := http.NewRequest(http.MethodGet, "/video/ulCdoCfw-bY/track.mp3", nil)
 
 	tests := []struct {
 		name string
 		args args
 	}{
 		{
-			name: "videoID: uwfdFCP3KYM",
+			name: "videoID: ulCdoCfw-bY",
 			args: args{
-				w: httptest.NewRecorder(),
 				r: req,
 			},
 		},
 	}
+	app := Start()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			VideoHandler(tt.args.w, tt.args.r)
-			if tt.args.w.Code != http.StatusFound {
-				t.Errorf("Handler(): %+v want %+v ", tt.args.w.Code, http.StatusFound)
+			resp, err := app.Test(tt.args.r, -1)
+			if err != nil {
+				t.Errorf("should not throw error on app start")
 			}
+			assert.Equal(t, http.StatusFound, resp.StatusCode)
 		})
 	}
 }

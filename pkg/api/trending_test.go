@@ -1,6 +1,7 @@
 package api
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,23 +12,23 @@ import (
 
 func TestTrendingHandler(t *testing.T) {
 	type args struct {
-		w *httptest.ResponseRecorder
 		r *http.Request
 	}
 	tests := []struct {
 		name   string
 		args   args
-		status int
+		status string
 	}{
 		{
 			name: "status code OK, empty content-type and not empty body",
 			args: args{
-				w: httptest.NewRecorder(),
 				r: httptest.NewRequest(http.MethodGet, "/target", nil),
 			},
-			status: http.StatusOK,
+			status: "404 Not Found",
 		},
 	}
+
+	app := Start()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer gock.Off() // Flush pending mocks after test execution
@@ -36,10 +37,20 @@ func TestTrendingHandler(t *testing.T) {
 				Reply(http.StatusOK).
 				BodyString("{}")
 			disableCache = true
-			TrendingHandler(tt.args.w, tt.args.r)
-			assert.Equal(t, tt.args.w.Code, tt.status)
-			assert.NotEqual(t, tt.args.w.HeaderMap.Get("content-type"), "application/json")
-			assert.NotEmpty(t, tt.args.w.Body)
+
+			resp, err := app.Test(tt.args.r)
+			if err != nil {
+				t.Errorf("should not throw error on app start")
+			}
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Errorf("should not throw error on body serialization")
+			}
+
+			assert.Equal(t, tt.status, resp.Status)
+			assert.NotEqual(t, resp.Header.Get("content-type"), "application/json")
+			assert.NotEmpty(t, body)
 		})
 	}
 }

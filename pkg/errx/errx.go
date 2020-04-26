@@ -27,7 +27,7 @@ func (e *APIError) Error() string {
 	return e.Err.Error()
 }
 
-// Serialize returns json encoded string
+// SortItems returns json encoded string
 func (e *APIError) Serialize() string {
 	if e.IsError() {
 		err := APIErrorResponse{

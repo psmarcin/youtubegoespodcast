@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"ygp/pkg/api"
 	"ygp/pkg/cache"
 	"ygp/pkg/config"
@@ -15,5 +16,7 @@ func main() {
 	// Cache
 	_, _ = cache.Connect()
 	// API
-	api.Start()
+	app := api.Start()
+
+	logrus.Fatal(app.Listen(config.Cfg.Port))
 }

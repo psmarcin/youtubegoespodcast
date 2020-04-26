@@ -8,13 +8,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// GetChannels collects trendings from YouTube API
+// GetChannels collects trending from YouTube API
 func GetChannels(q string) (YoutubeResponse, errx.APIError) {
-	trendings := YoutubeResponse{}
+	trending := YoutubeResponse{}
 	req, err := http.NewRequest("GET", YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trendings, errx.New(err, http.StatusBadRequest)
+		return trending, errx.New(err, http.StatusBadRequest)
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -25,10 +25,10 @@ func GetChannels(q string) (YoutubeResponse, errx.APIError) {
 	query.Add("maxResults", "5")
 	req.URL.RawQuery = query.Encode()
 
-	requestErr := Request(req, &trendings)
+	requestErr := Request(req, &trending)
 	if requestErr.IsError() {
-		return trendings, requestErr
+		return trending, requestErr
 	}
 
-	return trendings, errx.APIError{}
+	return trending, errx.APIError{}
 }
