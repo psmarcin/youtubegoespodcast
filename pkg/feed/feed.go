@@ -32,7 +32,7 @@ func New(channelID string) Feed {
 
 func sortByOrder(items []*podcast.Item) []*podcast.Item {
 	sort.Slice(items, func(i, j int) bool {
-		return items[i].IOrder < items[j].IOrder
+		return items[i].PubDate.After(*items[j].PubDate)
 	})
 	return items
 }

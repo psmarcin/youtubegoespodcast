@@ -75,7 +75,7 @@ func (f *Feed) GetDetails(channelID string) errx.APIError {
 	fee.AddCategory("Arts", []string{"Design"})
 	fee.Language = item.Country
 	fee.Image = &podcast.Image{
-		URL:         getImageURL(item.Thumbnails.High.URL),
+		URL:         item.Thumbnails.High.URL,
 		Title:       item.Title,
 		Link:        ytChannelURL + f.ChannelID,
 		Description: item.Description,

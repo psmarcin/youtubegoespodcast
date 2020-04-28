@@ -4,18 +4,46 @@ import (
 	"context"
 	"fmt"
 	"github.com/psmarcin/ytdl"
+	"net/url"
 	"strings"
+	"time"
 )
 
-// GetURL returns video URL based on videoID
-func GetURL(videoID string) (string, error) {
-	client := ytdl.DefaultClient
+var client = ytdl.DefaultClient
+
+type Details struct {
+	FileUrl       *url.URL
+	Description   string
+	Title         string
+	DatePublished time.Time
+	Keywords      []string
+	Author        string
+	Duration      time.Duration
+}
+
+// GetDetails returns video details based on videoID
+func GetDetails(videoID string) (Details, error) {
+	var details Details
 
 	info, err := client.GetVideoInfo(context.Background(), videoID)
 	if err != nil {
 		err = fmt.Errorf("Unable to fetch video info: %s", err)
-		return "", err
+		return details, err
 	}
+
+	details.Title = info.Title
+	details.Description = info.Description
+	details.DatePublished = info.DatePublished
+	details.Keywords = info.Keywords
+	details.Author = info.Uploader
+	details.Duration = info.Duration
+
+	details.FileUrl, err = getVideoUrl(info)
+	return details, err
+}
+
+func getVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
+	var u *url.URL
 	formats := info.Formats
 	filters := []string{
 		"audio-only",
@@ -30,17 +58,14 @@ func GetURL(videoID string) (string, error) {
 	}
 
 	if len(formats) == 0 {
-		err = fmt.Errorf("No formats available that match criteria")
-		return "", err
+		err := fmt.Errorf("No formats available that match criteria")
+		return u, err
 	}
 
 	bestFormat := formats[0]
-	f, err := client.GetDownloadURL(context.Background(), info, bestFormat)
-	if err != nil {
-		return "", err
-	}
+	u, err := client.GetDownloadURL(context.Background(), info, bestFormat)
 
-	return f.String(), nil
+	return u, err
 }
 
 func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, error) {

@@ -1,7 +1,9 @@
 package video
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestGetURL(t *testing.T) {
@@ -33,20 +35,56 @@ func TestGetURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetURL(tt.args.videoID)
+			got, err := GetDetails(tt.args.videoID)
 
-			if got == "" || err != nil {
-				t.Errorf("GetURL() = %v, want url not empty", got)
+			if got.FileUrl.String() == "" || err != nil {
+				t.Errorf("GetDetails() = %v, want url not empty", got)
 			}
 		})
 	}
 }
 
-func TestGetURLGetNotExistedVideo(t *testing.T) {
-	notExistingVideoID := "xxx"
-	got, err := GetURL(notExistingVideoID)
-
-	if got != "" && err == nil {
-		t.Errorf("GetURL() = %v, want url to be empty", got)
+func TestGetDetails(t *testing.T) {
+	type args struct {
+		videoID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Details
+		wantErr bool
+	}{
+		{
+			name: "should get duration",
+			args: args{
+				videoID: "jNQXAC9IVRw",
+			},
+			want: Details{
+				Title:    "Me at the zoo",
+				Author:   "jawed",
+				Duration: 19 * time.Second,
+			},
+			wantErr: false,
+		},
+		{
+			name: "should get error on videoId not found",
+			args: args{
+				videoID: "xxx",
+			},
+			want:    Details{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetDetails(tt.args.videoID)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("GetDetails() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want.Duration, got.Duration)
+			assert.Equal(t, tt.want.Title, got.Title)
+			assert.Equal(t, tt.want.Author, got.Author)
+		})
 	}
 }

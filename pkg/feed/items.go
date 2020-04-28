@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"ygp/pkg/cache"
 	"ygp/pkg/errx"
+	vid "ygp/pkg/video"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
@@ -89,7 +89,7 @@ func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIEr
 	query.Add("part", "snippet")
 	query.Add("order", "date")
 	query.Add("channelId", f.ChannelID)
-	query.Add("maxResults", "5")
+	query.Add("maxResults", "25")
 	query.Add("q", q)
 	query.Add("fields", "items(id,snippet(channelId,channelTitle,description,publishedAt,thumbnails/high,title))")
 	req.URL.RawQuery = query.Encode()
@@ -111,7 +111,7 @@ func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIEr
 	return videos, errx.APIError{}
 }
 
-func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
+func (f *Feed) SetVideos(videos VideosResponse) error {
 	stream := make(chan podcast.Item, countItems(videos.Items))
 
 	// set channel last updated at field as latest item publishing date
@@ -124,18 +124,19 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 	for i, video := range videos.Items {
 		s := video.Snippet
 
-		go func(video VideosItems, i int) errx.APIError {
+		go func(video VideosItems, i int) error {
 
 			if video.ID.VideoID == "" {
 				stream <- podcast.Item{}
-				return errx.APIError{}
+				return errors.New("[ITEM] video id not provided for set video")
 			}
 
-			vd, err := GetVideoDetails(video.ID.VideoID, false)
+			vd, err := vid.GetDetails(video.ID.VideoID)
 			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + "/track.mp3"
 			fileDetails, _ := GetVideoFileDetails(videoURL)
-			if err.IsError() {
-				logrus.WithError(err.Err).Printf("[ITEM]")
+
+			if err != nil {
+				logrus.WithError(err).Printf("[ITEM]")
 				stream <- podcast.Item{}
 				return err
 			}
@@ -144,7 +145,7 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 
 			if erro != nil {
 				stream <- podcast.Item{}
-				return errx.New(erro, 500)
+				return erro
 			}
 			it := podcast.Item{
 				GUID:        video.ID.VideoID,
@@ -162,10 +163,11 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 				IOrder:    fmt.Sprintf("%d", i+1),
 			}
 			stream <- it
-			return errx.APIError{}
+			return nil
 		}(video, i)
 
 	}
+
 	counter := 0
 	for {
 		if counter >= len(videos.Items) {
@@ -173,11 +175,12 @@ func (f *Feed) SetVideos(videos VideosResponse) errx.APIError {
 		}
 		err := f.AddItem(<-stream)
 		if err != nil {
-			return errx.New(err, 500)
+			return err
 		}
 		counter++
 	}
-	return errx.APIError{}
+
+	return nil
 }
 
 func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
@@ -187,7 +190,7 @@ func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		return VideoFileDetails{}, errx.New(
-			errors.New("Can't get file details for "+videoURL),
+			errors.New("[ITEM] Can't get file details for "+videoURL),
 			http.StatusBadRequest,
 		)
 	}
@@ -197,66 +200,6 @@ func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 	}, errx.APIError{}
 }
 
-func GetVideoDetails(videoID string, disableCache bool) (VideoDetails, errx.APIError) {
-	vd := VideoDetails{}
-	videoDetails := VideosDetailsResponse{}
-
-	if !disableCache {
-		_, err := _cacheClient.GetKey(videoItemCachePrefix+videoID, &vd)
-		// got cached value, fast return
-		if err == nil {
-			return vd, errx.APIError{}
-		}
-	}
-	// no cached value, have to make call to API
-	req, err := http.NewRequest("GET", youtube.YouTubeURL+"videos", nil)
-	if err != nil {
-		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideoDetails{}, errx.New(err, http.StatusInternalServerError)
-	}
-	query := req.URL.Query()
-	query.Add("part", "contentDetails")
-	query.Add("id", videoID)
-	query.Add("maxResults", "1")
-	query.Add("fields", "items/contentDetails/duration")
-	req.URL.RawQuery = query.Encode()
-
-	requestErr := youtube.Request(req, &videoDetails)
-	if requestErr.IsError() {
-		return VideoDetails{}, requestErr
-	}
-	if len(videoDetails.Items) != 1 {
-		return VideoDetails{}, errx.New(errors.New("Can't get video details for "+videoID), http.StatusBadRequest)
-	}
-	duration, err := parseDuration(videoDetails.Items[0].Details.Duration)
-	if err != nil {
-		return VideoDetails{}, errx.New(errors.New("Can't parse duration for "+videoID), http.StatusInternalServerError)
-	}
-	vd.Duration = duration
-
-	if !disableCache { // save videoDetails to cache
-		str, err := json.Marshal(vd)
-		if err != nil {
-			return vd, errx.New(err, http.StatusInternalServerError)
-		}
-		go _cacheClient.SetKey(videoItemCachePrefix+videoID, string(str), videoItemCacheTTL)
-	}
-
-	return vd, errx.APIError{}
-}
-
-func parseDuration(duration string) (time.Duration, error) {
-	durationString := normalizeDurationString(duration)
-	return time.ParseDuration(durationString)
-}
-
-func normalizeDurationString(duration string) string {
-	return strings.ToLower(strings.Replace(duration, "PT", "", 1))
-}
-
-func getImageURL(src string) string {
-	return src
-}
 
 func countItems(items []VideosItems) int {
 	counter := 0

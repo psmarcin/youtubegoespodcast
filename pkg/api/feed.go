@@ -47,8 +47,8 @@ func FeedHandler(ctx *fiber.Ctx) {
 	}
 
 	setVideosErr := f.SetVideos(videos)
-	if setVideosErr.IsError() {
-		ctx.Next(setVideosErr.Err)
+	if setVideosErr != nil {
+		ctx.Next(setVideosErr)
 		return
 	}
 

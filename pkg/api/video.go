@@ -13,17 +13,19 @@ import (
 func VideoHandler(ctx *fiber.Ctx) {
 	videoID := ctx.Params("videoId")
 
-	videoURL, err := video.GetURL(videoID)
+	details, err := video.GetDetails(videoID)
 	if err != nil {
 		logrus.Errorf("[API] error getting video url: %+v", err)
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
 
-	if videoURL == "" {
+	url := details.FileUrl.String()
+
+	if url == "" {
 		logrus.Infof("didn't find video (%s) with audio", videoID)
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
-	ctx.Redirect(videoURL, http.StatusFound)
+	ctx.Redirect(url, http.StatusFound)
 }
