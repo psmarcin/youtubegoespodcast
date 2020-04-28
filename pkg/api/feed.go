@@ -10,7 +10,7 @@ import (
 
 const (
 	cacheFeedPrefix = "feed_"
-	cacheFeedTTL    = time.Hour * 24 * 1
+	cacheFeedTTL    = time.Hour * 12
 )
 
 const (
