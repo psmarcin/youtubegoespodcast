@@ -25,6 +25,7 @@ func Request(req *http.Request, y interface{}) errx.APIError {
 	query.Add("key", config.Cfg.GoogleAPIKey)
 	req.URL.RawQuery = query.Encode()
 	// Do request
+	logrus.WithField("url", req.URL.String()).Info("[YT] request")
 	res, err := client.Do(req)
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing request to youtube api")
