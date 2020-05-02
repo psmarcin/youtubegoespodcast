@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	trendingCacheTTL           = time.Hour * 24 * 30
+	trendingCacheTTL           = time.Hour * 24
 	trendingCachePrefix string = "yttrending_main"
 )
 
