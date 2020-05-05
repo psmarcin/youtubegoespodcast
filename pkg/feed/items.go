@@ -22,8 +22,6 @@ var _cacheClient = cache.Client
 
 const (
 	ytVideoURL            = "https://youtube.com/watch?v="
-	videoItemCachePrefix  = "ytvideo_"
-	videoItemCacheTTL     = time.Hour * 24 * 60
 	videoItemsCachePrefix = "ytvideos_"
 	videoItemsCacheTTL    = time.Hour * 24
 )
@@ -69,15 +67,13 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIError) {
+func (f *Feed) GetVideos(q string) (VideosResponse, errx.APIError) {
 	videos := VideosResponse{}
 
-	if !disbleCache {
-		_, err := _cacheClient.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
-		// got cached value, fast return
-		if err == nil {
-			return videos, errx.APIError{}
-		}
+	_, err := _cacheClient.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
+	// got cached value, fast return
+	if err == nil {
+		return videos, errx.APIError{}
 	}
 
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
@@ -99,15 +95,13 @@ func (f *Feed) GetVideos(q string, disbleCache bool) (VideosResponse, errx.APIEr
 		return VideosResponse{}, requestErr
 	}
 
-	if !disbleCache {
-		// save video items to cache
-		str, err := json.Marshal(videos)
-		if err != nil {
-			return videos, errx.New(err, http.StatusInternalServerError)
-		}
-		go _cacheClient.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
-
+	// save video items to cache
+	str, err := json.Marshal(videos)
+	if err != nil {
+		return videos, errx.New(err, http.StatusInternalServerError)
 	}
+	go _cacheClient.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
+
 	return videos, errx.APIError{}
 }
 
@@ -199,7 +193,6 @@ func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
 		ContentLength: resp.Header.Get("Content-Length"),
 	}, errx.APIError{}
 }
-
 
 func countItems(items []VideosItems) int {
 	counter := 0
