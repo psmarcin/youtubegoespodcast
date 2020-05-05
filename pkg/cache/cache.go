@@ -35,7 +35,11 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 		Ttl:   exp,
 	})
 	if err != nil {
-		logrus.WithError(err).Errorf("[CACHE] Set failed for %s", key)
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"key": key,
+			"value": value,
+			"exp": exp.String(),
+		}).Errorf("[CACHE] Set failed for %s", key)
 		return err
 	}
 

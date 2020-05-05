@@ -40,7 +40,7 @@ func FeedHandler(ctx *fiber.Ctx) {
 		ctx.Next(err.Err)
 		return
 	}
-	videos, getVideoErr := f.GetVideos(searchPhrase, false)
+	videos, getVideoErr := f.GetVideos(searchPhrase)
 	if getVideoErr.IsError() {
 		ctx.Next(getVideoErr.Err)
 		return
