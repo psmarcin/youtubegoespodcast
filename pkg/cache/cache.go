@@ -29,21 +29,19 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 	// todo: pass external context
 	ctx := context.Background()
 
-	document, err := c.collection.Doc(key).Set(ctx, Entity{
+	_, err := c.collection.Doc(key).Set(ctx, Entity{
 		Key:   key,
 		Value: value,
 		Ttl:   exp,
 	})
 	if err != nil {
 		logrus.WithError(err).WithFields(logrus.Fields{
-			"key": key,
+			"key":   key,
 			"value": value,
-			"exp": exp.String(),
+			"exp":   exp.String(),
 		}).Errorf("[CACHE] Set failed for %s", key)
 		return err
 	}
-
-	logrus.WithField("document", document).Debugf("Set key %s", key)
 
 	return nil
 }

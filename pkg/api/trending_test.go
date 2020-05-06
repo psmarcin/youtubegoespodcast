@@ -36,7 +36,6 @@ func TestTrendingHandler(t *testing.T) {
 				Get("/youtube/v3/videos").
 				Reply(http.StatusOK).
 				BodyString("{}")
-			disableCache = true
 
 			resp, err := app.Test(tt.args.r)
 			if err != nil {

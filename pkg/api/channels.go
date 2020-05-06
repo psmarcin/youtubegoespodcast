@@ -10,8 +10,8 @@ import (
 func ChannelsHandler(ctx *fiber.Ctx) {
 	q := ctx.FormValue("q")
 	channels, err := youtube.GetChannels(q)
-	if err.IsError() {
-		ctx.Next(err.Err)
+	if err != nil {
+		ctx.Next(err)
 		return
 	}
 

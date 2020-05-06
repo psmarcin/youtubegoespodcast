@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"ygp/pkg/config"
-	"ygp/pkg/errx"
-
 	"github.com/sirupsen/logrus"
+	"ygp/pkg/config"
 )
 
 const YouTubeURL = "https://www.googleapis.com/youtube/v3/"
@@ -19,7 +17,7 @@ var client = &http.Client{
 }
 
 // Request do request to youtube server to get trending videos
-func Request(req *http.Request, y interface{}) errx.APIError {
+func Request(req *http.Request, y interface{}) error {
 	// Set API key
 	query := req.URL.Query()
 	query.Add("key", config.Cfg.GoogleAPIKey)
@@ -29,13 +27,13 @@ func Request(req *http.Request, y interface{}) errx.APIError {
 	res, err := client.Do(req)
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing request to youtube api")
-		return errx.New(err, http.StatusInternalServerError)
+		return err
 	}
 
 	if res.StatusCode != http.StatusOK {
 		err = errors.New(res.Status)
 		logrus.WithError(err).Printf("[YT] Request error and response: %+v", res)
-		return errx.New(err, res.StatusCode)
+		return err
 	}
 	defer res.Body.Close()
 
@@ -43,7 +41,7 @@ func Request(req *http.Request, y interface{}) errx.APIError {
 	err = json.NewDecoder(res.Body).Decode(y)
 	if err != nil {
 		logrus.WithError(err).Warn("[YT] while doing parsing body content")
-		return errx.New(err, http.StatusInternalServerError)
+		return err
 	}
-	return errx.APIError{}
+	return nil
 }

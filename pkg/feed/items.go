@@ -1,7 +1,6 @@
 package feed
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/eduncan911/podcast"
@@ -10,20 +9,14 @@ import (
 	"strconv"
 	"time"
 
-	"ygp/pkg/cache"
-	"ygp/pkg/errx"
 	vid "ygp/pkg/video"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
 )
 
-var _cacheClient = cache.Client
-
 const (
-	ytVideoURL            = "https://youtube.com/watch?v="
-	videoItemsCachePrefix = "ytvideos_"
-	videoItemsCacheTTL    = time.Hour * 24
+	ytVideoURL = "https://youtube.com/watch?v="
 )
 
 type VideosResponse struct {
@@ -67,19 +60,13 @@ type VideosDetailsContent struct {
 	Duration string `json:"duration"`
 }
 
-func (f *Feed) GetVideos(q string) (VideosResponse, errx.APIError) {
+func (f *Feed) GetVideos(q string) (VideosResponse, error) {
 	videos := VideosResponse{}
-
-	_, err := _cacheClient.GetKey(videoItemsCachePrefix+f.ChannelID, &videos)
-	// got cached value, fast return
-	if err == nil {
-		return videos, errx.APIError{}
-	}
 
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideosResponse{}, errx.New(err, http.StatusInternalServerError)
+		return VideosResponse{}, err
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -91,18 +78,8 @@ func (f *Feed) GetVideos(q string) (VideosResponse, errx.APIError) {
 	req.URL.RawQuery = query.Encode()
 
 	requestErr := youtube.Request(req, &videos)
-	if requestErr.IsError() {
-		return VideosResponse{}, requestErr
-	}
 
-	// save video items to cache
-	str, err := json.Marshal(videos)
-	if err != nil {
-		return videos, errx.New(err, http.StatusInternalServerError)
-	}
-	go _cacheClient.SetKey(videoItemsCachePrefix+f.ChannelID, string(str), videoItemsCacheTTL)
-
-	return videos, errx.APIError{}
+	return videos, requestErr
 }
 
 func (f *Feed) SetVideos(videos VideosResponse) error {
@@ -177,21 +154,18 @@ func (f *Feed) SetVideos(videos VideosResponse) error {
 	return nil
 }
 
-func GetVideoFileDetails(videoURL string) (VideoFileDetails, errx.APIError) {
+func GetVideoFileDetails(videoURL string) (VideoFileDetails, error) {
 	resp, err := http.Head(videoURL)
 	if err != nil {
-		return VideoFileDetails{}, errx.New(err, http.StatusBadRequest)
+		return VideoFileDetails{}, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return VideoFileDetails{}, errx.New(
-			errors.New("[ITEM] Can't get file details for "+videoURL),
-			http.StatusBadRequest,
-		)
+		return VideoFileDetails{}, errors.New("[ITEM] Can't get file details for " + videoURL)
 	}
 	return VideoFileDetails{
 		ContentType:   resp.Header.Get("Content-Type"),
 		ContentLength: resp.Header.Get("Content-Length"),
-	}, errx.APIError{}
+	}, nil
 }
 
 func countItems(items []VideosItems) int {

@@ -6,13 +6,11 @@ import (
 	"ygp/pkg/youtube"
 )
 
-var disableCache = false
-
 // TrendingHandler is a handler for GET /trending endpoint
 func TrendingHandler(ctx *fiber.Ctx) {
-	response, err := youtube.GetTrending(disableCache)
-	if err.IsError() {
-		ctx.Next(err.Err)
+	response, err := youtube.GetTrending()
+	if err != nil {
+		ctx.Next(err)
 		return
 	}
 

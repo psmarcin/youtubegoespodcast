@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -50,7 +51,7 @@ func Start() *fiber.App {
 	// not found handler
 	// Last middleware to match anything
 	app.Use(func(c *fiber.Ctx) {
-		c.SendStatus(404) // => 404 "Not Found"
+		c.SendStatus(http.StatusNotFound) // => 404 "Not Found"
 	})
 
 	logrus.Infof("[API] Port %s", config.Cfg.Port)

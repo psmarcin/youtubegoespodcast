@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"ygp/pkg/cache"
-	"ygp/pkg/errx"
 )
 
 const (
@@ -17,19 +16,17 @@ const (
 )
 
 // GetTrending collects trending from YouTube API
-func GetTrending(disableCache bool) (YoutubeResponse, errx.APIError) {
+func GetTrending() (YoutubeResponse, error) {
 	trending := YoutubeResponse{}
-	if !disableCache {
-		_, err := cache.Client.GetKey(trendingCachePrefix, &trending)
-		if err == nil {
-			return trending, errx.APIError{}
-		}
+	_, err := cache.Client.GetKey(trendingCachePrefix, &trending)
+	if err == nil {
+		return trending, nil
 	}
 
 	req, err := http.NewRequest("GET", YouTubeURL+"videos", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return trending, errx.New(err, http.StatusInternalServerError)
+		return trending, err
 	}
 	query := req.URL.Query()
 	query.Add("part", "snippet")
@@ -38,19 +35,17 @@ func GetTrending(disableCache bool) (YoutubeResponse, errx.APIError) {
 
 	requestErr := Request(req, &trending)
 
-	if requestErr.IsError() {
+	if requestErr != nil {
 		return trending, requestErr
 	}
 
 	// save videoDetails to cache
-	if !disableCache {
-		str, err := json.Marshal(trending)
-		if err != nil {
-			logrus.WithError(err).Fatal("[YT] Can't create new request")
-			return trending, errx.New(err, http.StatusInternalServerError)
-		}
-		go cache.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
+	str, err := json.Marshal(trending)
+	if err != nil {
+		logrus.WithError(err).Fatal("[YT] Can't create new request")
+		return trending, err
 	}
+	go cache.Client.SetKey(trendingCachePrefix, string(str), trendingCacheTTL)
 
-	return trending, errx.APIError{}
+	return trending, nil
 }

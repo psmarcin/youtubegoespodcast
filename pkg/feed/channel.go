@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"ygp/pkg/cache"
-	"ygp/pkg/errx"
 	"ygp/pkg/youtube"
 
 	"github.com/sirupsen/logrus"
@@ -56,7 +55,7 @@ func (f *Feed) AddItem(item podcast.Item) error {
 	return nil
 }
 
-func (f *Feed) GetDetails(channelID string) errx.APIError {
+func (f *Feed) GetDetails(channelID string) error {
 	channel := ChannelDetailsResponse{}
 	_, err := cache.Client.GetKey(channelCachePRefix+channelID, &channel)
 	// got cached value, fast return
@@ -65,7 +64,7 @@ func (f *Feed) GetDetails(channelID string) errx.APIError {
 	}
 
 	if len(channel.Items) == 0 {
-		return errx.New(errors.New("Can't find items for channel "+channelID), http.StatusNotFound)
+		return errors.New("Can't find items for channel " + channelID)
 	}
 
 	item := channel.Items[0].Snippet
@@ -84,10 +83,10 @@ func (f *Feed) GetDetails(channelID string) errx.APIError {
 	}
 	f.Content = fee
 
-	return errx.APIError{}
+	return nil
 }
 
-func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.APIError {
+func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) error {
 	req, err := http.NewRequest("GET", youtube.YouTubeURL+"channels", nil)
 	if err != nil {
 		logrus.WithError(err).Fatal("[YT] Can't create new request")
@@ -100,20 +99,20 @@ func GetDetailsRequest(channelID string, channel *ChannelDetailsResponse) errx.A
 	req.URL.RawQuery = query.Encode()
 
 	requestError := youtube.Request(req, channel)
-	if requestError.IsError() {
+	if requestError != nil {
 		return requestError
 	}
 
 	str, err := json.Marshal(channel)
 	if err != nil {
-		return errx.New(err, http.StatusInternalServerError)
+		return err
 	}
 
 	go cache.Client.SetKey(channelCachePRefix+channelID, string(str), channelCacheTTL)
 
 	if len(channel.Items) == 0 {
-		return errx.New(errors.New("Can't find channel"), http.StatusInternalServerError)
+		return errors.New("Can't find channel")
 	}
 
-	return errx.APIError{}
+	return nil
 }

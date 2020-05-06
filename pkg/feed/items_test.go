@@ -54,7 +54,7 @@ func Test_getVideoFileDetails(t *testing.T) {
 				AddHeader("Content-Length", tt.want.ContentLength)
 
 			got, err := GetVideoFileDetails(tt.args.videoURL)
-			if (err.IsError()) != tt.wantErr {
+			if (err != nil) != tt.wantErr {
 				t.Errorf("GetVideoFileDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

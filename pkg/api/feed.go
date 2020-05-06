@@ -36,13 +36,13 @@ func FeedHandler(ctx *fiber.Ctx) {
 	f := feed.New(channelID)
 	err := f.GetDetails(channelID)
 
-	if err.IsError() {
-		ctx.Next(err.Err)
+	if err != nil {
+		ctx.Next(err)
 		return
 	}
 	videos, getVideoErr := f.GetVideos(searchPhrase)
-	if getVideoErr.IsError() {
-		ctx.Next(getVideoErr.Err)
+	if getVideoErr != nil {
+		ctx.Next(getVideoErr)
 		return
 	}
 
