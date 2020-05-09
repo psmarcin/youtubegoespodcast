@@ -143,7 +143,7 @@ func (yt *YT) TrendingList() ([]Channel, error){
 			ChannelId: item.Snippet.ChannelId,
 			Thumbnail: thumbnail.Url,
 			PublishedAt: publishedAt,
-			Title:     item.Snippet.Title,
+			Title:     item.Snippet.ChannelTitle,
 		})
 	}
 	return channels, err
