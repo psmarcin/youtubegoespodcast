@@ -11,7 +11,7 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func TestChannelsHandler(t *testing.T) {
+func TChannelsHandler(t *testing.T) {
 	type args struct {
 		r *http.Request
 	}
@@ -63,6 +63,10 @@ func TestChannelsHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			defer gock.Off() // Flush pending mocks after test execution
+			gock.New("https://oauth2.googleapis.com").
+				Post("/token").
+				Reply(tt.mock.statusCode).
+				BodyString(tt.mock.body)
 			gock.New("https://www.googleapis.com").
 				Get("/youtube/v3/search").
 				Reply(tt.mock.statusCode).
