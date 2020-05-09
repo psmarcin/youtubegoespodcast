@@ -2,19 +2,22 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"net/http"
+	"github.com/sirupsen/logrus"
 	"ygp/pkg/youtube"
 )
 
 // Handler is default router handler for GET /channel endpoint
-func ChannelsHandler(ctx *fiber.Ctx) {
+func ChannelsHandler(ctx *fiber.Ctx){
 	q := ctx.FormValue("q")
-	channels, err := youtube.GetChannels(q)
+
+	response, err := youtube.Yt.ChannelsListFromCache(q)
 	if err != nil {
+		logrus.WithError(err).Errorf("can't get any channels")
 		ctx.Next(err)
-		return
 	}
 
-	serialized := youtube.Serialize(channels)
-	ctx.Status(http.StatusOK).Send(serialized)
+	err = ctx.JSON(response)
+	if err != nil {
+		ctx.Next(err)
+	}
 }

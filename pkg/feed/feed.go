@@ -5,10 +5,6 @@ import (
 	"sort"
 )
 
-const (
-	ytChannelURL = "https://youtube.com/channel/"
-)
-
 type Feed struct {
 	ChannelID string
 	Content   podcast.Podcast

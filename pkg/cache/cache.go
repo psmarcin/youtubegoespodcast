@@ -46,6 +46,19 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 	return nil
 }
 
+func (c *Cache) MarshalAndSetKey(key string, value interface{}, exp time.Duration) error {
+	marshaled, err := json.Marshal(value)
+	if err != nil {
+		logrus.WithError(err).WithField("value", value).WithField("key", key).Errorf("[CACHE] can't marshal")
+		return err
+	}
+	err = c.SetKey(key, string(marshaled), exp)
+	if err != nil {
+		logrus.WithError(err).Error("[CACHE] can't set marshaled value")
+	}
+	return nil
+}
+
 func (c *Cache) GetKey(key string, to interface{}) (string, error) {
 	// todo: pass external context
 	ctx := context.Background()

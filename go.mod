@@ -18,5 +18,6 @@ require (
 	github.com/psmarcin/ytdl v0.6.3-0.20200425111808-cbf142da0906
 	github.com/sirupsen/logrus v1.4.1
 	github.com/stretchr/testify v1.4.0
+	google.golang.org/api v0.23.0
 	gopkg.in/h2non/gock.v1 v1.0.14
 )

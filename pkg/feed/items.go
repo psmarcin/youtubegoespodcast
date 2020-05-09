@@ -15,95 +15,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	ytVideoURL = "https://youtube.com/watch?v="
-)
-
-type VideosResponse struct {
-	RegionCode string        `json:"regionCode"`
-	Items      []VideosItems `json:"items"`
-}
-type VideosItems struct {
-	ID      ID            `json:"id"`
-	Snippet VideosSnippet `json:"snippet"`
-}
-type ID struct {
-	Kind    string `json:"kind"`
-	VideoID string `json:"videoId"`
-}
-type VideosSnippet struct {
-	PublishedAt          time.Time                `json:"publishedAt"`
-	ChannelID            string                   `json:"channelId"`
-	Title                string                   `json:"title"`
-	Description          string                   `json:"description"`
-	Thumbnails           ChannelDetailsThumbnails `json:"thumbnails"`
-	ChannelTitle         string                   `json:"channelTitle"`
-	LiveBroadcastContent string                   `json:"liveBroadcastContent"`
-}
-
 type VideoFileDetails struct {
 	ContentType   string
 	ContentLength string
 }
 
-type VideoDetails struct {
-	Duration time.Duration
-}
-
-type VideosDetailsResponse struct {
-	Items []VideosDetailsItems `json:"items"`
-}
-type VideosDetailsItems struct {
-	Details VideosDetailsContent `json:"contentDetails"`
-}
-type VideosDetailsContent struct {
-	Duration string `json:"duration"`
-}
-
-func (f *Feed) GetVideos(q string) (VideosResponse, error) {
-	videos := VideosResponse{}
-
-	req, err := http.NewRequest("GET", youtube.YouTubeURL+"search", nil)
-	if err != nil {
-		logrus.WithError(err).Fatal("[YT] Can't create new request")
-		return VideosResponse{}, err
-	}
-	query := req.URL.Query()
-	query.Add("part", "snippet")
-	query.Add("order", "date")
-	query.Add("channelId", f.ChannelID)
-	query.Add("maxResults", "25")
-	query.Add("q", q)
-	query.Add("fields", "items(id,snippet(channelId,channelTitle,description,publishedAt,thumbnails/high,title))")
-	req.URL.RawQuery = query.Encode()
-
-	requestErr := youtube.Request(req, &videos)
-
-	return videos, requestErr
-}
-
-func (f *Feed) SetVideos(videos VideosResponse) error {
-	stream := make(chan podcast.Item, countItems(videos.Items))
-
+func (f *Feed) SetVideos(videos []youtube.Video) error {
+	filteredVideos := filterEmptyVideoOut(videos)
 	// set channel last updated at field as latest item publishing date
-	if len(videos.Items) != 0 {
-		lastItem := videos.Items[0]
-		f.Content.LastBuildDate = lastItem.Snippet.PublishedAt.Format(time.RFC1123Z)
+	if len(filteredVideos) != 0 {
+		lastItem := videos[0]
+		f.Content.LastBuildDate = lastItem.PublishedAt.Format(time.RFC1123Z)
 		f.Content.PubDate = f.Content.LastBuildDate
 	}
 
-	for i, video := range videos.Items {
-		s := video.Snippet
-
-		go func(video VideosItems, i int) error {
-
-			if video.ID.VideoID == "" {
-				stream <- podcast.Item{}
-				return errors.New("[ITEM] video id not provided for set video")
-			}
-
-			vd, err := vid.GetDetails(video.ID.VideoID)
-			videoURL := os.Getenv("API_URL") + "video/" + video.ID.VideoID + "/track.mp3"
+	stream := make(chan podcast.Item, len(filteredVideos))
+	for i, video := range videos {
+		go func(video youtube.Video, i int) error {
+			vd, err := vid.GetDetails(video.ID)
+			videoURL := os.Getenv("API_URL") + "video/" + video.ID + "/track.mp3"
 			fileDetails, _ := GetVideoFileDetails(videoURL)
 
 			if err != nil {
@@ -112,18 +42,18 @@ func (f *Feed) SetVideos(videos VideosResponse) error {
 				return err
 			}
 
-			encodeLength, erro := strconv.ParseInt(fileDetails.ContentLength, 10, 32)
-
-			if erro != nil {
+			encodeLength, err := strconv.ParseInt(fileDetails.ContentLength, 10, 32)
+			if err != nil {
 				stream <- podcast.Item{}
-				return erro
+				return err
 			}
+
 			it := podcast.Item{
-				GUID:        video.ID.VideoID,
-				Title:       s.Title,
-				Link:        ytVideoURL + video.ID.VideoID,
-				Description: s.Description,
-				PubDate:     &s.PublishedAt,
+				GUID:        video.ID,
+				Title:       video.Title,
+				Link:        video.Url,
+				Description: video.Description,
+				PubDate:     &video.PublishedAt,
 				Enclosure: &podcast.Enclosure{
 					URL:    videoURL,
 					Length: encodeLength,
@@ -131,7 +61,7 @@ func (f *Feed) SetVideos(videos VideosResponse) error {
 				},
 				IDuration: fmt.Sprintf("%f", vd.Duration.Seconds()),
 				IExplicit: "no",
-				IOrder:    fmt.Sprintf("%d", i+1),
+				//IOrder:    fmt.Sprintf("%d", i+1),
 			}
 			stream <- it
 			return nil
@@ -141,7 +71,7 @@ func (f *Feed) SetVideos(videos VideosResponse) error {
 
 	counter := 0
 	for {
-		if counter >= len(videos.Items) {
+		if counter >= len(filteredVideos) {
 			break
 		}
 		err := f.AddItem(<-stream)
@@ -168,12 +98,14 @@ func GetVideoFileDetails(videoURL string) (VideoFileDetails, error) {
 	}, nil
 }
 
-func countItems(items []VideosItems) int {
-	counter := 0
-	for _, item := range items {
-		if item.ID.VideoID != "" {
-			counter++
+func filterEmptyVideoOut(videos []youtube.Video) []youtube.Video{
+	var filtered []youtube.Video
+	for _, video := range videos{
+		if video.ID == ""{
+			continue
 		}
+		filtered = append(filtered, video)
 	}
-	return counter
+
+	return filtered
 }

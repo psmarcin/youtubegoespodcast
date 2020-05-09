@@ -6,6 +6,7 @@ import (
 	"time"
 	"ygp/pkg/cache"
 	"ygp/pkg/feed"
+	"ygp/pkg/youtube"
 )
 
 const (
@@ -40,7 +41,7 @@ func FeedHandler(ctx *fiber.Ctx) {
 		ctx.Next(err)
 		return
 	}
-	videos, getVideoErr := f.GetVideos(searchPhrase)
+	videos, getVideoErr := youtube.Yt.VideosList(f.ChannelID, searchPhrase)
 	if getVideoErr != nil {
 		ctx.Next(getVideoErr)
 		return
