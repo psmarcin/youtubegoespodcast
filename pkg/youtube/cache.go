@@ -8,9 +8,9 @@ import (
 
 const (
 	CacheChannelsPrefix = "youtube-channels-q-"
-	CacheChannelsTtl = time.Hour * 12
+	CacheChannelsTtl = time.Hour * 24
 	CacheTrendingPrefix = "youtube-trending"
-	CacheTrendingTtl = time.Hour * 12
+	CacheTrendingTtl = time.Hour * 24
 )
 
 func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error){
