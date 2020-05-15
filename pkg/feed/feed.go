@@ -2,8 +2,11 @@ package feed
 
 import (
 	"github.com/eduncan911/podcast"
+	"github.com/sirupsen/logrus"
 	"sort"
 )
+
+var l = logrus.WithField("source", "feed")
 
 type Feed struct {
 	ChannelID string

@@ -1,7 +1,6 @@
 package youtube
 
 import (
-	"github.com/sirupsen/logrus"
 	"time"
 	"ygp/pkg/cache"
 )
@@ -41,7 +40,6 @@ func (yt *YT) TrendingListFromCache() ([]Channel, error){
 	}
 
 	response, err := yt.TrendingList()
-	logrus.WithField("respose", response).Infof("response from trending")
 	if err != nil {
 		return nil, err
 	}

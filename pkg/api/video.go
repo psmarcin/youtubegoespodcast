@@ -4,8 +4,6 @@ import (
 	"github.com/gofiber/fiber"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	"ygp/pkg/video"
 )
 
@@ -15,7 +13,7 @@ func VideoHandler(ctx *fiber.Ctx) {
 
 	details, err := video.GetDetails(videoID)
 	if err != nil {
-		logrus.Errorf("[API] error getting video url: %+v", err)
+		l.WithError(err).Errorf("getting video url: %s", videoID)
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
@@ -23,7 +21,7 @@ func VideoHandler(ctx *fiber.Ctx) {
 	url := details.FileUrl.String()
 
 	if url == "" {
-		logrus.Infof("didn't find video (%s) with audio", videoID)
+		l.Infof("didn't find video (%s) with audio", videoID)
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}

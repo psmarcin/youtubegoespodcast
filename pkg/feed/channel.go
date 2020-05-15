@@ -6,8 +6,6 @@ import (
 
 	"ygp/pkg/cache"
 	"ygp/pkg/youtube"
-
-	"github.com/sirupsen/logrus"
 )
 
 const (

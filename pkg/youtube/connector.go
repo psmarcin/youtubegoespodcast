@@ -39,11 +39,12 @@ type Video struct {
 }
 
 var Yt YT
+var l = logrus.WithField("method","youtube")
 
 func init() {
 	youtubeClient, err := New()
 	if err != nil {
-		logrus.WithError(err).Errorf("Can't initialize youtube service")
+		l.WithError(err).Errorf("Can't initialize youtube service")
 	}
 
 	Yt = youtubeClient
@@ -54,7 +55,7 @@ func New() (YT, error) {
 	ctx := context.Background()
 	youtubeService, err := youtube.NewService(ctx)
 	if err != nil {
-		logrus.WithError(err).Errorf("Can't create youtube service")
+		l.WithError(err).Errorf("Can't create youtube service")
 		return yt, err
 	}
 	yt.service = youtubeService
@@ -65,6 +66,8 @@ func New() (YT, error) {
 func (yt *YT) ChannelGet(id string) (Channel, error){
 	var channel Channel
 
+	l.WithField("id", id).Debugf("channel get")
+
 	call := yt.service.Channels.
 		List("id,snippet").
 		MaxResults(1).
@@ -72,7 +75,7 @@ func (yt *YT) ChannelGet(id string) (Channel, error){
 
 	response, err := call.Do()
 	if err != nil {
-		logrus.WithError(err).Errorf("youtube api request failed")
+		l.WithError(err).Errorf("youtube api request failed")
 		return channel, err
 	}
 
@@ -95,6 +98,8 @@ func (yt *YT) ChannelGet(id string) (Channel, error){
 func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 	var channels []Channel
 
+	l.WithField("query", query).Debugf("channels list")
+
 	call := yt.service.Search.
 		List("id,snippet").
 		MaxResults(ChannelsMaxResults).
@@ -104,7 +109,7 @@ func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 
 	response, err := call.Do()
 	if err != nil {
-		logrus.WithError(err).Errorf("youtube api request failed")
+		l.WithError(err).Errorf("youtube api request failed")
 		return channels, err
 	}
 
@@ -125,6 +130,8 @@ func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 func (yt *YT) TrendingList() ([]Channel, error){
 	var channels []Channel
 
+	l.Debugf("trending list")
+
 	call := yt.service.Videos.
 		List("id,snippet").
 		MaxResults(ChannelsMaxResults).
@@ -132,7 +139,7 @@ func (yt *YT) TrendingList() ([]Channel, error){
 
 	response, err := call.Do()
 	if err != nil {
-		logrus.WithError(err).Errorf("youtube api request failed")
+		l.WithError(err).Errorf("youtube api request failed")
 		return channels, err
 	}
 
@@ -152,6 +159,11 @@ func (yt *YT) TrendingList() ([]Channel, error){
 func (yt *YT) VideosList(channelId, query string) ([]Video, error){
 	var videos []Video
 
+	l.WithFields(logrus.Fields{
+		"channelId": channelId,
+		"query": query,
+	}).Debugf("Videos list")
+
 	call := yt.service.Search.
 		List("id,snippet").
 		MaxResults(VideosMaxResults).
@@ -161,7 +173,7 @@ func (yt *YT) VideosList(channelId, query string) ([]Video, error){
 
 	response, err := call.Do()
 	if err != nil {
-		logrus.WithError(err).Errorf("youtube api request failed")
+		l.WithError(err).Errorf("youtube api request failed")
 		return videos, err
 	}
 

@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/sirupsen/logrus"
 	"ygp/pkg/youtube"
 )
 
@@ -10,7 +9,7 @@ import (
 func TrendingHandler(ctx *fiber.Ctx) {
 	response, err := youtube.Yt.TrendingListFromCache()
 	if err != nil {
-		logrus.WithError(err).Errorf("can't get trending channels")
+		l.WithError(err).Errorf("can't get trending channels")
 		ctx.Next(err)
 	}
 

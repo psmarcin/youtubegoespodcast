@@ -14,6 +14,8 @@ import (
 	"ygp/pkg/config"
 )
 
+var l = logrus.WithField("source", "API")
+
 // Start starts API
 func Start() *fiber.App {
 	appConfig := fiber.Settings{
@@ -28,13 +30,17 @@ func Start() *fiber.App {
 		AllowOrigins: config.Cfg.CorsOrigins,
 		AllowMethods: []string{"GET"},
 	}
+	logConfig := logger.Config{
+		Format: config.Cfg.ApiRouterLoggerFormat,
+		TimeFormat: time.RFC3339,
+	}
 
 	// init fiber application
 	app := fiber.New(&appConfig)
 
 	// middlewares
 	app.Use(cors.New(corsConfig))
-	app.Use(logger.New())
+	app.Use(logger.New(logConfig))
 	app.Use(recover.New())
 	app.Use(requestid.New())
 	app.Use(helmet.New())
@@ -54,6 +60,6 @@ func Start() *fiber.App {
 		c.SendStatus(http.StatusNotFound) // => 404 "Not Found"
 	})
 
-	logrus.Infof("[API] Port %s", config.Cfg.Port)
+	l.WithField("port", config.Cfg.Port).Infof("started")
 	return app
 }

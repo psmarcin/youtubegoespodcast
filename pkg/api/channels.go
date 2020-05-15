@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/sirupsen/logrus"
 	"ygp/pkg/youtube"
 )
 
@@ -12,7 +11,7 @@ func ChannelsHandler(ctx *fiber.Ctx){
 
 	response, err := youtube.Yt.ChannelsListFromCache(q)
 	if err != nil {
-		logrus.WithError(err).Errorf("can't get any channels")
+		l.WithError(err).Errorf("can't get any channels")
 		ctx.Next(err)
 	}
 

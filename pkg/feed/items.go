@@ -11,8 +11,6 @@ import (
 
 	vid "ygp/pkg/video"
 	"ygp/pkg/youtube"
-
-	"github.com/sirupsen/logrus"
 )
 
 type VideoFileDetails struct {
@@ -37,7 +35,7 @@ func (f *Feed) SetVideos(videos []youtube.Video) error {
 			fileDetails, _ := GetVideoFileDetails(videoURL)
 
 			if err != nil {
-				logrus.WithError(err).Printf("[ITEM]")
+				l.WithError(err).Error("item")
 				stream <- podcast.Item{}
 				return err
 			}
