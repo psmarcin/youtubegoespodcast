@@ -2,15 +2,7 @@ package feed
 
 import (
 	"github.com/eduncan911/podcast"
-	"time"
-
-	"ygp/pkg/cache"
 	"ygp/pkg/youtube"
-)
-
-const (
-	channelCachePRefix = "ytchannel_"
-	channelCacheTTL    = time.Hour * 24 * 31
 )
 
 func (f *Feed) AddItem(item podcast.Item) error {
@@ -24,13 +16,9 @@ func (f *Feed) AddItem(item podcast.Item) error {
 }
 
 func (f *Feed) GetDetails(channelID string) error {
-	channel := youtube.Channel{}
-	_, err := cache.Client.GetKey(channelCachePRefix+channelID, &channel)
-	// got cached value, fast return
-
-	channel, err = youtube.Yt.ChannelGet(channelID)
+	channel, err := youtube.Yt.ChannelsGetFromCache(channelID)
 	if err != nil {
-		logrus.WithError(err).Error("can't get channel details")
+		l.WithError(err).Error("can't get channel details")
 		return err
 	}
 
@@ -45,8 +33,8 @@ func (f *Feed) GetDetails(channelID string) error {
 		Link:        channel.Url,
 		Description: channel.Description,
 		//TODO: add width and height for thumbnail
-		Width:       0,
-		Height:      0,
+		Width:  0,
+		Height: 0,
 	}
 	f.Content = fee
 

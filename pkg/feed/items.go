@@ -96,10 +96,10 @@ func GetVideoFileDetails(videoURL string) (VideoFileDetails, error) {
 	}, nil
 }
 
-func filterEmptyVideoOut(videos []youtube.Video) []youtube.Video{
+func filterEmptyVideoOut(videos []youtube.Video) []youtube.Video {
 	var filtered []youtube.Video
-	for _, video := range videos{
-		if video.ID == ""{
+	for _, video := range videos {
+		if video.ID == "" {
 			continue
 		}
 		filtered = append(filtered, video)

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ChannelsMaxResults = 3
-	VideosMaxResults = 25
+	ChannelsMaxResults    = 3
+	VideosMaxResults      = 25
 	YouTubeVideoURLPrefix = "https://youtube.com/watch?v="
 )
 
@@ -19,27 +19,27 @@ type YT struct {
 
 // Channel holds metadata about channel
 type Channel struct {
-	ChannelId string `json:"channelId"`
-	Country string `json:"country"`
-	Description string `json:"description"`
+	ChannelId   string    `json:"channelId"`
+	Country     string    `json:"country"`
+	Description string    `json:"description"`
 	PublishedAt time.Time `json:"publishedAt"`
-	Thumbnail string `json:"thumbnail"`
-	Title     string `json:"title"`
-	Url string `json:"url"`
+	Thumbnail   string    `json:"thumbnail"`
+	Title       string    `json:"title"`
+	Url         string    `json:"url"`
 }
 
 // Video holds metadata about channel
 type Video struct {
-	ID string `json:"id"`
-	Title     string `json:"title"`
-	Description string `json:"description"`
-	PublishedAt time.Time `json:"publishedAt"`
-	Thumbnail youtube.Thumbnail `json:"thumbnail"`
-	Url string `json:"url"`
+	ID          string            `json:"id"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	PublishedAt time.Time         `json:"publishedAt"`
+	Thumbnail   youtube.Thumbnail `json:"thumbnail"`
+	Url         string            `json:"url"`
 }
 
 var Yt YT
-var l = logrus.WithField("method","youtube")
+var l = logrus.WithField("method", "youtube")
 
 func init() {
 	youtubeClient, err := New()
@@ -63,7 +63,7 @@ func New() (YT, error) {
 	return yt, nil
 }
 
-func (yt *YT) ChannelGet(id string) (Channel, error){
+func (yt *YT) ChannelGet(id string) (Channel, error) {
 	var channel Channel
 
 	l.WithField("id", id).Debugf("channel get")
@@ -127,7 +127,7 @@ func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 	return channels, err
 }
 
-func (yt *YT) TrendingList() ([]Channel, error){
+func (yt *YT) TrendingList() ([]Channel, error) {
 	var channels []Channel
 
 	l.Debugf("trending list")
@@ -147,21 +147,21 @@ func (yt *YT) TrendingList() ([]Channel, error){
 		thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
 		publishedAt, _ := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 		channels = append(channels, Channel{
-			ChannelId: item.Snippet.ChannelId,
-			Thumbnail: thumbnail.Url,
+			ChannelId:   item.Snippet.ChannelId,
+			Thumbnail:   thumbnail.Url,
 			PublishedAt: publishedAt,
-			Title:     item.Snippet.ChannelTitle,
+			Title:       item.Snippet.ChannelTitle,
 		})
 	}
 	return channels, err
 }
 
-func (yt *YT) VideosList(channelId, query string) ([]Video, error){
+func (yt *YT) VideosList(channelId, query string) ([]Video, error) {
 	var videos []Video
 
 	l.WithFields(logrus.Fields{
 		"channelId": channelId,
-		"query": query,
+		"query":     query,
 	}).Debugf("Videos list")
 
 	call := yt.service.Search.

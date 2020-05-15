@@ -6,7 +6,7 @@ import (
 )
 
 // Handler is default router handler for GET /channel endpoint
-func ChannelsHandler(ctx *fiber.Ctx){
+func ChannelsHandler(ctx *fiber.Ctx) {
 	q := ctx.FormValue("q")
 
 	response, err := youtube.Yt.ChannelsListFromCache(q)

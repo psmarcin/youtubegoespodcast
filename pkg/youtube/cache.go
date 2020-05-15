@@ -6,15 +6,17 @@ import (
 )
 
 const (
+	CacheChannelPrefix  = "youtube-channel-"
+	CacheChannelTtl     = time.Hour * 24 * 31
 	CacheChannelsPrefix = "youtube-channels-q-"
-	CacheChannelsTtl = time.Hour * 24
+	CacheChannelsTtl    = time.Hour * 24
 	CacheTrendingPrefix = "youtube-trending"
-	CacheTrendingTtl = time.Hour * 24
+	CacheTrendingTtl    = time.Hour * 24
 )
 
-func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error){
+func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error) {
 	var channels []Channel
-	cacheKey := CacheChannelsPrefix+query
+	cacheKey := CacheChannelsPrefix + query
 	_, err := cache.Client.GetKey(cacheKey, &channels)
 	if err == nil {
 		return channels, nil
@@ -30,8 +32,25 @@ func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error){
 	return response, nil
 }
 
+func (yt *YT) ChannelsGetFromCache(id string) (Channel, error) {
+	var channel Channel
+	cacheKey := CacheChannelPrefix + id
+	_, err := cache.Client.GetKey(cacheKey, &channel)
+	if err == nil {
+		return channel, nil
+	}
 
-func (yt *YT) TrendingListFromCache() ([]Channel, error){
+	response, err := yt.ChannelGet(id)
+	if err != nil {
+		return channel, err
+	}
+
+	go cache.Client.MarshalAndSetKey(cacheKey, response, CacheChannelTtl)
+
+	return response, nil
+}
+
+func (yt *YT) TrendingListFromCache() ([]Channel, error) {
 	var channels []Channel
 	cacheKey := CacheTrendingPrefix
 	_, err := cache.Client.GetKey(cacheKey, &channels)
@@ -48,4 +67,3 @@ func (yt *YT) TrendingListFromCache() ([]Channel, error){
 
 	return response, nil
 }
-

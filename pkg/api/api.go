@@ -31,7 +31,7 @@ func Start() *fiber.App {
 		AllowMethods: []string{"GET"},
 	}
 	logConfig := logger.Config{
-		Format: config.Cfg.ApiRouterLoggerFormat,
+		Format:     config.Cfg.ApiRouterLoggerFormat,
 		TimeFormat: time.RFC3339,
 	}
 
