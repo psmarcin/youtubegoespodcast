@@ -8,7 +8,7 @@ import (
 
 // Config stores all data from env variables
 type Config struct {
-	ApiRouterLoggerFormat string   `env:"ROUTER_LOGGER_FORMAT" envDefault:"{\"time\": \"${time}\", \"level\":\"info\" \"source\": \"router\", \"url\": \"${url}\", \"method\": \"${method}\"}\n"`
+	ApiRouterLoggerFormat string   `env:"ROUTER_LOGGER_FORMAT" envDefault:"{\"time\": \"${time}\", \"level\":\"info\" \"source\": \"router\", \"path\": \"${routePath}\", \"url\": \"${url}\", \"method\": \"${method}\"}\n"`
 	AppEnv                string   `env:"APP_ENV,required" envDefault:"development"`
 	CorsOrigins           []string `env:"CORS_ORIGINS" envDefault:"http://localhost:8080" envSeparator:","`
 	FirestoreCollection   string   `env:"FIRESTORE_COLLECTION" envDefault:"dev"`

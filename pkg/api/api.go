@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/gofiber/cors"
 	"github.com/gofiber/helmet"
-	"github.com/gofiber/logger"
+	"github.com/psmarcin/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
 	"net/http"
