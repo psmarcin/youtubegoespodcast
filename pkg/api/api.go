@@ -3,9 +3,9 @@ package api
 import (
 	"github.com/gofiber/cors"
 	"github.com/gofiber/helmet"
-	"github.com/psmarcin/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
+	"github.com/psmarcin/logger"
 	"net/http"
 	"time"
 
@@ -47,6 +47,8 @@ func Start() *fiber.App {
 
 	// define routes
 	app.Get("/", rootHandler)
+	app.Post("/", rootHandler)
+	app.Static("/assets", "./assets/web/")
 	app.Get("/trending", TrendingHandler)
 	app.Get("/channels", ChannelsHandler)
 	app.Get("/video/:videoId/track.mp3", VideoHandler)

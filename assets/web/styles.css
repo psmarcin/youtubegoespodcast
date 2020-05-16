@@ -1,0 +1,18 @@
+body {
+}
+
+.ygp-content input, .ygp-content button {
+    font-family: Montserrat, sans-serif !important;
+}
+
+.divider--v::before {
+    left: 71.6%;
+}
+
+.ygp-feed-url p {
+    margin: 5px 0;
+}
+
+.ygp-channel-links {
+    color: #979797;
+}
