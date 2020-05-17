@@ -10,13 +10,19 @@ const (
 	BaseFeedURL = "https://yt.psmarcin.dev/feed/channel/"
 )
 
-var (
-	templates = template.Must(template.ParseGlob("./templates/*.tmpl"))
-)
+var templates *template.Template
+
+func init() {
+	var err error
+	templates, err = template.ParseGlob("./templates/*.tmpl")
+	if err != nil {
+		l.WithError(err).Errorf("can't find templates")
+	}
+}
 
 func rootHandler(ctx *fiber.Ctx) {
-	var channels []youtube.Channel
 	var err error
+	var channels []youtube.Channel
 
 	ctx.Set("content-type", "text/html; charset=utf-8")
 
@@ -40,7 +46,7 @@ func rootHandler(ctx *fiber.Ctx) {
 	})
 
 	if err != nil {
-		l.WithError(err).Errorf("erron while rendering template")
+		l.WithError(err).Errorf("error while rendering template")
 		ctx.Next(err)
 	}
 }

@@ -49,8 +49,6 @@ func Start() *fiber.App {
 	app.Get("/", rootHandler)
 	app.Post("/", rootHandler)
 	app.Static("/assets", "./assets/web/")
-	app.Get("/trending", TrendingHandler)
-	app.Get("/channels", ChannelsHandler)
 	app.Get("/video/:videoId/track.mp3", VideoHandler)
 	app.Head("/video/:videoId/track.mp3", VideoHandler)
 	app.Get("/feed/channel/:"+ParamChannelId, FeedHandler)
