@@ -1,4 +1,4 @@
-FROM golang:1.12 as build-env
+FROM golang:1.14 as build-env
 
 RUN go version
 

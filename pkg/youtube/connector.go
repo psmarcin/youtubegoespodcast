@@ -105,7 +105,7 @@ func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 		MaxResults(ChannelsMaxResults).
 		Type("channel").
 		Q(query).
-		Order("videoCount")
+		Order("viewCount")
 
 	response, err := call.Do()
 	if err != nil {
