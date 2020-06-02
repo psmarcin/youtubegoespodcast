@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/youtube/v3"
+	"strconv"
 	"time"
 )
 
@@ -39,7 +40,7 @@ type Video struct {
 }
 
 var Yt YT
-var l = logrus.WithField("method", "youtube")
+var l = logrus.WithField("source", "youtube")
 
 func init() {
 	youtubeClient, err := New()
@@ -156,37 +157,39 @@ func (yt *YT) TrendingList() ([]Channel, error) {
 	return channels, err
 }
 
-func (yt *YT) VideosList(channelId, query string) ([]Video, error) {
+func (yt *YT) VideosList(channelId string) ([]Video, error) {
 	var videos []Video
 
-	l.WithFields(logrus.Fields{
-		"channelId": channelId,
-		"query":     query,
-	}).Debugf("Videos list")
-
-	call := yt.service.Search.
-		List("id,snippet").
-		MaxResults(VideosMaxResults).
-		Type("video").
-		ChannelId(channelId).Order("date").
-		Q(query)
-
-	response, err := call.Do()
+	f,err := GetFeed(channelId)
 	if err != nil {
-		l.WithError(err).Errorf("youtube api request failed")
+		l.WithError(err).Errorf("can't get video list for %s", channelId)
 		return videos, err
 	}
 
-	for _, item := range response.Items {
-		thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
-		publishedAt, _ := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
+	for _, item := range f.Entry {
+		publishedAt, _ := time.Parse(time.RFC3339, item.Published)
+
+		tHeight, err := strconv.Atoi(item.Group.Thumbnail.Height)
+		if err != nil{
+			l.WithError(err).Errorf("can't parse video %w thumbnail height %s", item.ID, item.Group.Thumbnail.Height)
+		}
+
+		tWidth, err := strconv.Atoi(item.Group.Thumbnail.Width)
+		if err != nil{
+			l.WithError(err).Errorf("can't parse video %w thumbnail width %s", item.ID, item.Group.Thumbnail.Width)
+		}
+
 		videos = append(videos, Video{
-			ID:          item.Id.VideoId,
-			Title:       item.Snippet.Title,
-			Description: item.Snippet.Description,
+			ID:          item.VideoId,
+			Title:       item.Title,
+			Description: item.Group.Description,
 			PublishedAt: publishedAt,
-			Thumbnail:   thumbnail,
-			Url:         YouTubeVideoURLPrefix + item.Id.VideoId,
+			Thumbnail:   youtube.Thumbnail{
+				Height:          int64(tHeight),
+				Url:             item.Group.Thumbnail.URL,
+				Width:           int64(tWidth),
+			},
+			Url:         item.Link.Href,
 		})
 	}
 	return videos, err

@@ -16,13 +16,12 @@ const (
 
 const (
 	ParamChannelId = "channelId"
-	QuerySearch    = "search"
 )
 
 func FeedHandler(ctx *fiber.Ctx) {
 	channelID := ctx.Params(ParamChannelId)
-	searchPhrase := ctx.FormValue(QuerySearch)
-	cacheKey := cacheFeedPrefix + channelID + "_" + searchPhrase
+	cacheKey := cacheFeedPrefix + channelID + "_"
+
 
 	ctx.Set("Content-Type", "application/rss+xml; charset=UTF-8")
 
@@ -36,12 +35,12 @@ func FeedHandler(ctx *fiber.Ctx) {
 
 	f := feed.New(channelID)
 	err := f.GetDetails(channelID)
-
+	//
 	if err != nil {
 		ctx.Next(err)
 		return
 	}
-	videos, getVideoErr := youtube.Yt.VideosList(f.ChannelID, searchPhrase)
+	videos, getVideoErr := youtube.Yt.VideosList(f.ChannelID)
 	if getVideoErr != nil {
 		ctx.Next(getVideoErr)
 		return
@@ -54,7 +53,7 @@ func FeedHandler(ctx *fiber.Ctx) {
 	}
 
 	f.SortItems()
-
+	//
 	serialized, serializeErr := f.Serialize()
 	if serializeErr != nil {
 		ctx.Next(serializeErr)
