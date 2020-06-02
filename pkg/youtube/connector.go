@@ -171,12 +171,12 @@ func (yt *YT) VideosList(channelId string) ([]Video, error) {
 
 		tHeight, err := strconv.Atoi(item.Group.Thumbnail.Height)
 		if err != nil{
-			l.WithError(err).Errorf("can't parse video %w thumbnail height %s", item.ID, item.Group.Thumbnail.Height)
+			l.WithError(err).Errorf("can't parse video %s thumbnail height %s", item.ID, item.Group.Thumbnail.Height)
 		}
 
 		tWidth, err := strconv.Atoi(item.Group.Thumbnail.Width)
 		if err != nil{
-			l.WithError(err).Errorf("can't parse video %w thumbnail width %s", item.ID, item.Group.Thumbnail.Width)
+			l.WithError(err).Errorf("can't parse video %s thumbnail width %s", item.ID, item.Group.Thumbnail.Width)
 		}
 
 		videos = append(videos, Video{
