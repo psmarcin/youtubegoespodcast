@@ -118,7 +118,7 @@ func GetFeed(channelId string) (Feed, error){
 
 	err = xml.Unmarshal(body, &f)
 	if err != nil {
-		l.WithError(err).Errorf("can't unmarshal channel feed")
+		l.WithError(err).WithField("body", body).Errorf("can't unmarshal channel feed")
 		return f, err
 	}
 
