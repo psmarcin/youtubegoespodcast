@@ -122,12 +122,6 @@ func GetFeed(channelId string) (Feed, error){
 		return f, err
 	}
 
-	l.WithField("f", f).Info("F")
-
-	for _, video := range f.Entry{
-		l.WithField("videoId", video.ID).Info("video")
-	}
-
 	return f, nil
 
 }

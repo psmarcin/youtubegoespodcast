@@ -10,8 +10,6 @@ import (
 
 const (
 	ChannelsMaxResults    = 3
-	VideosMaxResults      = 25
-	YouTubeVideoURLPrefix = "https://youtube.com/watch?v="
 )
 
 type YT struct {
