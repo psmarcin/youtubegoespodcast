@@ -3,16 +3,17 @@
 <h4 align="center">🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙</h3>
 <hr>
 
-This API is created mainly to receive youtube channel and return audio podcast feed that you can use in your favorite podcast app.
+Youtube Goes Podcast will convert any YouTube channel into podcast feed with audio version of videos. 
 
 ## Features/Roadmap
-* [x] Generate podcast feed for youtube channel
-* [x] Filter only wanted videos
-* [x] Use audio file for videos
-* [x] Get trending channels (base on trending videos)
+* [x] Find channel using search field
+* [x] Automatically generate unique url for YouTube Channel
+* [x] Podcast app agnostics. Works well in Apple Podcast, Plex Podcasts and others!
+* [x] Live updates, you will get up-to-date list of latest items immediately! 
+* [ ] Support more then latest 15 videos
 
 ### Examples
-Use this url `https://ygp.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
+Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
 * iPhone Podcast App
 * iTunes MacOS App
 * Plex Web App
@@ -50,9 +51,6 @@ API_URL=http://localhost:8080/
 ### Debug
 1. `docker-compose up -d`
 1. `make debug`
-
-### Database
-On every run we start migrations to be sure that database is up to date.
 
 ## Credits
 This project uses big part of https://github.com/rylio/ytdl. I couldn't use it as dependencies because there was conflict with `logrus`. Will use it as dependency as soon as it will fix that problem.
