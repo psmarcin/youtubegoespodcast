@@ -9,7 +9,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/sirupsen/logrus"
 
-	"ygp/pkg/config"
+	"github.com/psmarcin/youtubegoespodcast/pkg/config"
 )
 
 type Cache struct {

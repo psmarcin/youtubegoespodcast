@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	vid "ygp/pkg/video"
-	"ygp/pkg/youtube"
+	vid "github.com/psmarcin/youtubegoespodcast/pkg/video"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
 type VideoFileDetails struct {

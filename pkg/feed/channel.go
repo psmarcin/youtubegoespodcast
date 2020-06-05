@@ -2,7 +2,7 @@ package feed
 
 import (
 	"github.com/eduncan911/podcast"
-	"ygp/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
 func (f *Feed) AddItem(item podcast.Item) error {

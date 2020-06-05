@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber"
 	"net/http"
 
-	"ygp/pkg/video"
+	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 )
 
 // Handler handles GET /video?videoId= route

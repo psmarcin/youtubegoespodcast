@@ -2,7 +2,7 @@ package youtube
 
 import (
 	"time"
-	"ygp/pkg/cache"
+	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
 )
 
 const (

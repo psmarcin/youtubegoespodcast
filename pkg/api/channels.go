@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"ygp/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
 // Handler is default router handler for GET /channel endpoint

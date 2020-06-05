@@ -10,7 +10,7 @@ import (
 
 	"github.com/gofiber/fiber"
 	"github.com/sirupsen/logrus"
-	"ygp/pkg/config"
+	"github.com/psmarcin/youtubegoespodcast/pkg/config"
 )
 
 var l = logrus.WithField("source", "API")

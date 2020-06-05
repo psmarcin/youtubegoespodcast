@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/gofiber/fiber"
 	"html/template"
-	"ygp/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
 const (

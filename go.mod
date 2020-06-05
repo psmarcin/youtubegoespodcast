@@ -1,4 +1,4 @@
-module ygp
+module github.com/psmarcin/youtubegoespodcast
 
 go 1.14
 

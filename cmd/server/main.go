@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"ygp/pkg/api"
-	"ygp/pkg/cache"
-	"ygp/pkg/config"
-	"ygp/pkg/logger"
+	"github.com/psmarcin/youtubegoespodcast/pkg/api"
+	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
+	"github.com/psmarcin/youtubegoespodcast/pkg/config"
+	"github.com/psmarcin/youtubegoespodcast/pkg/logger"
 )
 
 func main() {
