@@ -14,7 +14,7 @@ var templates *template.Template
 
 func init() {
 	var err error
-	templates, err = template.ParseGlob("./templates/*.tmpl")
+	templates, err = template.ParseGlob("./web/templates/*.tmpl")
 	if err != nil {
 		l.WithError(err).Errorf("can't find templates")
 	}

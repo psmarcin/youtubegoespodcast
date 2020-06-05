@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	BASE_URL = "https://www.youtube.com/"
+	BASE_URL      = "https://www.youtube.com/"
 	FEED_URL_BASE = BASE_URL + "feeds/videos.xml"
 )
 
@@ -87,7 +87,7 @@ type Feed struct {
 	} `xml:"entry"`
 }
 
-func init(){
+func init() {
 	feedUrl, err := url.Parse(FEED_URL_BASE)
 	if err != nil {
 		l.WithError(err).Fatalf("can't parse feed base url")
@@ -95,7 +95,7 @@ func init(){
 	FEED_URL = feedUrl
 }
 
-func GetFeed(channelId string) (Feed, error){
+func GetFeed(channelId string) (Feed, error) {
 	var f Feed
 	u := *FEED_URL
 	q := u.Query()

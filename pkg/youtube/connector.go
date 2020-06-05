@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ChannelsMaxResults    = 3
+	ChannelsMaxResults = 3
 )
 
 type YT struct {
@@ -158,7 +158,7 @@ func (yt *YT) TrendingList() ([]Channel, error) {
 func (yt *YT) VideosList(channelId string) ([]Video, error) {
 	var videos []Video
 
-	f,err := GetFeed(channelId)
+	f, err := GetFeed(channelId)
 	if err != nil {
 		l.WithError(err).Errorf("can't get video list for %s", channelId)
 		return videos, err
@@ -168,12 +168,12 @@ func (yt *YT) VideosList(channelId string) ([]Video, error) {
 		publishedAt, _ := time.Parse(time.RFC3339, item.Published)
 
 		tHeight, err := strconv.Atoi(item.Group.Thumbnail.Height)
-		if err != nil{
+		if err != nil {
 			l.WithError(err).Errorf("can't parse video %s thumbnail height %s", item.ID, item.Group.Thumbnail.Height)
 		}
 
 		tWidth, err := strconv.Atoi(item.Group.Thumbnail.Width)
-		if err != nil{
+		if err != nil {
 			l.WithError(err).Errorf("can't parse video %s thumbnail width %s", item.ID, item.Group.Thumbnail.Width)
 		}
 
@@ -182,12 +182,12 @@ func (yt *YT) VideosList(channelId string) ([]Video, error) {
 			Title:       item.Title,
 			Description: item.Group.Description,
 			PublishedAt: publishedAt,
-			Thumbnail:   youtube.Thumbnail{
-				Height:          int64(tHeight),
-				Url:             item.Group.Thumbnail.URL,
-				Width:           int64(tWidth),
+			Thumbnail: youtube.Thumbnail{
+				Height: int64(tHeight),
+				Url:    item.Group.Thumbnail.URL,
+				Width:  int64(tWidth),
 			},
-			Url:         item.Link.Href,
+			Url: item.Link.Href,
 		})
 	}
 	return videos, err

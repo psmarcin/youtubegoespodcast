@@ -1,34 +1,3 @@
-{{ template "header" }}
-<div class="hero fullscreen">
-    <div class="hero-body u-center">
-        <div class="w-90-tablet ygp-content" style="position: relative ">
-            <div class="row level">
-                <div class="col-8">
-                    <h1 class="headline-4">It's a perfect place to generate podcast feed from YouTube!</h1>
-                    <p class="lead">Just type your channel name below and you will get feed url. It's that simple!</p>
-
-                    <div class="r">
-                        <b>Pssst! Now audio in <div class="tag tag--link">BETA</div></b>
-                    </div>
-
-                    <space></space>
-                    <form class="form-group" method="post" action="/">
-                        <input type="search" name="q" placeholder="Enter YouTube channel name" />
-                        <button class="form-group-btn btn-link">
-                            Search
-                        </button>
-                    </form>
-                    <space></space>
-                    {{ template "list" .Channels }}
-                    {{ template "feedUrl" .ChannelId }}
-                </div>
-                <div class="divider divider--v u-hide-mobile"></div>
-            </div>
-        </div>
-    </div>
-</div>
-{{ template "footer" }}
-
 {{ define "list" }}
     {{ if . }}
             <h5> Results: </h5>

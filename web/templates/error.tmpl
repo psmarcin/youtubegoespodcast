@@ -1,0 +1,23 @@
+{{ template "header" }}
+<div class="hero fullscreen">
+    <div class="hero-body u-center">
+        <div class="w-90-tablet ygp-content" style="position: relative ">
+            <div class="row level">
+                <div class="col-8">
+                    <h1 class="headline-4">Upsss! Error {{ .errorCode }}</h1>
+                    <p class="lead">{{ .errorMessage }}</p>
+
+                    <p>
+                        Go back <a href="/" title="Homepage">to homepage</a>
+                    </p>
+
+                    <div class="r">
+                        <b>Request-id: <div class="tag tag--link">{{ .requestID }}</div></b>
+                    </div>
+                </div>
+                <div class="divider divider--v u-hide-mobile"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ template "footer" }}

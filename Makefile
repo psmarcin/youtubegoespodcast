@@ -6,17 +6,16 @@ dev:
 	modd
 
 dependencies:
-	go get .
+	go mod download
 
 test: dependencies
 	go test ./...
 
 build: dependencies
-	go build main.go
+	go build ./cmd/server
 
 debug:
 	dlv debug --headless --listen=:2345 --log --api-version 2
-
 
 setProject:
 	gcloud config set project $(PROJECT_ID)

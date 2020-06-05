@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
 	"github.com/psmarcin/logger"
-	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -48,17 +47,14 @@ func Start() *fiber.App {
 	// define routes
 	app.Get("/", rootHandler)
 	app.Post("/", rootHandler)
-	app.Static("/assets", "./assets/web/")
+	app.Static("/assets", "./web/static")
 	app.Get("/video/:videoId/track.mp3", VideoHandler)
 	app.Head("/video/:videoId/track.mp3", VideoHandler)
 	app.Get("/feed/channel/:"+ParamChannelId, FeedHandler)
 	app.Head("/feed/channel/:"+ParamChannelId, FeedHandler)
 
-	// not found handler
-	// Last middleware to match anything
-	app.Use(func(c *fiber.Ctx) {
-		c.SendStatus(http.StatusNotFound) // => 404 "Not Found"
-	})
+	// error found handler
+	app.Use(errorHandler)
 
 	l.WithField("port", config.Cfg.Port).Infof("started")
 	return app
