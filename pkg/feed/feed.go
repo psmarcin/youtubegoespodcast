@@ -18,7 +18,7 @@ func (f *Feed) Serialize() ([]byte, error) {
 	return f.Content.Bytes(), nil
 }
 
-func (f *Feed) SortItems() {
+func (f *Feed) SortVideos() {
 	f.Content.Items = sortByOrder(f.Content.Items)
 }
 
