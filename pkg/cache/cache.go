@@ -109,7 +109,7 @@ func Connect() (Cache, error) {
 		logrus.WithError(err).Errorf("can't connect to Firebase")
 		return cache, err
 	}
-	defer store.Close() // Close client when done.
+	//defer store.Close() // Close client when done.
 
 	cache.firestore = store
 	cache.collection = store.Collection(config.Cfg.FirestoreCollection)
