@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"html/template"
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"html/template"
 )
 
 const (
@@ -12,6 +12,7 @@ const (
 
 var templates *template.Template
 
+// init loads templates
 func init() {
 	var err error
 	templates, err = template.ParseGlob("./web/templates/*.tmpl")
@@ -20,11 +21,10 @@ func init() {
 	}
 }
 
+// rootHandler is server route handler for main page and interaction with user
 func rootHandler(ctx *fiber.Ctx) {
 	var err error
 	var channels []youtube.Channel
-
-	ctx.Set("content-type", "text/html; charset=utf-8")
 
 	channelId := ctx.FormValue("channelId")
 	if channelId != "" {
@@ -40,6 +40,7 @@ func rootHandler(ctx *fiber.Ctx) {
 		return
 	}
 
+	ctx.Set("content-type", "text/html; charset=utf-8")
 	err = templates.ExecuteTemplate(ctx.Fasthttp.Response.BodyWriter(), "index.tmpl", map[string]interface{}{
 		"Channels":  channels,
 		"ChannelId": channelId,

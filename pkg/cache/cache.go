@@ -12,11 +12,13 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/pkg/config"
 )
 
+// Cache keeps firestor client and colletion
 type Cache struct {
 	firestore  *firestore.Client
 	collection *firestore.CollectionRef
 }
 
+// Entity is a model for Firestore that handles cache with ttl
 type Entity struct {
 	Key   string        `firestore:"key"`
 	Value string        `firestore:"value"`
@@ -26,6 +28,7 @@ type Entity struct {
 var Client Cache
 var l = logrus.WithField("source", "cache")
 
+// SetKey saves value for key in cache store with expiration time
 func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 	// todo: pass external context
 	ctx := context.Background()
@@ -47,6 +50,7 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 	return nil
 }
 
+// MarshalAndSetKey is the same as SetKey but before that it marshals value. Simple helper
 func (c *Cache) MarshalAndSetKey(key string, value interface{}, exp time.Duration) error {
 	marshaled, err := json.Marshal(value)
 	if err != nil {
@@ -60,6 +64,7 @@ func (c *Cache) MarshalAndSetKey(key string, value interface{}, exp time.Duratio
 	return nil
 }
 
+// GetKey retrieve value by key from cache store
 func (c *Cache) GetKey(key string, to interface{}) (string, error) {
 	// todo: pass external context
 	ctx := context.Background()
@@ -95,6 +100,7 @@ func (c *Cache) GetKey(key string, to interface{}) (string, error) {
 	return e.Value, nil
 }
 
+// Connect establishes connection to Firebase and update singleton variable
 func Connect() (Cache, error) {
 	cache := Cache{}
 	ctx := context.Background()
@@ -103,8 +109,8 @@ func Connect() (Cache, error) {
 		logrus.WithError(err).Errorf("can't connect to Firebase")
 		return cache, err
 	}
-	// todo: investigate problem with disconnection
-	//defer store.Close() // Close client when done.
+	defer store.Close() // Close client when done.
+
 	cache.firestore = store
 	cache.collection = store.Collection(config.Cfg.FirestoreCollection)
 	Client = cache

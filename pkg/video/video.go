@@ -69,8 +69,8 @@ func getVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
 }
 
 func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, error) {
-
 	filterString = strings.TrimSpace(filterString)
+
 	switch filterString {
 	case "best", "worst":
 		return func(formats ytdl.FormatList) ytdl.FormatList {
@@ -94,16 +94,19 @@ func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, er
 				Extremes(ytdl.FormatResolutionKey, filterString == "")
 		}, nil
 	}
+
 	err := fmt.Errorf("Invalid filter")
 	split := strings.SplitN(filterString, ":", 2)
 	if len(split) != 2 {
 		return nil, err
 	}
+
 	key := ytdl.FormatKey(split[0])
 	exclude := key[0] == '!'
 	if exclude {
 		key = key[1:]
 	}
+
 	value := strings.TrimSpace(split[1])
 	if value == "best" || value == "worst" {
 		return func(formats ytdl.FormatList) ytdl.FormatList {
@@ -114,11 +117,14 @@ func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, er
 			return f
 		}, nil
 	}
+
 	vals := strings.Split(value, ",")
 	values := make([]interface{}, len(vals))
+
 	for i, v := range vals {
 		values[i] = strings.TrimSpace(v)
 	}
+
 	return func(formats ytdl.FormatList) ytdl.FormatList {
 		f := formats.Filter(key, values)
 		if exclude {

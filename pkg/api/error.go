@@ -11,11 +11,13 @@ const (
 	error500Message = "I'm so sorry, we have technical problem, please try again in a bit."
 )
 
+// errorHandler is server route handler for internal errors and not found routes
 func errorHandler(c *fiber.Ctx) {
 	status := http.StatusNotFound
 	rId := requestid.Get(c)
 	message := error404Message
 	err := c.Error()
+
 	if err != nil {
 		status = http.StatusInternalServerError
 		message = error500Message

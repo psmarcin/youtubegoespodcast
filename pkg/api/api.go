@@ -9,19 +9,42 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber"
-	"github.com/sirupsen/logrus"
 	"github.com/psmarcin/youtubegoespodcast/pkg/config"
+	"github.com/sirupsen/logrus"
 )
 
 var l = logrus.WithField("source", "API")
 
-// Start starts API
+// Start creates and starts HTTP server
 func Start() *fiber.App {
+	serverHTTP := CreateHTTPServer()
+	// define routes
+	serverHTTP.Get("/", rootHandler)
+	serverHTTP.Post("/", rootHandler)
+	serverHTTP.Static("/assets", "./web/static")
+
+	videoGroup := serverHTTP.Group("/video")
+	videoGroup.Get("/:videoId/track.mp3", videoHandler)
+	videoGroup.Head("/:videoId/track.mp3", videoHandler)
+
+	feedGroup := serverHTTP.Group("/feed/channel")
+	feedGroup.Get("/:"+ParamChannelId, feedHandler)
+	feedGroup.Head("/:"+ParamChannelId, feedHandler)
+
+	// error found handler
+	serverHTTP.Use(errorHandler)
+
+	l.WithField("port", config.Cfg.Port).Infof("started")
+	return serverHTTP
+}
+
+// CreateHTTPServer creates configured HTTP server
+func CreateHTTPServer() *fiber.App {
 	appConfig := fiber.Settings{
 		CaseSensitive: true,
-		Immutable:     true,
-		ReadTimeout:   1 * time.Second,
-		WriteTimeout:  1 * time.Second,
+		Immutable:     false,
+		ReadTimeout:   5 * time.Second,
+		WriteTimeout:  3 * time.Second,
 		IdleTimeout:   1 * time.Second,
 	}
 	corsConfig := cors.Config{
@@ -35,27 +58,14 @@ func Start() *fiber.App {
 	}
 
 	// init fiber application
-	app := fiber.New(&appConfig)
+	serverHTTP := fiber.New(&appConfig)
 
-	// middlewares
-	app.Use(cors.New(corsConfig))
-	app.Use(logger.New(logConfig))
-	app.Use(recover.New())
-	app.Use(requestid.New())
-	app.Use(helmet.New())
+	// middleware
+	serverHTTP.Use(cors.New(corsConfig))
+	serverHTTP.Use(logger.New(logConfig))
+	serverHTTP.Use(recover.New())
+	serverHTTP.Use(requestid.New())
+	serverHTTP.Use(helmet.New())
 
-	// define routes
-	app.Get("/", rootHandler)
-	app.Post("/", rootHandler)
-	app.Static("/assets", "./web/static")
-	app.Get("/video/:videoId/track.mp3", VideoHandler)
-	app.Head("/video/:videoId/track.mp3", VideoHandler)
-	app.Get("/feed/channel/:"+ParamChannelId, FeedHandler)
-	app.Head("/feed/channel/:"+ParamChannelId, FeedHandler)
-
-	// error found handler
-	app.Use(errorHandler)
-
-	l.WithField("port", config.Cfg.Port).Infof("started")
-	return app
+	return serverHTTP
 }

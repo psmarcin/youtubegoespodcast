@@ -7,8 +7,8 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 )
 
-// Handler handles GET /video?videoId= route
-func VideoHandler(ctx *fiber.Ctx) {
+// videoHandler is server route handler for video redirection
+func videoHandler(ctx *fiber.Ctx) {
 	videoID := ctx.Params("videoId")
 
 	details, err := video.GetDetails(videoID)
@@ -25,5 +25,6 @@ func VideoHandler(ctx *fiber.Ctx) {
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
+
 	ctx.Redirect(url, http.StatusFound)
 }

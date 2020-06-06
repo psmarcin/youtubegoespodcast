@@ -2,45 +2,32 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"net/http"
 	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"net/http"
 )
 
 const (
 	ParamChannelId = "channelId"
 )
 
-func FeedHandler(ctx *fiber.Ctx) {
+// feedHandler is server route handler rss feed
+func feedHandler(ctx *fiber.Ctx) {
 	channelID := ctx.Params(ParamChannelId)
 
-	f := feed.New(channelID)
-	err := f.GetDetails(channelID)
+	f, err := feed.Create(channelID)
 	if err != nil {
+		l.WithError(err).Errorf("can't create feed for %s", channelID)
 		ctx.Next(err)
 		return
 	}
 
-	videos, getVideoErr := youtube.Yt.VideosList(f.ChannelID)
-	if getVideoErr != nil {
-		ctx.Next(getVideoErr)
-		return
-	}
-
-	setVideosErr := f.SetVideos(videos)
-	if setVideosErr != nil {
-		ctx.Next(setVideosErr)
-		return
-	}
-
-	f.SortVideos()
-
-	serialized, serializeErr := f.Serialize()
-	if serializeErr != nil {
-		ctx.Next(serializeErr)
+	response, err := f.Serialize()
+	if err != nil {
+		l.WithError(err).Errorf("can't serialize feed for %s", channelID)
+		ctx.Next(err)
 		return
 	}
 
 	ctx.Set("Content-Type", "application/rss+xml; charset=UTF-8")
-	ctx.Status(http.StatusOK).SendBytes(serialized)
+	ctx.Status(http.StatusOK).SendBytes(response)
 }
