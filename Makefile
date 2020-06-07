@@ -1,4 +1,4 @@
-NAME=ygp-api
+NAME=youtubegoespodcast
 PROJECT_ID=youtubegoespodcast
 IMAGE_TAG=gcr.io/$(PROJECT_ID)/$(NAME)
 
