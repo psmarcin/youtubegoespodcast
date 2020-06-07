@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/helmet"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
-	"github.com/psmarcin/logger"
+	"github.com/gofiber/logger"
 	"time"
 
 	"github.com/gofiber/fiber"
