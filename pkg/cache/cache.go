@@ -70,7 +70,7 @@ func (c *Cache) GetKey(key string, to interface{}) (string, error) {
 	ctx := context.Background()
 	raw, err := c.collection.Doc(key).Get(ctx)
 	if err != nil {
-		l.WithError(err).Errorf("can't get document %s", key)
+		l.WithError(err).Warnf("can't get document %s", key)
 		return "", err
 	}
 
