@@ -40,15 +40,6 @@ type Video struct {
 var Yt YT
 var l = logrus.WithField("source", "youtube")
 
-func init() {
-	youtubeClient, err := New()
-	if err != nil {
-		l.WithError(err).Errorf("Can't initialize youtube service")
-	}
-
-	Yt = youtubeClient
-}
-
 func New() (YT, error) {
 	yt := YT{}
 	ctx := context.Background()
@@ -62,7 +53,7 @@ func New() (YT, error) {
 	return yt, nil
 }
 
-func (yt *YT) ChannelGet(id string) (Channel, error) {
+func (yt YT) ChannelGet(id string) (Channel, error) {
 	var channel Channel
 
 	l.WithField("id", id).Infof("channel get")
@@ -94,7 +85,7 @@ func (yt *YT) ChannelGet(id string) (Channel, error) {
 	return channel, err
 }
 
-func (yt *YT) ChannelsList(query string) ([]Channel, error) {
+func (yt YT) ChannelsList(query string) ([]Channel, error) {
 	var channels []Channel
 
 	l.WithField("query", query).Infof("channels list")
@@ -126,7 +117,7 @@ func (yt *YT) ChannelsList(query string) ([]Channel, error) {
 	return channels, err
 }
 
-func (yt *YT) TrendingList() ([]Channel, error) {
+func (yt YT) TrendingList() ([]Channel, error) {
 	var channels []Channel
 
 	l.Infof("trending list")
@@ -155,7 +146,7 @@ func (yt *YT) TrendingList() ([]Channel, error) {
 	return channels, err
 }
 
-func (yt *YT) VideosList(channelId string) ([]Video, error) {
+func (yt YT) VideosList(channelId string) ([]Video, error) {
 	var videos []Video
 
 	f, err := GetFeed(channelId)

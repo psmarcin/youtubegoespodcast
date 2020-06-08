@@ -18,7 +18,7 @@ func Create(channelID string) (Feed, error) {
 	f := Feed{
 		ChannelID: channelID,
 	}
-	err := f.GetDetails(channelID)
+	err := f.GetDetails(channelID, youtube.Yt)
 	if err != nil {
 		l.WithError(err).Errorf("can't get feed details for %s", channelID)
 		return f, err

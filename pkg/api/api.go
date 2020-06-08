@@ -3,9 +3,9 @@ package api
 import (
 	"github.com/gofiber/cors"
 	"github.com/gofiber/helmet"
+	"github.com/gofiber/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
-	"github.com/gofiber/logger"
 	"time"
 
 	"github.com/gofiber/fiber"

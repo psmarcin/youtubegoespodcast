@@ -5,6 +5,10 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
+type YouTube interface {
+	ChannelsGetFromCache(string) (youtube.Channel, error)
+}
+
 func (f *Feed) AddItem(item podcast.Item) error {
 	if item.Title != "" && item.Enclosure.URL != "" {
 		_, err := f.Content.AddItem(item)
@@ -15,8 +19,8 @@ func (f *Feed) AddItem(item podcast.Item) error {
 	return nil
 }
 
-func (f *Feed) GetDetails(channelID string) error {
-	channel, err := youtube.Yt.ChannelsGetFromCache(channelID)
+func (f *Feed) GetDetails(channelID string, yt YouTube) error {
+	channel, err := yt.ChannelsGetFromCache(channelID)
 	if err != nil {
 		l.WithError(err).Error("can't get channel details")
 		return err

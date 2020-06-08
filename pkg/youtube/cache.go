@@ -14,7 +14,7 @@ const (
 	CacheTrendingTtl    = time.Hour * 24
 )
 
-func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error) {
+func (yt YT) ChannelsListFromCache(query string) ([]Channel, error) {
 	var channels []Channel
 	cacheKey := CacheChannelsPrefix + query
 	_, err := cache.Client.GetKey(cacheKey, &channels)
@@ -32,7 +32,7 @@ func (yt *YT) ChannelsListFromCache(query string) ([]Channel, error) {
 	return response, nil
 }
 
-func (yt *YT) ChannelsGetFromCache(id string) (Channel, error) {
+func (yt YT) ChannelsGetFromCache(id string) (Channel, error) {
 	var channel Channel
 	cacheKey := CacheChannelPrefix + id
 	_, err := cache.Client.GetKey(cacheKey, &channel)
@@ -50,7 +50,7 @@ func (yt *YT) ChannelsGetFromCache(id string) (Channel, error) {
 	return response, nil
 }
 
-func (yt *YT) TrendingListFromCache() ([]Channel, error) {
+func (yt YT) TrendingListFromCache() ([]Channel, error) {
 	var channels []Channel
 	cacheKey := CacheTrendingPrefix
 	_, err := cache.Client.GetKey(cacheKey, &channels)
