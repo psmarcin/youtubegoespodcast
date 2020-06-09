@@ -49,7 +49,7 @@ func New() (YT, error) {
 		return yt, err
 	}
 	yt.service = youtubeService
-
+	Yt = yt
 	return yt, nil
 }
 
