@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +36,7 @@ type Details struct {
 }
 
 // GetDetails returns video details based on videoID
-func GetDetails(videoID string, deps Dependencies) (Details, error) {
+func GetDetails(videoID string, shouldProxy bool, deps Dependencies) (Details, error) {
 	var details Details
 
 	info, err := deps.Info(context.Background(), videoID)
@@ -52,6 +53,16 @@ func GetDetails(videoID string, deps Dependencies) (Details, error) {
 	details.Duration = info.Duration
 
 	details.FileUrl, err = deps.GetFileUrl(info)
+
+	if shouldProxy == true {
+		videoURLRaw := os.Getenv("API_URL") + "video/" + videoID + "/track.mp3"
+		videoURL, err := url.Parse(videoURLRaw)
+		if err != nil {
+			l.WithError(err).Errorf("can't parse url for %s", videoID)
+		}
+		details.FileUrl = videoURL
+	}
+
 	details.ContentType, details.ContentLength, err = GetFileDetails(details.FileUrl.String(), deps)
 	if err != nil {
 		l.WithError(err).Errorf("can't get file details for video %s", videoID)

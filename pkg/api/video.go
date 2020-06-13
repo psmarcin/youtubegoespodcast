@@ -12,7 +12,7 @@ func videoHandler(dependencies video.Dependencies) func(ctx *fiber.Ctx) {
 	return func(ctx *fiber.Ctx) {
 		videoID := ctx.Params("videoId")
 
-		details, err := video.GetDetails(videoID, dependencies)
+		details, err := video.GetDetails(videoID, false, dependencies)
 		if err != nil {
 			l.WithError(err).Errorf("getting video url: %s", videoID)
 			ctx.SendStatus(http.StatusNotFound)

@@ -43,7 +43,7 @@ func TestGetURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetDetails(tt.args.videoID, deps)
+			got, err := GetDetails(tt.args.videoID, false, deps)
 
 			if got.FileUrl.String() == "" || err != nil {
 				t.Errorf("GetDetails() = %v, want url not empty", got)
@@ -85,7 +85,7 @@ func TestGetDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetDetails(tt.args.videoID, deps)
+			got, err := GetDetails(tt.args.videoID, false, deps)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("GetDetails() error = %v, wantErr %v", err, tt.wantErr)
 				return

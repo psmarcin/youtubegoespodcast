@@ -19,9 +19,9 @@ func (f *Feed) EnrichItems(deps vid.Dependencies) error {
 	stream := make(chan Item, len(f.Items))
 	for i, video := range f.Items {
 		go func(item Item, i int) error {
-			vd, err := vid.GetDetails(item.Video.ID, deps)
+			vd, err := vid.GetDetails(item.Video.ID, false, deps)
 			if err != nil {
-				l.WithError(err).Error("item")
+				l.WithError(err).Errorf("can't get video details %s", err.Error())
 				stream <- Item{}
 				return err
 			}
