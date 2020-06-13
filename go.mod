@@ -18,8 +18,8 @@ require (
 	github.com/google/go-cmp v0.4.1 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/klauspost/compress v1.10.8 // indirect
-	github.com/psmarcin/ytdl v0.6.3-0.20200425111808-cbf142da0906
 	github.com/rs/zerolog v1.19.0 // indirect
+	github.com/rylio/ytdl v0.6.3
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/mod v0.3.0 // indirect
@@ -28,6 +28,5 @@ require (
 	golang.org/x/tools v0.0.0-20200606014950-c42cb6316fb6 // indirect
 	google.golang.org/api v0.26.0
 	google.golang.org/genproto v0.0.0-20200605102947-12044bf5ea91 // indirect
-	gopkg.in/h2non/gock.v1 v1.0.14
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )

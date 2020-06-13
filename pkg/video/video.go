@@ -2,14 +2,25 @@ package video
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/psmarcin/ytdl"
+	"github.com/rylio/ytdl"
+	"github.com/sirupsen/logrus"
+	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
 
 var client = ytdl.DefaultClient
+var l = logrus.WithField("source", "video")
+
+type Dependencies struct {
+	Details    func(videoID string) (*http.Response, error)
+	Info       func(cx context.Context, value interface{}) (*ytdl.VideoInfo, error)
+	GetFileUrl func(info *ytdl.VideoInfo) (*url.URL, error)
+}
 
 type Details struct {
 	FileUrl       *url.URL
@@ -19,13 +30,15 @@ type Details struct {
 	Keywords      []string
 	Author        string
 	Duration      time.Duration
+	ContentType   string
+	ContentLength int64
 }
 
 // GetDetails returns video details based on videoID
-func GetDetails(videoID string) (Details, error) {
+func GetDetails(videoID string, deps Dependencies) (Details, error) {
 	var details Details
 
-	info, err := client.GetVideoInfo(context.Background(), videoID)
+	info, err := deps.Info(context.Background(), videoID)
 	if err != nil {
 		err = fmt.Errorf("Unable to fetch video info: %s", err)
 		return details, err
@@ -38,11 +51,45 @@ func GetDetails(videoID string) (Details, error) {
 	details.Author = info.Uploader
 	details.Duration = info.Duration
 
-	details.FileUrl, err = getVideoUrl(info)
-	return details, err
+	details.FileUrl, err = deps.GetFileUrl(info)
+	details.ContentType, details.ContentLength, err = GetFileDetails(details.FileUrl.String(), deps)
+	if err != nil {
+		l.WithError(err).Errorf("can't get file details for video %s", videoID)
+	}
+	return details, nil
 }
 
-func getVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
+func GetFileDetails(videoURL string, deps Dependencies) (string, int64, error) {
+	var contentType string
+	var contentLength int64
+
+	resp, err := deps.Details(videoURL)
+	if err != nil {
+		return contentType, contentLength, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return contentType, contentLength, errors.New("[ITEM] Can't get file details for " + videoURL)
+	}
+	ct := resp.Header.Get("Content-Type")
+	cl := resp.Header.Get("Content-Length")
+	if ct == "" || cl == "" {
+		return ct, contentLength, errors.New("can't get details content-type: " + ct + ", content-length: " + cl)
+	}
+
+	clParsed, err := strconv.ParseInt(cl, 10, 32)
+	if err != nil {
+		l.WithError(err).Errorf("can't parse content-length: " + cl)
+		return ct, clParsed, err
+	}
+
+	return ct, clParsed, nil
+}
+
+func HeadRequest(videoURL string) (*http.Response, error) {
+	return http.Head(videoURL)
+}
+
+func GetVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
 	var u *url.URL
 	formats := info.Formats
 	filters := []string{

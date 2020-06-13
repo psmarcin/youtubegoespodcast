@@ -6,6 +6,11 @@ import (
 	"github.com/gofiber/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
+	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
+	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
+	"github.com/psmarcin/youtubegoespodcast/pkg/video"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"github.com/rylio/ytdl"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -13,28 +18,35 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Dependencies struct {
+	Cache   cache.Cache
+	YouTube youtube.YT
+}
+
 var l = logrus.WithField("source", "API")
 
 // Start creates and starts HTTP server
-func Start() *fiber.App {
+func Start(deps Dependencies) *fiber.App {
 	serverHTTP := CreateHTTPServer()
+	feedDeps, videoDeps := CreateDependencies(deps)
 	// define routes
 	serverHTTP.Get("/", rootHandler)
 	serverHTTP.Post("/", rootHandler)
 	serverHTTP.Static("/assets", "./web/static")
 
 	videoGroup := serverHTTP.Group("/video")
-	videoGroup.Get("/:videoId/track.mp3", videoHandler)
-	videoGroup.Head("/:videoId/track.mp3", videoHandler)
+	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDeps))
+	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDeps))
 
 	feedGroup := serverHTTP.Group("/feed/channel")
-	feedGroup.Get("/:"+ParamChannelId, feedHandler)
-	feedGroup.Head("/:"+ParamChannelId, feedHandler)
+	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
+	feedGroup.Head("/:"+ParamChannelId, feedHandler(feedDeps))
 
 	// error found handler
 	serverHTTP.Use(errorHandler)
 
 	l.WithField("port", config.Cfg.Port).Infof("started")
+
 	return serverHTTP
 }
 
@@ -68,4 +80,17 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Use(helmet.New())
 
 	return serverHTTP
+}
+
+func CreateDependencies(deps Dependencies) (feed.Dependencies, video.Dependencies) {
+	vd := video.Dependencies{
+		Details:    video.HeadRequest,
+		Info:       ytdl.GetVideoInfo,
+		GetFileUrl: video.GetVideoUrl,
+	}
+	fd := feed.Dependencies{
+		YouTube: deps.YouTube,
+		Video:   vd,
+	}
+	return fd, vd
 }

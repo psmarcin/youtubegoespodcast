@@ -1,6 +1,8 @@
 package api
 
 import (
+	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
+	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -24,7 +26,14 @@ func TestHandler(t *testing.T) {
 			},
 		},
 	}
-	app := Start()
+
+	c, _ := cache.Connect()
+
+	deps := Dependencies{
+		Cache:   c,
+		YouTube: youtube.YT{},
+	}
+	app := Start(deps)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

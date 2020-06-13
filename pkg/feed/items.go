@@ -1,108 +1,107 @@
 package feed
 
 import (
-	"errors"
 	"fmt"
 	"github.com/eduncan911/podcast"
-	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	vid "github.com/psmarcin/youtubegoespodcast/pkg/video"
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 )
 
-type VideoFileDetails struct {
-	ContentType   string
-	ContentLength string
+type Item struct {
+	Video   youtube.Video
+	Details vid.Details
 }
 
-func (f *Feed) SetVideos(videos []youtube.Video) error {
-	filteredVideos := filterEmptyVideoOut(videos)
-	// set channel last updated at field as latest item publishing date
-	if len(filteredVideos) != 0 {
-		lastItem := videos[0]
-		f.Content.LastBuildDate = lastItem.PublishedAt.Format(time.RFC1123Z)
-		f.Content.PubDate = f.Content.LastBuildDate
-	}
-
-	stream := make(chan podcast.Item, len(filteredVideos))
-	for i, video := range videos {
-		go func(video youtube.Video, i int) error {
-			vd, err := vid.GetDetails(video.ID)
-			videoURL := os.Getenv("API_URL") + "video/" + video.ID + "/track.mp3"
-			fileDetails, _ := GetVideoFileDetails(videoURL)
-
+func (f *Feed) EnrichItems(deps vid.Dependencies) error {
+	stream := make(chan Item, len(f.Items))
+	for i, video := range f.Items {
+		go func(item Item, i int) error {
+			vd, err := vid.GetDetails(item.Video.ID, deps)
 			if err != nil {
 				l.WithError(err).Error("item")
-				stream <- podcast.Item{}
+				stream <- Item{}
 				return err
 			}
 
-			encodeLength, err := strconv.ParseInt(fileDetails.ContentLength, 10, 32)
-			if err != nil {
-				stream <- podcast.Item{}
-				return err
-			}
+			item.Details = vd
 
-			it := podcast.Item{
-				GUID:        video.ID,
-				Title:       video.Title,
-				Link:        video.Url,
-				Description: video.Description,
-				PubDate:     &video.PublishedAt,
-				Enclosure: &podcast.Enclosure{
-					URL:    videoURL,
-					Length: encodeLength,
-					Type:   podcast.MP3,
-				},
-				IDuration: fmt.Sprintf("%f", vd.Duration.Seconds()),
-				IExplicit: "no",
-				//IOrder:    fmt.Sprintf("%d", i+1),
-			}
-			stream <- it
+			stream <- item
 			return nil
 		}(video, i)
-
 	}
 
 	counter := 0
+	var enriched []Item
 	for {
-		if counter >= len(filteredVideos) {
+		if counter >= len(f.Items) {
 			break
 		}
-		err := f.AddItem(<-stream)
+		enriched = append(enriched, <-stream)
+		counter++
+	}
+
+	f.Items = enriched
+	return nil
+}
+
+func (f *Feed) RemoveEmptyItems() {
+	f.Items = filterEmptyVideoOut(f.Items)
+}
+
+func (f *Feed) SetVideos() error {
+	// set channel last updated at field as latest item publishing date
+	if len(f.Items) != 0 {
+		lastItem := f.Items[0]
+		f.Content.LastBuildDate = lastItem.Details.DatePublished.Format(time.RFC1123Z)
+		f.Content.PubDate = f.Content.LastBuildDate
+	}
+
+	for _, item := range f.Items {
+		videoURL := os.Getenv("API_URL") + "video/" + item.Video.ID + "/track.mp3"
+
+		err := f.AddItem(podcast.Item{
+			GUID:        item.Video.ID,
+			Title:       item.Details.Title,
+			Link:        item.Video.Url,
+			Description: item.Details.Description,
+			PubDate:     &item.Details.DatePublished,
+			Enclosure: &podcast.Enclosure{
+				URL:    videoURL,
+				Length: item.Details.ContentLength,
+				Type:   podcast.MP3,
+			},
+			IDuration: fmt.Sprintf("%f", item.Details.Duration.Seconds()),
+			IExplicit: "no",
+		})
+
 		if err != nil {
+			l.WithError(err).Errorf("can't add new video to feed")
 			return err
 		}
-		counter++
 	}
 
 	return nil
 }
 
-func GetVideoFileDetails(videoURL string) (VideoFileDetails, error) {
-	resp, err := http.Head(videoURL)
-	if err != nil {
-		return VideoFileDetails{}, err
+func (f *Feed) SetItems(videos []youtube.Video) {
+	for _, video := range videos {
+		f.Items = append(f.Items, Item{
+			Video:   video,
+			Details: vid.Details{},
+		})
 	}
-	if resp.StatusCode != http.StatusOK {
-		return VideoFileDetails{}, errors.New("[ITEM] Can't get file details for " + videoURL)
-	}
-	return VideoFileDetails{
-		ContentType:   resp.Header.Get("Content-Type"),
-		ContentLength: resp.Header.Get("Content-Length"),
-	}, nil
 }
 
-func filterEmptyVideoOut(videos []youtube.Video) []youtube.Video {
-	var filtered []youtube.Video
-	for _, video := range videos {
-		if video.ID == "" {
+func filterEmptyVideoOut(items []Item) []Item {
+	var filtered []Item
+	for _, item := range items {
+		if item.Video.ID == "" {
 			continue
 		}
-		filtered = append(filtered, video)
+		filtered = append(filtered, item)
 	}
 
 	return filtered

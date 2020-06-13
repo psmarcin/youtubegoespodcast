@@ -17,14 +17,22 @@ func main() {
 	// Logger
 	logger.Setup()
 	// Cache
-	_, _ = cache.Connect()
-	// YouTube API
-	_, err := youtube.New()
+	c, err := cache.Connect()
 	if err != nil {
 		l.WithError(err).Fatalf("can't connect to youtube service")
 	}
+	// YouTube API
+	yt, err := youtube.New()
+	if err != nil {
+		l.WithError(err).Fatalf("can't connect to youtube service")
+	}
+	// dependencies
+	deps := api.Dependencies{
+		Cache:   c,
+		YouTube: yt,
+	}
 	// API
-	app := api.Start()
+	app := api.Start(deps)
 
 	logrus.Fatal(app.Listen(config.Cfg.Port))
 }
