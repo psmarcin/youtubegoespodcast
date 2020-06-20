@@ -13,6 +13,7 @@
 .env
 main
 bin
+dist
 
 # debug
 __debug_bin
