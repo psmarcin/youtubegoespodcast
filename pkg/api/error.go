@@ -12,22 +12,26 @@ const (
 )
 
 // errorHandler is server route handler for internal errors and not found routes
-func errorHandler(c *fiber.Ctx) {
+func errorHandler(ctx *fiber.Ctx) {
 	status := http.StatusNotFound
-	rId := requestid.Get(c)
 	message := error404Message
-	err := c.Error()
+	rId := requestid.Get(ctx)
+	err := ctx.Error()
 
 	if err != nil {
 		status = http.StatusInternalServerError
 		message = error500Message
 	}
 
-	c.Set("content-type", "text/html; charset=utf-8")
-	c.Status(status)
-	_ = templates.ExecuteTemplate(c.Fasthttp.Response.BodyWriter(), "error.tmpl", map[string]interface{}{
+	ctx.Set("content-type", "text/html; charset=utf-8")
+	err = ctx.Status(status).Render("error", fiber.Map{
 		"requestID":    rId,
 		"errorCode":    status,
 		"errorMessage": message,
 	})
+
+	if err != nil {
+		l.WithError(err).Errorf("error while rendering template")
+		ctx.Next(err)
+	}
 }

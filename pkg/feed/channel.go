@@ -40,6 +40,7 @@ func (f *Feed) GetDetails(channelID string, yt YouTube) error {
 		Width:  0,
 		Height: 0,
 	}
+	fee.AddAuthor(channel.Author, channel.AuthorEmail)
 	f.Content = fee
 
 	return nil

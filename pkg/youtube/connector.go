@@ -18,6 +18,8 @@ type YT struct {
 
 // Channel holds metadata about channel
 type Channel struct {
+	Author      string    `json:"author"`
+	AuthorEmail string    `json:"authorEmail"`
 	ChannelId   string    `json:"channelId"`
 	Country     string    `json:"country"`
 	Description string    `json:"description"`
@@ -80,6 +82,8 @@ func (yt YT) ChannelGet(id string) (Channel, error) {
 			Thumbnail:   thumbnail.Url,
 			Title:       item.Snippet.Title,
 			Url:         item.Snippet.CustomUrl,
+			Author:      item.Snippet.CustomUrl,
+			AuthorEmail: "",
 		}
 	}
 	return channel, err

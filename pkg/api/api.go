@@ -1,11 +1,14 @@
 package api
 
 import (
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/gofiber/cors"
+	"github.com/gofiber/embed"
 	"github.com/gofiber/helmet"
 	"github.com/gofiber/logger"
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
+	"github.com/gofiber/template/html"
 	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
 	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
 	"github.com/psmarcin/youtubegoespodcast/pkg/video"
@@ -32,7 +35,6 @@ func Start(deps Dependencies) *fiber.App {
 	// define routes
 	serverHTTP.Get("/", rootHandler)
 	serverHTTP.Post("/", rootHandler)
-	serverHTTP.Static("/assets", "./web/static")
 
 	videoGroup := serverHTTP.Group("/video")
 	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDeps))
@@ -52,12 +54,15 @@ func Start(deps Dependencies) *fiber.App {
 
 // CreateHTTPServer creates configured HTTP server
 func CreateHTTPServer() *fiber.App {
+	templateEngine := html.NewFileSystem(rice.MustFindBox("./../../web/templates").HTTPBox(), ".tmpl")
+
 	appConfig := fiber.Settings{
 		CaseSensitive: true,
 		Immutable:     false,
 		ReadTimeout:   5 * time.Second,
 		WriteTimeout:  3 * time.Second,
 		IdleTimeout:   1 * time.Second,
+		Views:         templateEngine,
 	}
 	corsConfig := cors.Config{
 		Filter:       nil,
@@ -78,6 +83,10 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Use(recover.New())
 	serverHTTP.Use(requestid.New())
 	serverHTTP.Use(helmet.New())
+
+	serverHTTP.Use("/assets", embed.New(embed.Config{
+		Root:   rice.MustFindBox("./../../web/static").HTTPBox(),
+	}))
 
 	return serverHTTP
 }
