@@ -7,10 +7,10 @@ WORKDIR /app
 
 # Copy all files
 ADD . /app
-RUN make build
+RUN GOOS=linux GOARCH=amd64 make build
 
 FROM gcr.io/distroless/base
-COPY --from=build-env /app /
+COPY --from=build-env /app/server /server
 ENV APP_ENV=production
 EXPOSE 8080
 CMD ["/server"]

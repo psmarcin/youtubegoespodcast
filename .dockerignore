@@ -1,2 +1,13 @@
 Dockerfile
 .vscode
+.github
+assets
+bin
+dist
+.env
+.goreleaser.yml
+.idea
+cloudbuild.yaml
+LICENSE
+modd.conf
+README.md
