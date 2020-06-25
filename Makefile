@@ -11,7 +11,13 @@ dependencies:
 test: dependencies
 	go test ./...
 
-build: dependencies
+install-rice:
+	go get github.com/GeertJohan/go.rice/rice
+
+run-rice:
+	rice embed-go -i ./pkg/api
+
+build: dependencies install-rice run-rice
 	go build ./cmd/server
 
 debug:

@@ -18,7 +18,11 @@ dist
 # debug
 __debug_bin
 
-
 # goland
 .idea
 
+# rice
+rice-box.go
+
+# binary
+server
