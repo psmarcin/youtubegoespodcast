@@ -13,4 +13,4 @@ FROM gcr.io/distroless/base
 COPY --from=build-env /app/server /server
 ENV APP_ENV=production
 EXPOSE 8080
-CMD ["/server"]
+ENTRYPOINT ["/server"]

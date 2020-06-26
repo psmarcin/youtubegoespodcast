@@ -5,12 +5,9 @@ go 1.14
 require (
 	cloud.google.com/go v0.57.0 // indirect
 	cloud.google.com/go/firestore v1.2.0
-	github.com/GeertJohan/go.rice v1.0.0
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/eduncan911/podcast v1.4.2
 	github.com/gofiber/cors v0.1.0
-	github.com/gofiber/embed v0.1.0
 	github.com/gofiber/fiber v1.12.0
 	github.com/gofiber/helmet v0.1.0
 	github.com/gofiber/logger v0.2.0

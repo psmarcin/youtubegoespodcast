@@ -1,9 +1,7 @@
 package api
 
 import (
-	rice "github.com/GeertJohan/go.rice"
 	"github.com/gofiber/cors"
-	"github.com/gofiber/embed"
 	"github.com/gofiber/helmet"
 	"github.com/gofiber/logger"
 	"github.com/gofiber/recover"
@@ -54,7 +52,7 @@ func Start(deps Dependencies) *fiber.App {
 
 // CreateHTTPServer creates configured HTTP server
 func CreateHTTPServer() *fiber.App {
-	templateEngine := html.NewFileSystem(rice.MustFindBox("./../../web/templates").HTTPBox(), ".tmpl")
+	templateEngine := html.New("./web/templates", ".tmpl")
 
 	appConfig := fiber.Settings{
 		CaseSensitive: true,
@@ -84,9 +82,7 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Use(requestid.New())
 	serverHTTP.Use(helmet.New())
 
-	serverHTTP.Use("/assets", embed.New(embed.Config{
-		Root:   rice.MustFindBox("./../../web/static").HTTPBox(),
-	}))
+	serverHTTP.Static("/assets", "./web/static")
 
 	return serverHTTP
 }
