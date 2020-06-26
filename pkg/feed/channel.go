@@ -45,3 +45,11 @@ func (f *Feed) GetDetails(channelID string, yt YouTube) error {
 
 	return nil
 }
+
+//func getCategory(topics []string) string {
+//	var selected string
+//	for _, topic := range topics{
+//
+//	}
+//}
+

@@ -17,7 +17,7 @@ require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-cmp v0.4.1 // indirect
 	github.com/joho/godotenv v1.3.0
-	github.com/klauspost/compress v1.10.8 // indirect
+	github.com/klauspost/compress v1.10.10 // indirect
 	github.com/rs/zerolog v1.19.0 // indirect
 	github.com/rylio/ytdl v0.6.3
 	github.com/sirupsen/logrus v1.6.0
