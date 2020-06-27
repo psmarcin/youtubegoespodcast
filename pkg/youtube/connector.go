@@ -83,7 +83,7 @@ func (yt YT) ChannelGet(id string) (Channel, error) {
 			Title:       item.Snippet.Title,
 			Url:         item.Snippet.CustomUrl,
 			Author:      item.Snippet.CustomUrl,
-			AuthorEmail: "",
+			AuthorEmail: "email@example.com",
 		}
 	}
 	return channel, err
