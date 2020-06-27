@@ -10,6 +10,7 @@ import (
 
 const (
 	ChannelsMaxResults = 3
+	YouTubeChannelBaseURL = "https://www.youtube.com/channel/"
 )
 
 type YT struct {
@@ -81,7 +82,7 @@ func (yt YT) ChannelGet(id string) (Channel, error) {
 			PublishedAt: publishedAt,
 			Thumbnail:   thumbnail.Url,
 			Title:       item.Snippet.Title,
-			Url:         item.Snippet.CustomUrl,
+			Url:         YouTubeChannelBaseURL + id,
 			Author:      item.Snippet.CustomUrl,
 			AuthorEmail: "email@example.com",
 		}

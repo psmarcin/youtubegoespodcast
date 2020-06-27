@@ -8,6 +8,10 @@ import (
 	"sort"
 )
 
+const (
+	Generator = "YouTubeGoesPodcast/v2"
+)
+
 var l = logrus.WithField("source", "feed")
 
 type Feed struct {
@@ -56,7 +60,7 @@ func Create(channelID string, dependencies Dependencies) (Feed, error) {
 	}
 
 	f.sortVideos()
-	f.Content.Generator = "xxx2"
+	f.Content.Generator = Generator
 	return f, nil
 }
 
