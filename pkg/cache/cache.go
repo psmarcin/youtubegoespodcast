@@ -12,7 +12,7 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/pkg/config"
 )
 
-// Cache keeps firestor client and colletion
+// Cache keeps firestore client and collection
 type Cache struct {
 	firestore  *firestore.Client
 	collection *firestore.CollectionRef

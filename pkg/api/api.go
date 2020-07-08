@@ -89,7 +89,6 @@ func CreateHTTPServer() *fiber.App {
 
 func CreateDependencies(deps Dependencies) (feed.Dependencies, video.Dependencies) {
 	vd := video.Dependencies{
-		Details:    video.HeadRequest,
 		Info:       ytdl.GetVideoInfo,
 		GetFileUrl: video.GetVideoUrl,
 	}
