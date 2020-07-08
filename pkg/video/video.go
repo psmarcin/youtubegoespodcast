@@ -2,14 +2,12 @@ package video
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/rylio/ytdl"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -63,37 +61,24 @@ func GetDetails(videoID string, shouldProxy bool, deps Dependencies) (Details, e
 		details.FileUrl = videoURL
 	}
 
-	details.ContentType, details.ContentLength, err = GetFileDetails(details.FileUrl.String(), deps)
+	fileDetails, err := GetFileDetails(details.FileUrl, videoID)
 	if err != nil {
 		l.WithError(err).Errorf("can't get file details for video %s", videoID)
 	}
+
+	details.ContentLength = fileDetails.ContentLength
+	details.ContentType = fileDetails.ContentType
 	return details, nil
 }
 
-func GetFileDetails(videoURL string, deps Dependencies) (string, int64, error) {
-	var contentType string
-	var contentLength int64
-
-	resp, err := deps.Details(videoURL)
+func GetFileDetails(u *url.URL, id string) (FileDetails, error) {
+	fileDetails := FileDetails{}
+	fileDetails, err :=fileDetails.GetCache(u, id)
 	if err != nil {
-		return contentType, contentLength, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return contentType, contentLength, errors.New("[ITEM] Can't get file details for " + videoURL)
-	}
-	ct := resp.Header.Get("Content-Type")
-	cl := resp.Header.Get("Content-Length")
-	if ct == "" || cl == "" {
-		return ct, contentLength, errors.New("can't get details content-type: " + ct + ", content-length: " + cl)
+		return fileDetails, err
 	}
 
-	clParsed, err := strconv.ParseInt(cl, 10, 32)
-	if err != nil {
-		l.WithError(err).Errorf("can't parse content-length: " + cl)
-		return ct, clParsed, err
-	}
-
-	return ct, clParsed, nil
+	return fileDetails, nil
 }
 
 func HeadRequest(videoURL string) (*http.Response, error) {
