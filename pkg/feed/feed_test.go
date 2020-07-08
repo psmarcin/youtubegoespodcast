@@ -111,8 +111,6 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 
 	assert.Equal(t, f.ChannelID, "123")
 	assert.Len(t, f.Content.Items, 1)
-	assert.Equal(t, f.Items[0].Details.ContentLength, int64(123))
-	assert.Equal(t, f.Items[0].Details.ContentType, "mp3")
 	assert.Equal(t, f.Items[0].Details.Title, "Title Video")
 	assert.Equal(t, f.Items[0].Details.Description, "Description Video")
 	assert.Equal(t, f.Items[0].Details.FileUrl.String(), "http://onet.pl")
