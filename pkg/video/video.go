@@ -61,13 +61,13 @@ func GetDetails(videoID string, shouldProxy bool, deps Dependencies) (Details, e
 		details.FileUrl = videoURL
 	}
 
-	fileDetails, err := GetFileDetails(details.FileUrl, videoID)
-	if err != nil {
-		l.WithError(err).Errorf("can't get file details for video %s", videoID)
-	}
-
-	details.ContentLength = fileDetails.ContentLength
-	details.ContentType = fileDetails.ContentType
+	//fileDetails, err := GetFileDetails(details.FileUrl, videoID)
+	//if err != nil {
+	//	l.WithError(err).Errorf("can't get file details for video %s", videoID)
+	//}
+	//
+	//details.ContentLength = fileDetails.ContentLength
+	//details.ContentType = fileDetails.ContentType
 	return details, nil
 }
 
