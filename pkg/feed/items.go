@@ -17,30 +17,17 @@ type Item struct {
 
 func (f *Feed) EnrichItems(deps vid.Dependencies) error {
 	stream := make(chan Item, len(f.Items))
-	for i, video := range f.Items {
-		go func(item Item, i int) error {
-			vd, err := vid.GetDetails(item.Video.ID, false, deps)
-			if err != nil {
-				l.WithError(err).Errorf("can't get video details %s", err.Error())
-				stream <- Item{}
-				return err
-			}
-
-			item.Details = vd
-
-			stream <- item
-			return nil
-		}(video, i)
-	}
-
-	counter := 0
 	var enriched []Item
-	for {
-		if counter >= len(f.Items) {
-			break
+	for _, video := range f.Items {
+		vd, err := vid.GetDetails(video.Video.ID, false, deps)
+		if err != nil {
+			l.WithError(err).Errorf("can't get video details %s", err.Error())
+			stream <- Item{}
+			return err
 		}
-		enriched = append(enriched, <-stream)
-		counter++
+
+		video.Details = vd
+		enriched = append(enriched, video)
 	}
 
 	f.Items = enriched
