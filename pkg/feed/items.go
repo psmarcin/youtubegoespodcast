@@ -62,7 +62,7 @@ func (f *Feed) SetVideos() error {
 		videoURL := os.Getenv("API_URL") + "video/" + item.Video.ID + "/track.mp3"
 
 		err := f.AddItem(podcast.Item{
-			GUID:        item.Video.ID,
+			GUID:        item.Details.URL.String(),
 			Title:       item.Details.Title,
 			Link:        item.Video.Url,
 			Description: item.Details.Description,
