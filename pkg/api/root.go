@@ -8,6 +8,7 @@ import (
 const (
 	BaseFeedURL = "https://yt.psmarcin.dev/feed/channel/"
 )
+
 // rootHandler is server route handler for main page and interaction with user
 func rootHandler(ctx *fiber.Ctx) {
 	var err error

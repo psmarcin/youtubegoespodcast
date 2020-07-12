@@ -36,7 +36,7 @@ func TestFeed_SetVideos(t *testing.T) {
 			PublishedAt: time.Now(),
 			Url:         "ivu1",
 		},
-		Details: video.Details{
+		Details: video.Video{
 			Description:   "idd1",
 			Title:         "idt1",
 			DatePublished: time.Now().Truncate(time.Hour * 24),

@@ -3,6 +3,7 @@ package feed
 import (
 	"fmt"
 	"github.com/eduncan911/podcast"
+	"github.com/rylio/ytdl"
 	"os"
 	"time"
 
@@ -12,22 +13,20 @@ import (
 
 type Item struct {
 	Video   youtube.Video
-	Details vid.Details
+	Details vid.Video
 }
 
-func (f *Feed) EnrichItems(deps vid.Dependencies) error {
+func (f *Feed) EnrichItems() error {
 	stream := make(chan Item, len(f.Items))
 	for i, video := range f.Items {
 		go func(item Item, i int) error {
-			vd, err := vid.GetDetails(item.Video.ID, false, deps)
+			details, err := item.Details.GetFileInformation(ytdl.DefaultClient, ytdl.DefaultClient)
 			if err != nil {
 				l.WithError(err).Errorf("can't get video details %s", err.Error())
 				stream <- Item{}
 				return err
 			}
-
-			item.Details = vd
-
+			item.Details = details
 			stream <- item
 			return nil
 		}(video, i)
@@ -90,7 +89,7 @@ func (f *Feed) SetItems(videos []youtube.Video) {
 	for _, video := range videos {
 		f.Items = append(f.Items, Item{
 			Video:   video,
-			Details: vid.Details{},
+			Details: vid.New(video.ID),
 		})
 	}
 }

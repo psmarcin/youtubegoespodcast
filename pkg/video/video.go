@@ -2,92 +2,60 @@ package video
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/rylio/ytdl"
-	"github.com/sirupsen/logrus"
-	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
 
-var client = ytdl.DefaultClient
-var l = logrus.WithField("source", "video")
+const (
+	DetailsNotFound     = "rawInformation not provided, don't have from get file url"
+	FormatsNotFound     = "no formats available that match criteria"
+	YoutubeVideoBaseURL = "https://www.youtube.com/watch?v="
+)
 
-type Dependencies struct {
-	Details    func(videoID string) (*http.Response, error)
-	Info       func(cx context.Context, value interface{}) (*ytdl.VideoInfo, error)
-	GetFileUrl func(info *ytdl.VideoInfo) (*url.URL, error)
+type Video struct {
+	ID             string
+	URL            *url.URL
+	FileUrl        *url.URL
+	Description    string
+	Title          string
+	DatePublished  time.Time
+	Keywords       []string
+	Author         string
+	Duration       time.Duration
+	ContentType    string
+	ContentLength  int64
+	rawInformation *ytdl.VideoInfo
 }
 
-type Details struct {
-	FileUrl       *url.URL
-	Description   string
-	Title         string
-	DatePublished time.Time
-	Keywords      []string
-	Author        string
-	Duration      time.Duration
-	ContentType   string
-	ContentLength int64
+type FileUrlGetter interface {
+	GetDownloadURL(context.Context, *ytdl.VideoInfo, *ytdl.Format) (*url.URL, error)
 }
 
-// GetDetails returns video details based on videoID
-func GetDetails(videoID string, shouldProxy bool, deps Dependencies) (Details, error) {
-	var details Details
+type FileInformationGetter interface {
+	GetVideoInfo(cx context.Context, value interface{}) (*ytdl.VideoInfo, error)
+}
 
-	info, err := deps.Info(context.Background(), videoID)
-	if err != nil {
-		err = fmt.Errorf("Unable to fetch video info: %s", err)
-		return details, err
+func New(ID string) Video {
+	u, _ := url.Parse(YoutubeVideoBaseURL + ID)
+	v := Video{
+		ID:  ID,
+		URL: u,
+	}
+	return v
+}
+
+func (v Video) GetFileURL(fileUrlGetter FileUrlGetter) (url.URL, error) {
+	var u url.URL
+
+	if v.rawInformation == nil {
+		return u, errors.New(DetailsNotFound)
 	}
 
-	details.Title = info.Title
-	details.Description = info.Description
-	details.DatePublished = info.DatePublished
-	details.Keywords = info.Keywords
-	details.Author = info.Uploader
-	details.Duration = info.Duration
-
-	details.FileUrl, err = deps.GetFileUrl(info)
-
-	if shouldProxy == true {
-		videoURLRaw := os.Getenv("API_URL") + "video/" + videoID + "/track.mp3"
-		videoURL, err := url.Parse(videoURLRaw)
-		if err != nil {
-			l.WithError(err).Errorf("can't parse url for %s", videoID)
-		}
-		details.FileUrl = videoURL
-	}
-
-	//fileDetails, err := GetFileDetails(details.FileUrl, videoID)
-	//if err != nil {
-	//	l.WithError(err).Errorf("can't get file details for video %s", videoID)
-	//}
-	//
-	//details.ContentLength = fileDetails.ContentLength
-	//details.ContentType = fileDetails.ContentType
-	return details, nil
-}
-
-func GetFileDetails(u *url.URL, id string) (FileDetails, error) {
-	fileDetails := FileDetails{}
-	fileDetails, err :=fileDetails.GetCache(u, id)
-	if err != nil {
-		return fileDetails, err
-	}
-
-	return fileDetails, nil
-}
-
-func HeadRequest(videoURL string) (*http.Response, error) {
-	return http.Head(videoURL)
-}
-
-func GetVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
-	var u *url.URL
-	formats := info.Formats
+	formats := v.rawInformation.Formats
 	filters := []string{
 		"audio-only",
 	}
@@ -101,36 +69,50 @@ func GetVideoUrl(info *ytdl.VideoInfo) (*url.URL, error) {
 	}
 
 	if len(formats) == 0 {
-		err := fmt.Errorf("No formats available that match criteria")
-		return u, err
+		return u, errors.New(FormatsNotFound)
 	}
 
 	bestFormat := formats[0]
-	u, err := client.GetDownloadURL(context.Background(), info, bestFormat)
+	fileURL, err := fileUrlGetter.GetDownloadURL(context.Background(), v.rawInformation, bestFormat)
 
-	return u, err
+	return *fileURL, err
+}
+
+func (v Video) GetFileInformation(fileInformationGetter FileInformationGetter, fileUrlGetter FileUrlGetter) (Video, error) {
+	video := v
+
+	info, err := fileInformationGetter.GetVideoInfo(context.Background(), video.URL)
+	if err != nil {
+		return video, err
+	}
+	video.rawInformation = info
+	video.Title = info.Title
+	video.Description = info.Description
+	video.DatePublished = info.DatePublished
+	video.Keywords = info.Keywords
+	video.Author = info.Uploader
+	video.Duration = info.Duration
+
+	fileUrl, err := video.GetFileURL(fileUrlGetter)
+	if err != nil {
+		return video, err
+	}
+	video.FileUrl = &fileUrl
+
+	//fileDetails, err := GetFileDetails(video.FileUrl, videoID)
+	//if err != nil {
+	//	l.WithError(err).Errorf("can't get file video for video %s", videoID)
+	//}
+	//
+	//video.ContentLength = fileDetails.ContentLength
+	//video.ContentType = fileDetails.ContentType
+	return video, nil
 }
 
 func parseFilter(filterString string) (func(ytdl.FormatList) ytdl.FormatList, error) {
 	filterString = strings.TrimSpace(filterString)
 
 	switch filterString {
-	case "best", "worst":
-		return func(formats ytdl.FormatList) ytdl.FormatList {
-			return formats.Extremes(ytdl.FormatResolutionKey, filterString == "best").Extremes(ytdl.FormatAudioBitrateKey, filterString == "best")
-		}, nil
-	case "best-fps", "worst-fps":
-		return func(formats ytdl.FormatList) ytdl.FormatList {
-			return formats.Extremes(ytdl.FormatFPSKey, filterString == "best-fps").Extremes(ytdl.FormatResolutionKey, filterString == "best-fps").Extremes(ytdl.FormatAudioBitrateKey, filterString == "best-fps")
-		}, nil
-	case "best-video", "worst-video":
-		return func(formats ytdl.FormatList) ytdl.FormatList {
-			return formats.Extremes(ytdl.FormatResolutionKey, strings.HasPrefix(filterString, "best"))
-		}, nil
-	case "best-audio", "worst-audio":
-		return func(formats ytdl.FormatList) ytdl.FormatList {
-			return formats.Extremes(ytdl.FormatAudioBitrateKey, strings.HasPrefix(filterString, "best"))
-		}, nil
 	case "audio-only":
 		return func(formats ytdl.FormatList) ytdl.FormatList {
 			return formats.

@@ -52,4 +52,3 @@ func (f *Feed) GetDetails(channelID string, yt YouTube) error {
 //
 //	}
 //}
-

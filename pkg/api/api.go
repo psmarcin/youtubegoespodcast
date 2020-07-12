@@ -9,9 +9,7 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
 	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
-	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
-	"github.com/rylio/ytdl"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -29,14 +27,14 @@ var l = logrus.WithField("source", "API")
 // Start creates and starts HTTP server
 func Start(deps Dependencies) *fiber.App {
 	serverHTTP := CreateHTTPServer()
-	feedDeps, videoDeps := CreateDependencies(deps)
+	feedDeps := CreateDependencies(deps)
 	// define routes
 	serverHTTP.Get("/", rootHandler)
 	serverHTTP.Post("/", rootHandler)
 
 	videoGroup := serverHTTP.Group("/video")
-	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDeps))
-	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDeps))
+	videoGroup.Get("/:videoId/track.mp3", videoHandler())
+	videoGroup.Head("/:videoId/track.mp3", videoHandler())
 
 	feedGroup := serverHTTP.Group("/feed/channel")
 	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
@@ -87,14 +85,9 @@ func CreateHTTPServer() *fiber.App {
 	return serverHTTP
 }
 
-func CreateDependencies(deps Dependencies) (feed.Dependencies, video.Dependencies) {
-	vd := video.Dependencies{
-		Info:       ytdl.GetVideoInfo,
-		GetFileUrl: video.GetVideoUrl,
-	}
+func CreateDependencies(deps Dependencies) feed.Dependencies {
 	fd := feed.Dependencies{
 		YouTube: deps.YouTube,
-		Video:   vd,
 	}
-	return fd, vd
+	return fd
 }

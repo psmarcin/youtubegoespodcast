@@ -2,7 +2,6 @@ package feed
 
 import (
 	"github.com/eduncan911/podcast"
-	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/sirupsen/logrus"
 	"sort"
@@ -22,7 +21,6 @@ type Feed struct {
 
 type Dependencies struct {
 	YouTube YouTubeDependency
-	Video   video.Dependencies
 }
 
 type YouTubeDependency interface {
@@ -47,7 +45,7 @@ func Create(channelID string, dependencies Dependencies) (Feed, error) {
 	}
 
 	f.SetItems(videos)
-	err = f.EnrichItems(dependencies.Video)
+	err = f.EnrichItems()
 	if err != nil {
 		l.WithError(err).Errorf("can't enrich videos")
 		return f, err

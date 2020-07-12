@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ChannelsMaxResults = 3
+	ChannelsMaxResults    = 3
 	YouTubeChannelBaseURL = "https://www.youtube.com/channel/"
 )
 
@@ -30,7 +30,7 @@ type Channel struct {
 	Url         string    `json:"url"`
 }
 
-// Video holds metadata about channel
+// Video holds metadata about video
 type Video struct {
 	ID          string            `json:"id"`
 	Title       string            `json:"title"`
@@ -62,7 +62,7 @@ func (yt YT) ChannelGet(id string) (Channel, error) {
 	l.WithField("id", id).Infof("channel get")
 
 	call := yt.service.Channels.
-		List("id,snippet").
+		List([]string{"id", "snippet"}).
 		MaxResults(1).
 		Id(id)
 
@@ -96,7 +96,7 @@ func (yt YT) ChannelsList(query string) ([]Channel, error) {
 	l.WithField("query", query).Infof("channels list")
 
 	call := yt.service.Search.
-		List("id,snippet").
+		List([]string{"id", "snippet"}).
 		MaxResults(ChannelsMaxResults).
 		Type("channel").
 		Q(query).
@@ -128,7 +128,7 @@ func (yt YT) TrendingList() ([]Channel, error) {
 	l.Infof("trending list")
 
 	call := yt.service.Videos.
-		List("id,snippet").
+		List([]string{"id", "snippet"}).
 		MaxResults(ChannelsMaxResults).
 		Chart("mostPopular")
 
