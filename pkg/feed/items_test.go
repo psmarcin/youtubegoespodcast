@@ -60,7 +60,7 @@ func TestFeed_SetVideos(t *testing.T) {
 
 	assert.Len(t, f.Content.Items, 1)
 	assert.Equal(t, f.Content.Items[0].Title, i.Details.Title)
-	assert.Equal(t, f.Content.Items[0].GUID, i.Video.ID)
+	assert.Equal(t, f.Content.Items[0].GUID, i.Video.Url)
 	assert.Equal(t, f.Content.Items[0].Link, i.Video.Url)
 	assert.Equal(t, f.Content.Items[0].Description, i.Details.Description)
 	assert.Equal(t, f.Content.Items[0].PubDate, &i.Details.DatePublished)
