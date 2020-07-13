@@ -59,8 +59,6 @@ func New() (YT, error) {
 func (yt YT) ChannelGet(id string) (Channel, error) {
 	var channel Channel
 
-	l.WithField("id", id).Infof("channel get")
-
 	call := yt.service.Channels.
 		List([]string{"id", "snippet"}).
 		MaxResults(1).
@@ -93,8 +91,6 @@ func (yt YT) ChannelGet(id string) (Channel, error) {
 func (yt YT) ChannelsList(query string) ([]Channel, error) {
 	var channels []Channel
 
-	l.WithField("query", query).Infof("channels list")
-
 	call := yt.service.Search.
 		List([]string{"id", "snippet"}).
 		MaxResults(ChannelsMaxResults).
@@ -124,8 +120,6 @@ func (yt YT) ChannelsList(query string) ([]Channel, error) {
 
 func (yt YT) TrendingList() ([]Channel, error) {
 	var channels []Channel
-
-	l.Infof("trending list")
 
 	call := yt.service.Videos.
 		List([]string{"id", "snippet"}).
