@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	DetailsNotFound     = "rawInformation not provided, don't have from get file url"
 	FormatsNotFound     = "no formats available that match criteria"
 	YoutubeVideoBaseURL = "https://www.youtube.com/watch?v="
 )
@@ -48,14 +47,10 @@ func New(ID string) Video {
 	return v
 }
 
-func (v Video) GetFileURL(fileUrlGetter FileUrlGetter) (url.URL, error) {
+func GetFileURL(info *ytdl.VideoInfo, fileUrlGetter FileUrlGetter) (url.URL, error) {
 	var u url.URL
 
-	if v.rawInformation == nil {
-		return u, errors.New(DetailsNotFound)
-	}
-
-	formats := v.rawInformation.Formats
+	formats := info.Formats
 	filters := []string{
 		"audio-only",
 	}
@@ -73,18 +68,19 @@ func (v Video) GetFileURL(fileUrlGetter FileUrlGetter) (url.URL, error) {
 	}
 
 	bestFormat := formats[0]
-	fileURL, err := fileUrlGetter.GetDownloadURL(context.Background(), v.rawInformation, bestFormat)
+	fileURL, err := fileUrlGetter.GetDownloadURL(context.Background(), info, bestFormat)
 
 	return *fileURL, err
 }
 
-func (v Video) GetFileInformation(fileInformationGetter FileInformationGetter, fileUrlGetter FileUrlGetter) (Video, error) {
-	video := v
+func GetFileInformation(videoId string, fileInformationGetter FileInformationGetter, fileUrlGetter FileUrlGetter) (Video, error) {
+	video := Video{}
 
-	info, err := fileInformationGetter.GetVideoInfo(context.Background(), video.URL)
+	info, err := fileInformationGetter.GetVideoInfo(context.Background(), videoId)
 	if err != nil {
 		return video, err
 	}
+	video.ID = videoId
 	video.rawInformation = info
 	video.Title = info.Title
 	video.Description = info.Description
@@ -93,7 +89,7 @@ func (v Video) GetFileInformation(fileInformationGetter FileInformationGetter, f
 	video.Author = info.Uploader
 	video.Duration = info.Duration
 
-	fileUrl, err := video.GetFileURL(fileUrlGetter)
+	fileUrl, err := GetFileURL(info, fileUrlGetter)
 	if err != nil {
 		return video, err
 	}

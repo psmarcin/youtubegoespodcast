@@ -55,74 +55,43 @@ func TestVideo_GetFileURL(t *testing.T) {
 	mFileUrlGetter := new(MockFileUrlGetter)
 	mFileUrlGetter.On("GetDownloadURL", ctx, d1, f1).Return(u1, nil)
 
-	type fields struct {
-		ID            string
-		FileUrl       *url.URL
-		Description   string
-		Title         string
-		DatePublished time.Time
-		Keywords      []string
-		Author        string
-		Duration      time.Duration
-		ContentType   string
-		ContentLength int64
-		details       *ytdl.VideoInfo
-		FileUrlGetter interface{}
+	type arguments struct {
+		videoInfo     *ytdl.VideoInfo
+		fileUrlGetter FileUrlGetter
 	}
 	tests := []struct {
-		name     string
-		fields   fields
-		argument FileUrlGetter
-		want     url.URL
-		wantErr  bool
-		err      error
+		name      string
+		arguments arguments
+		want      url.URL
+		wantErr   bool
+		err       error
 	}{
 		{
-			name:     "should throw error on no rawInformation provided",
-			fields:   fields{},
-			argument: mFileUrlGetter,
-			want:     url.URL{},
-			wantErr:  true,
-			err:      errors.New(DetailsNotFound),
-		},
-		{
 			name: "should throw error on url not found",
-			fields: fields{
-				details: d2,
+			arguments: arguments{
+				videoInfo:     d2,
+				fileUrlGetter: mFileUrlGetter,
 			},
-			argument: mFileUrlGetter,
-			want:     url.URL{},
-			wantErr:  true,
-			err:      errors.New(FormatsNotFound),
+			want:    url.URL{},
+			wantErr: true,
+			err:     errors.New(FormatsNotFound),
 		},
 		{
 			name: "should return url http://google.com",
-			fields: fields{
-				details: d1,
+			arguments: arguments{
+				videoInfo:     d1,
+				fileUrlGetter: mFileUrlGetter,
 			},
-			argument: mFileUrlGetter,
-			want:     *u1,
-			wantErr:  false,
-			err:      nil,
+			want:    *u1,
+			wantErr: false,
+			err:     nil,
 		},
 		//	TODO: test with fixed format and get real url
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Video{
-				ID:             tt.fields.ID,
-				FileUrl:        tt.fields.FileUrl,
-				Description:    tt.fields.Description,
-				Title:          tt.fields.Title,
-				DatePublished:  tt.fields.DatePublished,
-				Keywords:       tt.fields.Keywords,
-				Author:         tt.fields.Author,
-				Duration:       tt.fields.Duration,
-				ContentType:    tt.fields.ContentType,
-				ContentLength:  tt.fields.ContentLength,
-				rawInformation: tt.fields.details,
-			}
-			got, err := v.GetFileURL(tt.argument)
+
+			got, err := GetFileURL(tt.arguments.videoInfo, tt.arguments.fileUrlGetter)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFileURL() error = %v, wantErr %v", err, tt.wantErr)
@@ -143,14 +112,13 @@ func TestVideo_GetFileURL(t *testing.T) {
 
 func TestVideo_GetFileInformation_ShouldReturnErrorOnVideoInfoCall(t *testing.T) {
 	ctx := context.Background()
-	id := "123"
-	v := New(id)
+	u := "https://www.youtube.com/watch?v=123"
 	fileInformation := &ytdl.VideoInfo{}
 	fileInformationGetter := new(MockFileInformationGetter)
 	errExpected := errors.New("weird error")
-	fileInformationGetter.On("GetVideoInfo", ctx, v.URL).Return(fileInformation, errExpected)
+	fileInformationGetter.On("GetVideoInfo", ctx, u).Return(fileInformation, errExpected)
 
-	_, err := v.GetFileInformation(fileInformationGetter, nil)
+	_, err := GetFileInformation(u, fileInformationGetter, nil)
 	if err != errExpected {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, errExpected)
 		return
@@ -184,9 +152,9 @@ func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 	fileUrlGetter.On("GetDownloadURL", ctx, details, format).Return(u, nil)
 
 	fileInformationGetter := new(MockFileInformationGetter)
-	fileInformationGetter.On("GetVideoInfo", ctx, v.URL).Return(details, nil)
+	fileInformationGetter.On("GetVideoInfo", ctx, id).Return(details, nil)
 
-	result, err := v.GetFileInformation(fileInformationGetter, fileUrlGetter)
+	result, err := GetFileInformation(id, fileInformationGetter, fileUrlGetter)
 	if err != nil {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
 		return
@@ -233,9 +201,9 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.
 	fileUrlGetter.On("GetDownloadURL", ctx, details, format).Return(u, errWanted)
 
 	fileInformationGetter := new(MockFileInformationGetter)
-	fileInformationGetter.On("GetVideoInfo", ctx, v.URL).Return(details, nil)
+	fileInformationGetter.On("GetVideoInfo", ctx, id).Return(details, nil)
 
-	_, err := v.GetFileInformation(fileInformationGetter, fileUrlGetter)
+	_, err := GetFileInformation(id, fileInformationGetter, fileUrlGetter)
 	if err != errWanted {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
 		return
