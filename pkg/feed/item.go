@@ -22,6 +22,8 @@ type Item struct {
 	IsExplicit  bool
 }
 
+type fileInformationGetter func(string, video.FileInformationGetter, video.FileUrlGetter) (video.Video, error)
+
 func NewMap(videos []youtube.Video) ([]Item, error) {
 	stream := make(chan Item, len(videos))
 	for _, v := range videos {
@@ -52,24 +54,24 @@ func NewMap(videos []youtube.Video) ([]Item, error) {
 	return items, nil
 }
 
-func New(video youtube.Video) (Item, error) {
-	u, err := url.Parse(video.Url)
+func New(v youtube.Video) (Item, error) {
+	u, err := url.Parse(v.Url)
 	if err != nil {
 		return Item{}, err
 	}
 
 	item := Item{
-		ID:          video.ID,
-		GUID:        video.Url,
-		Title:       video.Title,
+		ID:          v.ID,
+		GUID:        v.Url,
+		Title:       v.Title,
 		Link:        u,
-		Description: video.Description,
-		PubDate:     video.PublishedAt,
+		Description: v.Description,
+		PubDate:     v.PublishedAt,
 		FileType:    "mp3",
 		IsExplicit:  false,
 	}
 
-	err = item.enrich()
+	err = item.enrich(video.GetFileInformation)
 	if err != nil {
 		return item, err
 	}
@@ -77,8 +79,8 @@ func New(video youtube.Video) (Item, error) {
 	return item, nil
 }
 
-func (item *Item) enrich() error {
-	details, err := video.GetFileInformation(item.ID, ytdl.DefaultClient, ytdl.DefaultClient)
+func (item *Item) enrich(fileGetter fileInformationGetter) error {
+	details, err := fileGetter(item.ID, ytdl.DefaultClient, ytdl.DefaultClient)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,9 @@
 package feed
 
 import (
+	"errors"
 	"github.com/eduncan911/podcast"
+	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/stretchr/testify/assert"
 	"net/url"
@@ -170,4 +172,40 @@ func TestItemV2_IsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestItem_enrichPopulateAllDate(t *testing.T) {
+	id := "123"
+	u, _ := url.Parse(YoutubeVideoBaseURL + id)
+	fn := func(id string, fig video.FileInformationGetter, fug video.FileUrlGetter) (video.Video, error) {
+		return video.Video{
+			ID:            id,
+			Title:         "title",
+			Duration:      time.Hour,
+			FileUrl:       u,
+			ContentLength: 10000,
+		}, nil
+	}
+
+	item := &Item{ID: "123"}
+	expectedItem := &Item{
+		ID:         "123",
+		FileURL:    u,
+		Duration:   time.Hour,
+		FileLength: 10000,
+	}
+	err := item.enrich(fn)
+	assert.NoError(t, err)
+	assert.EqualValues(t, item, expectedItem)
+}
+
+func TestItem_enrichReturnError(t *testing.T) {
+	expectedErr := errors.New("test error")
+	fn := func(id string, fig video.FileInformationGetter, fug video.FileUrlGetter) (video.Video, error) {
+		return video.Video{}, expectedErr
+	}
+
+	item := &Item{ID: "123"}
+	err := item.enrich(fn)
+	assert.Error(t, err, err)
 }
