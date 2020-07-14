@@ -12,9 +12,8 @@ import (
 func videoHandler() func(ctx *fiber.Ctx) {
 	return func(ctx *fiber.Ctx) {
 		videoID := ctx.Params("videoId")
-		v := video.New(videoID)
 
-		details, err := v.GetFileInformation(ytdl.DefaultClient, ytdl.DefaultClient)
+		details, err := video.GetFileInformation(videoID, ytdl.DefaultClient, ytdl.DefaultClient)
 		if err != nil {
 			l.WithError(err).Errorf("getting video url: %s", videoID)
 			ctx.SendStatus(http.StatusNotFound)
