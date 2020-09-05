@@ -3,7 +3,7 @@ package feed
 import (
 	"fmt"
 	"github.com/eduncan911/podcast"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/sirupsen/logrus"
 	"os"
 	"sort"
@@ -27,8 +27,8 @@ type Dependencies struct {
 }
 
 type YouTubeDependency interface {
-	VideosList(string) ([]youtube.Video, error)
-	ChannelsGetFromCache(string) (youtube.Channel, error)
+	ListEntry(string) ([]app.YouTubeFeedEntry, error)
+	GetChannelCache(string) (app.YouTubeChannel, error)
 }
 
 func Create(channelID string, dependencies Dependencies) (Feed, error) {
@@ -41,7 +41,7 @@ func Create(channelID string, dependencies Dependencies) (Feed, error) {
 		return f, err
 	}
 
-	videos, err := dependencies.YouTube.VideosList(f.ChannelID)
+	videos, err := dependencies.YouTube.ListEntry(f.ChannelID)
 	if err != nil {
 		l.WithError(err).Errorf("can't get video list for %s", channelID)
 		return f, err
@@ -108,7 +108,7 @@ func (f *Feed) SetVideos() error {
 	return nil
 }
 
-func (f *Feed) SetItems(videos []youtube.Video) error {
+func (f *Feed) SetItems(videos []app.YouTubeFeedEntry) error {
 	items, err := NewMap(videos)
 	if err != nil {
 		return err

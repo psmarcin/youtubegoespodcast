@@ -3,8 +3,8 @@ package feed
 import (
 	"errors"
 	"github.com/eduncan911/podcast"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/pkg/video"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/stretchr/testify/assert"
 	"net/url"
 	"testing"
@@ -53,13 +53,15 @@ func TestFeed_SetVideos(t *testing.T) {
 }
 
 func TestFeed_SetItems(t *testing.T) {
+	u1, _ := url.Parse(YoutubeVideoBaseURL + "JZAunPKoHL0")
+
 	type fields struct {
 		ChannelID string
 		Content   podcast.Podcast
 		Items     []Item
 	}
 	type args struct {
-		videos []youtube.Video
+		videos []app.YouTubeFeedEntry
 	}
 	tests := []struct {
 		name   string
@@ -69,28 +71,28 @@ func TestFeed_SetItems(t *testing.T) {
 		{
 			name: "should set all items",
 			args: args{
-				videos: []youtube.Video{
+				videos: []app.YouTubeFeedEntry{
 					{
 						ID:          "JZAunPKoHL0",
-						Url:         YoutubeVideoBaseURL + "JZAunPKoHL0",
+						URL:         *u1,
 						Title:       "t1",
 						Description: "d2",
 					},
 					{
 						ID:          "JZAunPKoHL0",
-						Url:         YoutubeVideoBaseURL + "JZAunPKoHL0",
+						URL:         *u1,
 						Title:       "t1",
 						Description: "d2",
 					},
 					{
 						ID:          "JZAunPKoHL0",
-						Url:         YoutubeVideoBaseURL + "JZAunPKoHL0",
+						URL:         *u1,
 						Title:       "t1",
 						Description: "d2",
 					},
 					{
 						ID:          "JZAunPKoHL0",
-						Url:         YoutubeVideoBaseURL + "JZAunPKoHL0",
+						URL:         *u1,
 						Title:       "t1",
 						Description: "d2",
 					},
@@ -100,7 +102,7 @@ func TestFeed_SetItems(t *testing.T) {
 		{
 			name: "should set no items",
 			args: args{
-				videos: []youtube.Video{},
+				videos: []app.YouTubeFeedEntry{},
 			},
 		},
 	}

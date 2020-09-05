@@ -3,7 +3,7 @@ package feed
 import (
 	"context"
 	"github.com/eduncan911/podcast"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/rylio/ytdl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -18,14 +18,14 @@ type DependencyMock struct {
 	mock.Mock
 }
 
-func (m *DependencyMock) VideosList(s string) ([]youtube.Video, error) {
+func (m *DependencyMock) ListEntry(s string) ([]app.YouTubeFeedEntry, error) {
 	args := m.Called(s)
-	return args.Get(0).([]youtube.Video), args.Error(1)
+	return args.Get(0).([]app.YouTubeFeedEntry), args.Error(1)
 }
 
-func (m *DependencyMock) ChannelsGetFromCache(s string) (youtube.Channel, error) {
+func (m *DependencyMock) GetChannelCache(s string) (app.YouTubeChannel, error) {
 	args := m.Called(s)
-	return args.Get(0).(youtube.Channel), args.Error(1)
+	return args.Get(0).(app.YouTubeChannel), args.Error(1)
 }
 
 type DependencyVideoMock struct {
@@ -49,8 +49,8 @@ func (d *DependencyVideoMock) GetFileUrl(info *ytdl.VideoInfo) (*url.URL, error)
 
 func TestFeed_serialize(t *testing.T) {
 	d := new(DependencyMock)
-	d.On("VideosList", "123").Return([]youtube.Video{}, nil)
-	d.On("ChannelsGetFromCache", "123").Return(youtube.Channel{}, nil)
+	d.On("ListEntry", "123").Return([]app.YouTubeFeedEntry{}, nil)
+	d.On("GetChannelCache", "123").Return(app.YouTubeChannel{}, nil)
 
 	f, _ := Create("123", Dependencies{YouTube: d})
 	ti := time.Now()
@@ -63,13 +63,12 @@ func TestFeed_serialize(t *testing.T) {
 
 func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	d := new(DependencyMock)
-	d.On("VideosList", "123").Return([]youtube.Video{{
+	d.On("ListEntry", "123").Return([]app.YouTubeFeedEntry{{
 		ID:          "vi1",
 		Title:       "vt1",
 		Description: "vd1",
-		Url:         "vu1",
 	}}, nil)
-	d.On("ChannelsGetFromCache", "123").Return(youtube.Channel{
+	d.On("GetChannelCache", "123").Return(app.YouTubeChannel{
 		ChannelId:   "123",
 		Country:     "pl",
 		Description: "d1",
@@ -112,8 +111,8 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	//assert.Equal(t, f.Items[0].Details.Title, "Title Video")
 	//assert.Equal(t, f.Items[0].Details.Description, "Description Video")
 	//assert.Equal(t, f.Items[0].Details.FileUrl.String(), "http://onet.pl")
-	assert.True(t, d.AssertNumberOfCalls(t, "VideosList", 1))
-	assert.True(t, d.AssertNumberOfCalls(t, "ChannelsGetFromCache", 1))
+	assert.True(t, d.AssertNumberOfCalls(t, "ListEntry", 1))
+	assert.True(t, d.AssertNumberOfCalls(t, "GetChannelCache", 1))
 	assert.Equal(t, f.Content.Language, "pl")
 	assert.Equal(t, f.Content.Description, "d1")
 	assert.Equal(t, f.Content.Title, "t1")

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/psmarcin/youtubegoespodcast/internal/adapters"
+	application "github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/pkg/api"
-	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
 	"github.com/psmarcin/youtubegoespodcast/pkg/config"
 	"github.com/psmarcin/youtubegoespodcast/pkg/logger"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,20 +16,31 @@ func main() {
 	config.Init()
 	// Logger
 	logger.Setup()
+
 	// Cache
-	c, err := cache.Connect()
+	cacheRepository, err := adapters.NewCacheRepository()
+	if err != nil {
+		l.WithError(err).Fatalf("can't create cache repository")
+	}
+	cacheService := application.NewCacheService(&cacheRepository)
+
+	// YouTube
+	yt, err := adapters.NewYouTube()
 	if err != nil {
 		l.WithError(err).Fatalf("can't connect to youtube service")
 	}
-	// YouTube API
-	yt, err := youtube.New()
+
+	youTubeAPIRepository := adapters.NewYouTubeAPIRepository(yt)
+	youTubeRepository, err := adapters.NewYouTubeRepository()
 	if err != nil {
-		l.WithError(err).Fatalf("can't connect to youtube service")
+		l.WithError(err).Fatalf("can't create youtube request repository")
 	}
+
+	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
+
 	// dependencies
 	deps := api.Dependencies{
-		Cache:   c,
-		YouTube: yt,
+		YouTube: youTubeService,
 	}
 	// API
 	app := api.Start(deps)

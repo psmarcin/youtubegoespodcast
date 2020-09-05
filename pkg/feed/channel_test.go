@@ -3,17 +3,17 @@ package feed
 import (
 	"errors"
 	"github.com/eduncan911/podcast"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"testing"
 	"time"
 )
 
 type YT struct {
-	returnChannel youtube.Channel
+	returnChannel app.YouTubeChannel
 	returnError   error
 }
 
-func (yt YT) ChannelsGetFromCache(_ string) (youtube.Channel, error) {
+func (yt YT) GetChannelCache(_ string) (app.YouTubeChannel, error) {
 	return yt.returnChannel, yt.returnError
 }
 
@@ -130,7 +130,7 @@ func TestFeed_GetDetails(t *testing.T) {
 				Content:   podcast.Podcast{},
 			}, args: args{
 			ch: YT{
-				returnChannel: youtube.Channel{
+				returnChannel: app.YouTubeChannel{
 					ChannelId:   "ch1",
 					Country:     "pl1",
 					Description: "d1",
@@ -155,7 +155,7 @@ func TestFeed_GetDetails(t *testing.T) {
 				Content:   podcast.Podcast{},
 			}, args: args{
 			ch: YT{
-				returnChannel: youtube.Channel{},
+				returnChannel: app.YouTubeChannel{},
 				returnError:   errors.New("can't get channel"),
 			}},
 			wantErr: true,
