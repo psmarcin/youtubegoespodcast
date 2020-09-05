@@ -2,11 +2,11 @@ package feed
 
 import (
 	"github.com/eduncan911/podcast"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
 
 type YouTube interface {
-	ChannelsGetFromCache(string) (youtube.Channel, error)
+	GetChannelCache(string) (app.YouTubeChannel, error)
 }
 
 func (f *Feed) AddItem(item podcast.Item) error {
@@ -20,7 +20,7 @@ func (f *Feed) AddItem(item podcast.Item) error {
 }
 
 func (f *Feed) GetDetails(channelID string, yt YouTube) error {
-	channel, err := yt.ChannelsGetFromCache(channelID)
+	channel, err := yt.GetChannelCache(channelID)
 	if err != nil {
 		l.WithError(err).Error("can't get channel details")
 		return err
@@ -45,10 +45,3 @@ func (f *Feed) GetDetails(channelID string, yt YouTube) error {
 
 	return nil
 }
-
-//func getCategory(topics []string) string {
-//	var selected string
-//	for _, topic := range topics{
-//
-//	}
-//}

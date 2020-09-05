@@ -7,9 +7,8 @@ import (
 	"github.com/gofiber/recover"
 	"github.com/gofiber/requestid"
 	"github.com/gofiber/template/html"
-	"github.com/psmarcin/youtubegoespodcast/pkg/cache"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -18,8 +17,7 @@ import (
 )
 
 type Dependencies struct {
-	Cache   cache.Cache
-	YouTube youtube.YT
+	YouTube app.YouTubeService
 }
 
 var l = logrus.WithField("source", "API")
@@ -28,9 +26,10 @@ var l = logrus.WithField("source", "API")
 func Start(deps Dependencies) *fiber.App {
 	serverHTTP := CreateHTTPServer()
 	feedDeps := CreateDependencies(deps)
+	rootDeps := CreateRootDependencies(deps)
 	// define routes
-	serverHTTP.Get("/", rootHandler)
-	serverHTTP.Post("/", rootHandler)
+	serverHTTP.Get("/", rootHandler(rootDeps))
+	serverHTTP.Post("/", rootHandler(rootDeps))
 
 	videoGroup := serverHTTP.Group("/video")
 	videoGroup.Get("/:videoId/track.mp3", videoHandler())
@@ -90,4 +89,8 @@ func CreateDependencies(deps Dependencies) feed.Dependencies {
 		YouTube: deps.YouTube,
 	}
 	return fd
+}
+
+func CreateRootDependencies(deps Dependencies) rootDependencies {
+	return deps.YouTube
 }

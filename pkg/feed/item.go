@@ -1,8 +1,8 @@
 package feed
 
 import (
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/pkg/video"
-	"github.com/psmarcin/youtubegoespodcast/pkg/youtube"
 	"github.com/rylio/ytdl"
 	"net/url"
 	"time"
@@ -24,10 +24,10 @@ type Item struct {
 
 type fileInformationGetter func(string, video.FileInformationGetter, video.FileUrlGetter) (video.Video, error)
 
-func NewMap(videos []youtube.Video) ([]Item, error) {
+func NewMap(videos []app.YouTubeFeedEntry) ([]Item, error) {
 	stream := make(chan Item, len(videos))
 	for _, v := range videos {
-		go func(video youtube.Video) {
+		go func(video app.YouTubeFeedEntry) {
 			item, err := New(video)
 			if err != nil {
 				l.WithError(err).WithField("video", video).Infof("can't create new item from video")
@@ -54,24 +54,20 @@ func NewMap(videos []youtube.Video) ([]Item, error) {
 	return items, nil
 }
 
-func New(v youtube.Video) (Item, error) {
-	u, err := url.Parse(v.Url)
-	if err != nil {
-		return Item{}, err
-	}
+func New(v app.YouTubeFeedEntry) (Item, error) {
 
 	item := Item{
 		ID:          v.ID,
-		GUID:        v.Url,
+		GUID:        v.URL.String(),
 		Title:       v.Title,
-		Link:        u,
+		Link:        &v.URL,
 		Description: v.Description,
-		PubDate:     v.PublishedAt,
+		PubDate:     v.Published,
 		FileType:    "mp3",
 		IsExplicit:  false,
 	}
 
-	err = item.enrich(video.GetFileInformation)
+	err := item.enrich(video.GetFileInformation)
 	if err != nil {
 		return item, err
 	}
