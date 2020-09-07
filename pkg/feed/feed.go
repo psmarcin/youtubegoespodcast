@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/eduncan911/podcast"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/rylio/ytdl"
 	"github.com/sirupsen/logrus"
+	"net/url"
 	"os"
 	"sort"
 	"time"
@@ -24,11 +26,17 @@ type Feed struct {
 
 type Dependencies struct {
 	YouTube YouTubeDependency
+	YTDL    YTDLDependencies
 }
 
 type YouTubeDependency interface {
 	ListEntry(string) ([]app.YouTubeFeedEntry, error)
 	GetChannelCache(string) (app.YouTubeChannel, error)
+}
+
+type YTDLDependencies interface {
+	GetFileURL(info *ytdl.VideoInfo) (url.URL, error)
+	GetFileInformation(videoId string) (app.YTDLVideo, error)
 }
 
 func Create(channelID string, dependencies Dependencies) (Feed, error) {
@@ -47,7 +55,7 @@ func Create(channelID string, dependencies Dependencies) (Feed, error) {
 		return f, err
 	}
 
-	err = f.SetItems(videos)
+	err = f.SetItems(videos, dependencies.YTDL)
 	if err != nil {
 		l.WithError(err).Errorf("can't enrich videos")
 		return f, err
@@ -108,8 +116,8 @@ func (f *Feed) SetVideos() error {
 	return nil
 }
 
-func (f *Feed) SetItems(videos []app.YouTubeFeedEntry) error {
-	items, err := NewMap(videos)
+func (f *Feed) SetItems(videos []app.YouTubeFeedEntry, ytdlDeps YTDLDependencies) error {
+	items, err := NewMap(videos, ytdlDeps)
 	if err != nil {
 		return err
 	}

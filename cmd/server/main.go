@@ -38,10 +38,16 @@ func main() {
 
 	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
 
-	// dependencies
+	// YTDL
+	ytdlRepository := adapters.NewYTDLRepository()
+	ytdlService := application.NewYTDLService(ytdlRepository)
+
+	// API dependencies
 	deps := api.Dependencies{
 		YouTube: youTubeService,
+		YTDL:    ytdlService,
 	}
+
 	// API
 	app := api.Start(deps)
 

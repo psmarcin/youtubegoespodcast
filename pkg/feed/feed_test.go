@@ -14,18 +14,32 @@ import (
 	"time"
 )
 
-type DependencyMock struct {
+type YouTubeDependencyMock struct {
 	mock.Mock
 }
 
-func (m *DependencyMock) ListEntry(s string) ([]app.YouTubeFeedEntry, error) {
+func (m *YouTubeDependencyMock) ListEntry(s string) ([]app.YouTubeFeedEntry, error) {
 	args := m.Called(s)
 	return args.Get(0).([]app.YouTubeFeedEntry), args.Error(1)
 }
 
-func (m *DependencyMock) GetChannelCache(s string) (app.YouTubeChannel, error) {
+func (m *YouTubeDependencyMock) GetChannelCache(s string) (app.YouTubeChannel, error) {
 	args := m.Called(s)
 	return args.Get(0).(app.YouTubeChannel), args.Error(1)
+}
+
+type YTDLDependencyMock struct {
+	mock.Mock
+}
+
+func (m *YTDLDependencyMock) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
+	args := m.Called(info)
+	return args.Get(0).(url.URL), args.Error(1)
+}
+
+func (m *YTDLDependencyMock) GetFileInformation(videoId string) (app.YTDLVideo, error) {
+	args := m.Called(videoId)
+	return args.Get(0).(app.YTDLVideo), args.Error(1)
 }
 
 type DependencyVideoMock struct {
@@ -48,11 +62,15 @@ func (d *DependencyVideoMock) GetFileUrl(info *ytdl.VideoInfo) (*url.URL, error)
 }
 
 func TestFeed_serialize(t *testing.T) {
-	d := new(DependencyMock)
+	d := new(YouTubeDependencyMock)
 	d.On("ListEntry", "123").Return([]app.YouTubeFeedEntry{}, nil)
 	d.On("GetChannelCache", "123").Return(app.YouTubeChannel{}, nil)
 
-	f, _ := Create("123", Dependencies{YouTube: d})
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileURL", "123").Return([]app.YouTubeFeedEntry{}, nil)
+	ytdlM.On("GetFileInformation", "123").Return(app.YouTubeChannel{}, nil)
+
+	f, _ := Create("123", Dependencies{YouTube: d, YTDL: ytdlM})
 	ti := time.Now()
 	f.Content = podcast.New("title", "http://onet", "description", &ti, &ti)
 	serialized, err := f.Serialize()
@@ -62,7 +80,7 @@ func TestFeed_serialize(t *testing.T) {
 }
 
 func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
-	d := new(DependencyMock)
+	d := new(YouTubeDependencyMock)
 	d.On("ListEntry", "123").Return([]app.YouTubeFeedEntry{{
 		ID:          "vi1",
 		Title:       "vt1",
@@ -79,42 +97,37 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	vd := new(DependencyVideoMock)
 	fileURLRaw := "http://onet.pl"
 	fileURL, _ := url.Parse(fileURLRaw)
-	info := &ytdl.VideoInfo{
-		ID:              "",
-		Title:           "Title Video",
-		Description:     "Description Video",
-		DatePublished:   time.Time{},
-		Formats:         nil,
-		DASHManifestURL: "",
-		HLSManifestURL:  "",
-		Keywords:        nil,
-		Uploader:        "",
-		Song:            "",
-		Artist:          "",
-		Album:           "",
-		Writers:         "",
-		Duration:        0,
+	info := app.YTDLVideo{
+		ID:            "",
+		Title:         "Title Video",
+		Description:   "Description Video",
+		DatePublished: time.Time{},
+		Keywords:      nil,
+		Duration:      0,
 	}
-	vd.On("GetFileUrl", info).Return(fileURL, nil)
-	vd.On("Info", context.Background(), "vi1").Return(info, nil)
+
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileUrl", info).Return(fileURL, nil)
+	ytdlM.On("GetFileInformation", "vi1").Return(info, nil)
 	resp := httptest.NewRecorder()
+
 	resp.Header().Set("Content-Type", "mp3")
 	resp.Header().Set("Content-Length", "123")
 	vd.On("Details", fileURLRaw).Return(resp.Result(), nil)
 
 	f, _ := Create("123", Dependencies{
 		YouTube: d,
+		YTDL:    ytdlM,
 	})
 
-	assert.Equal(t, f.ChannelID, "123")
-	//assert.Len(t, f.Content.Items, 1)
-	//assert.Equal(t, f.Items[0].Details.Title, "Title Video")
-	//assert.Equal(t, f.Items[0].Details.Description, "Description Video")
-	//assert.Equal(t, f.Items[0].Details.FileUrl.String(), "http://onet.pl")
+	assert.Equal(t, "123", f.ChannelID)
+	assert.Len(t, f.Content.Items, 1)
+	assert.Equal(t, "vt1", f.Items[0].Title)
+	assert.Equal(t, "vd1", f.Items[0].Description)
 	assert.True(t, d.AssertNumberOfCalls(t, "ListEntry", 1))
 	assert.True(t, d.AssertNumberOfCalls(t, "GetChannelCache", 1))
-	assert.Equal(t, f.Content.Language, "pl")
-	assert.Equal(t, f.Content.Description, "d1")
-	assert.Equal(t, f.Content.Title, "t1")
-	assert.Equal(t, f.Content.Link, "u1")
+	assert.Equal(t, "pl", f.Content.Language)
+	assert.Equal(t, "d1", f.Content.Description)
+	assert.Equal(t, "t1", f.Content.Title)
+	assert.Equal(t, "u1", f.Content.Link)
 }

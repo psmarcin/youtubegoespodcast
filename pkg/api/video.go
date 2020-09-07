@@ -2,18 +2,20 @@ package api
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/rylio/ytdl"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"net/http"
-
-	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 )
 
+type videoDependencies interface {
+	GetFileInformation(videoId string) (app.YTDLVideo, error)
+}
+
 // videoHandler is server route handler for video redirection
-func videoHandler() func(ctx *fiber.Ctx) {
+func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) {
 	return func(ctx *fiber.Ctx) {
 		videoID := ctx.Params("videoId")
 
-		details, err := video.GetFileInformation(videoID, ytdl.DefaultClient, ytdl.DefaultClient)
+		details, err := deps.GetFileInformation(videoID)
 		if err != nil {
 			l.WithError(err).Errorf("getting video url: %s", videoID)
 			ctx.SendStatus(http.StatusNotFound)
