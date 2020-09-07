@@ -2,10 +2,27 @@ package api
 
 import (
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/rylio/ytdl"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"net/http"
+	"net/url"
 	"testing"
 )
+
+type YTDLDependencyMock struct {
+	mock.Mock
+}
+
+func (m *YTDLDependencyMock) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
+	args := m.Called(info)
+	return args.Get(0).(url.URL), args.Error(1)
+}
+
+func (m *YTDLDependencyMock) GetFileInformation(videoId string) (application.YTDLVideo, error) {
+	args := m.Called(videoId)
+	return args.Get(0).(application.YTDLVideo), args.Error(1)
+}
 
 func TestHandler(t *testing.T) {
 	type args struct {
@@ -25,9 +42,19 @@ func TestHandler(t *testing.T) {
 			},
 		},
 	}
+	u1, _ := url.Parse("http://yt.com")
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileInformation", "ulCdoCfw-bY").Return(application.YTDLVideo{
+		ID:          "JZAunPKoHL0",
+		URL:         u1,
+		Description: "d2",
+		Title:       "t1",
+		FileUrl:     u1,
+	}, nil)
 
 	deps := Dependencies{
 		YouTube: application.YouTubeService{},
+		YTDL:    ytdlM,
 	}
 	app := Start(deps)
 

@@ -2,8 +2,6 @@ package feed
 
 import (
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/psmarcin/youtubegoespodcast/pkg/video"
-	"github.com/rylio/ytdl"
 	"net/url"
 	"time"
 )
@@ -22,13 +20,13 @@ type Item struct {
 	IsExplicit  bool
 }
 
-type fileInformationGetter func(string, video.FileInformationGetter, video.FileUrlGetter) (video.Video, error)
+type fileInformationGetter func(string) (app.YTDLVideo, error)
 
-func NewMap(videos []app.YouTubeFeedEntry) ([]Item, error) {
+func NewMap(videos []app.YouTubeFeedEntry, dependencies YTDLDependencies) ([]Item, error) {
 	stream := make(chan Item, len(videos))
 	for _, v := range videos {
 		go func(video app.YouTubeFeedEntry) {
-			item, err := New(video)
+			item, err := New(video, dependencies)
 			if err != nil {
 				l.WithError(err).WithField("video", video).Infof("can't create new item from video")
 			}
@@ -54,7 +52,7 @@ func NewMap(videos []app.YouTubeFeedEntry) ([]Item, error) {
 	return items, nil
 }
 
-func New(v app.YouTubeFeedEntry) (Item, error) {
+func New(v app.YouTubeFeedEntry, dependencies YTDLDependencies) (Item, error) {
 
 	item := Item{
 		ID:          v.ID,
@@ -67,7 +65,7 @@ func New(v app.YouTubeFeedEntry) (Item, error) {
 		IsExplicit:  false,
 	}
 
-	err := item.enrich(video.GetFileInformation)
+	err := item.enrich(dependencies.GetFileInformation)
 	if err != nil {
 		return item, err
 	}
@@ -76,7 +74,7 @@ func New(v app.YouTubeFeedEntry) (Item, error) {
 }
 
 func (item *Item) enrich(fileGetter fileInformationGetter) error {
-	details, err := fileGetter(item.ID, ytdl.DefaultClient, ytdl.DefaultClient)
+	details, err := fileGetter(item.ID)
 	if err != nil {
 		return err
 	}

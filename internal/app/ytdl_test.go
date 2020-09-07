@@ -1,4 +1,4 @@
-package video
+package app
 
 import (
 	"context"
@@ -12,20 +12,16 @@ import (
 	"time"
 )
 
-type MockFileUrlGetter struct {
+type ytdlRepo struct {
 	mock.Mock
 }
 
-func (m *MockFileUrlGetter) GetDownloadURL(ctx context.Context, info *ytdl.VideoInfo, format *ytdl.Format) (*url.URL, error) {
+func (m *ytdlRepo) GetDownloadURL(ctx context.Context, info *ytdl.VideoInfo, format *ytdl.Format) (*url.URL, error) {
 	args := m.Called(ctx, info, format)
 	return args.Get(0).(*url.URL), args.Error(1)
 }
 
-type MockFileInformationGetter struct {
-	mock.Mock
-}
-
-func (m *MockFileInformationGetter) GetVideoInfo(ctx context.Context, value interface{}) (*ytdl.VideoInfo, error) {
+func (m *ytdlRepo) GetVideoInfo(ctx context.Context, value interface{}) (*ytdl.VideoInfo, error) {
 	args := m.Called(ctx, value)
 	return args.Get(0).(*ytdl.VideoInfo), args.Error(1)
 }
@@ -52,12 +48,11 @@ func TestVideo_GetFileURL(t *testing.T) {
 		ID:      id1,
 		Formats: nil,
 	}
-	mFileUrlGetter := new(MockFileUrlGetter)
-	mFileUrlGetter.On("GetDownloadURL", ctx, d1, f1).Return(u1, nil)
+	ytdlR := new(ytdlRepo)
+	ytdlS := NewYTDLService(ytdlR)
 
 	type arguments struct {
-		videoInfo     *ytdl.VideoInfo
-		fileUrlGetter FileUrlGetter
+		videoInfo *ytdl.VideoInfo
 	}
 	tests := []struct {
 		name      string
@@ -65,33 +60,38 @@ func TestVideo_GetFileURL(t *testing.T) {
 		want      url.URL
 		wantErr   bool
 		err       error
+		before    func()
 	}{
 		{
 			name: "should throw error on url not found",
 			arguments: arguments{
-				videoInfo:     d2,
-				fileUrlGetter: mFileUrlGetter,
+				videoInfo: d2,
 			},
 			want:    url.URL{},
 			wantErr: true,
 			err:     errors.New(FormatsNotFound),
+			before: func() {
+				ytdlR.On("GetDownloadURL", ctx, d1, f1).Return(u1, nil)
+			},
 		},
 		{
 			name: "should return url http://google.com",
 			arguments: arguments{
-				videoInfo:     d1,
-				fileUrlGetter: mFileUrlGetter,
+				videoInfo: d1,
 			},
 			want:    *u1,
 			wantErr: false,
 			err:     nil,
+			before: func() {
+				ytdlR.On("GetDownloadURL", ctx, d1, f1).Return(u1, nil)
+			},
 		},
 		//	TODO: test with fixed format and get real url
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := GetFileURL(tt.arguments.videoInfo, tt.arguments.fileUrlGetter)
+			tt.before()
+			got, err := ytdlS.GetFileURL(tt.arguments.videoInfo)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFileURL() error = %v, wantErr %v", err, tt.wantErr)
@@ -114,11 +114,12 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnVideoInfoCall(t *testing.T)
 	ctx := context.Background()
 	u := "https://www.youtube.com/watch?v=123"
 	fileInformation := &ytdl.VideoInfo{}
-	fileInformationGetter := new(MockFileInformationGetter)
+	ytdlR := new(ytdlRepo)
+	ytdlS := NewYTDLService(ytdlR)
 	errExpected := errors.New("weird error")
-	fileInformationGetter.On("GetVideoInfo", ctx, u).Return(fileInformation, errExpected)
+	ytdlR.On("GetVideoInfo", ctx, u).Return(fileInformation, errExpected)
 
-	_, err := GetFileInformation(u, fileInformationGetter, nil)
+	_, err := ytdlS.GetFileInformation(u)
 	if err != errExpected {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, errExpected)
 		return
@@ -128,8 +129,7 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnVideoInfoCall(t *testing.T)
 func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 	ctx := context.Background()
 	id := "JZAunPKoHL0"
-	v := New(id)
-	u, _ := url.Parse("https://www.youtube.com/watch?v=" + v.ID)
+	u, _ := url.Parse("https://www.youtube.com/watch?v=" + id)
 	n := time.Now()
 	format := &ytdl.Format{
 		Itag: ytdl.Itag{
@@ -137,7 +137,7 @@ func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 		},
 	}
 	details := &ytdl.VideoInfo{
-		ID:          v.ID,
+		ID:          id,
 		Title:       "Wojciech Szczęsny's Most Incredible Saves! | The Best of Tek | Juventus",
 		Description: "In honour of Wojciech Szczęsny upcoming 30th birthday, we put together all of his best saves at Juventus so far! ",
 		Formats: ytdl.FormatList{
@@ -148,13 +148,13 @@ func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 		DatePublished: n,
 		Keywords:      []string{"1", "2"},
 	}
-	fileUrlGetter := new(MockFileUrlGetter)
-	fileUrlGetter.On("GetDownloadURL", ctx, details, format).Return(u, nil)
+	ytdlR := new(ytdlRepo)
+	ytdlR.On("GetDownloadURL", ctx, details, format).Return(u, nil)
+	ytdlR.On("GetVideoInfo", ctx, id).Return(details, nil)
 
-	fileInformationGetter := new(MockFileInformationGetter)
-	fileInformationGetter.On("GetVideoInfo", ctx, id).Return(details, nil)
+	ytdlS := NewYTDLService(ytdlR)
 
-	result, err := GetFileInformation(id, fileInformationGetter, fileUrlGetter)
+	result, err := ytdlS.GetFileInformation(id)
 	if err != nil {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
 		return
@@ -176,8 +176,7 @@ func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.T) {
 	ctx := context.Background()
 	id := "JZAunPKoHL0"
-	v := New(id)
-	u, _ := url.Parse("https://www.youtube.com/watch?v=" + v.ID)
+	u, _ := url.Parse("https://www.youtube.com/watch?v=" + id)
 	n := time.Now()
 	format := &ytdl.Format{
 		Itag: ytdl.Itag{
@@ -185,7 +184,7 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.
 		},
 	}
 	details := &ytdl.VideoInfo{
-		ID:          v.ID,
+		ID:          id,
 		Title:       "Wojciech Szczęsny's Most Incredible Saves! | The Best of Tek | Juventus",
 		Description: "In honour of Wojciech Szczęsny upcoming 30th birthday, we put together all of his best saves at Juventus so far! ",
 		Formats: ytdl.FormatList{
@@ -197,13 +196,12 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.
 		Keywords:      []string{"1", "2"},
 	}
 	errWanted := errors.New("can't get file url for this video")
-	fileUrlGetter := new(MockFileUrlGetter)
-	fileUrlGetter.On("GetDownloadURL", ctx, details, format).Return(u, errWanted)
+	ytdlR := new(ytdlRepo)
+	ytdlR.On("GetDownloadURL", ctx, details, format).Return(u, errWanted)
+	ytdlR.On("GetVideoInfo", ctx, id).Return(details, nil)
 
-	fileInformationGetter := new(MockFileInformationGetter)
-	fileInformationGetter.On("GetVideoInfo", ctx, id).Return(details, nil)
-
-	_, err := GetFileInformation(id, fileInformationGetter, fileUrlGetter)
+	ytdlS := NewYTDLService(ytdlR)
+	_, err := ytdlS.GetFileInformation(id)
 	if err != errWanted {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
 		return

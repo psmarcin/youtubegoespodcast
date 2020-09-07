@@ -108,7 +108,7 @@ func mapSearchItemToYouTubeChannels(item *youtube.SearchResult) (app.YouTubeChan
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
 	publishedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 	if err != nil {
-		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s",item.Snippet.PublishedAt, item.Id)
+		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s", item.Snippet.PublishedAt, item.Id)
 	}
 	ytChannel = app.YouTubeChannel{
 		ChannelId:   item.Id.ChannelId,

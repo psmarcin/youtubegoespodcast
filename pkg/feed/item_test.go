@@ -1,10 +1,9 @@
 package feed
 
 import (
-	"errors"
 	"github.com/eduncan911/podcast"
+	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/psmarcin/youtubegoespodcast/pkg/video"
 	"github.com/stretchr/testify/assert"
 	"net/url"
 	"testing"
@@ -55,6 +54,14 @@ func TestFeed_SetVideos(t *testing.T) {
 func TestFeed_SetItems(t *testing.T) {
 	u1, _ := url.Parse(YoutubeVideoBaseURL + "JZAunPKoHL0")
 
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileInformation", "JZAunPKoHL0").Return(app.YTDLVideo{
+		ID:          "JZAunPKoHL0",
+		URL:         u1,
+		Description: "d2",
+		Title:       "t1",
+	}, nil)
+
 	type fields struct {
 		ChannelID string
 		Content   podcast.Podcast
@@ -62,6 +69,7 @@ func TestFeed_SetItems(t *testing.T) {
 	}
 	type args struct {
 		videos []app.YouTubeFeedEntry
+		ytdl   YTDLDependencies
 	}
 	tests := []struct {
 		name   string
@@ -97,6 +105,7 @@ func TestFeed_SetItems(t *testing.T) {
 						Description: "d2",
 					},
 				},
+				ytdl: ytdlM,
 			},
 		},
 		{
@@ -113,7 +122,8 @@ func TestFeed_SetItems(t *testing.T) {
 				Content:   tt.fields.Content,
 				Items:     tt.fields.Items,
 			}
-			err := f.SetItems(tt.args.videos)
+
+			err := f.SetItems(tt.args.videos, tt.args.ytdl)
 			assert.NoError(t, err)
 			assert.Len(t, f.Items, len(tt.args.videos))
 		})
@@ -179,15 +189,16 @@ func TestItemV2_IsValid(t *testing.T) {
 func TestItem_enrichPopulateAllDate(t *testing.T) {
 	id := "123"
 	u, _ := url.Parse(YoutubeVideoBaseURL + id)
-	fn := func(id string, fig video.FileInformationGetter, fug video.FileUrlGetter) (video.Video, error) {
-		return video.Video{
-			ID:            id,
-			Title:         "title",
-			Duration:      time.Hour,
-			FileUrl:       u,
-			ContentLength: 10000,
-		}, nil
-	}
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileInformation", id).Return(app.YTDLVideo{
+		ID:            "JZAunPKoHL0",
+		URL:           u,
+		Description:   "d2",
+		Title:         "title",
+		Duration:      time.Hour,
+		FileUrl:       u,
+		ContentLength: 10000,
+	}, nil)
 
 	item := &Item{ID: "123"}
 	expectedItem := &Item{
@@ -196,18 +207,18 @@ func TestItem_enrichPopulateAllDate(t *testing.T) {
 		Duration:   time.Hour,
 		FileLength: 10000,
 	}
-	err := item.enrich(fn)
+	err := item.enrich(ytdlM.GetFileInformation)
 	assert.NoError(t, err)
 	assert.EqualValues(t, item, expectedItem)
 }
 
 func TestItem_enrichReturnError(t *testing.T) {
-	expectedErr := errors.New("test error")
-	fn := func(id string, fig video.FileInformationGetter, fug video.FileUrlGetter) (video.Video, error) {
-		return video.Video{}, expectedErr
-	}
+	errorMessage := "error message"
+	id := "123"
+	ytdlM := new(YTDLDependencyMock)
+	ytdlM.On("GetFileInformation", id).Return(app.YTDLVideo{}, errors.New(errorMessage))
 
 	item := &Item{ID: "123"}
-	err := item.enrich(fn)
+	err := item.enrich(ytdlM.GetFileInformation)
 	assert.Error(t, err, err)
 }

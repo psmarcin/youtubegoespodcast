@@ -18,6 +18,7 @@ import (
 
 type Dependencies struct {
 	YouTube app.YouTubeService
+	YTDL    feed.YTDLDependencies
 }
 
 var l = logrus.WithField("source", "API")
@@ -27,13 +28,15 @@ func Start(deps Dependencies) *fiber.App {
 	serverHTTP := CreateHTTPServer()
 	feedDeps := CreateDependencies(deps)
 	rootDeps := CreateRootDependencies(deps)
+	videoDependencies := CreateVideoDependencies(deps)
+
 	// define routes
 	serverHTTP.Get("/", rootHandler(rootDeps))
 	serverHTTP.Post("/", rootHandler(rootDeps))
 
 	videoGroup := serverHTTP.Group("/video")
-	videoGroup.Get("/:videoId/track.mp3", videoHandler())
-	videoGroup.Head("/:videoId/track.mp3", videoHandler())
+	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDependencies))
+	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDependencies))
 
 	feedGroup := serverHTTP.Group("/feed/channel")
 	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
@@ -87,10 +90,15 @@ func CreateHTTPServer() *fiber.App {
 func CreateDependencies(deps Dependencies) feed.Dependencies {
 	fd := feed.Dependencies{
 		YouTube: deps.YouTube,
+		YTDL:    deps.YTDL,
 	}
 	return fd
 }
 
 func CreateRootDependencies(deps Dependencies) rootDependencies {
 	return deps.YouTube
+}
+
+func CreateVideoDependencies(deps Dependencies) videoDependencies {
+	return deps.YTDL
 }
