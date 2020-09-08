@@ -1,4 +1,4 @@
-package api
+package ports
 
 import (
 	"github.com/gofiber/cors"
@@ -12,9 +12,66 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber"
-	"github.com/psmarcin/youtubegoespodcast/pkg/config"
+	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
 )
+
+type HttpServer struct {
+	server         *fiber.App
+	youTubeService app.YouTubeService
+	ytdlService    feed.YTDLDependencies
+}
+
+func NewHttpServer(
+	server *fiber.App,
+	youTubeService app.YouTubeService,
+	ytdlService feed.YTDLDependencies,
+) HttpServer {
+	return HttpServer{
+		server,
+		youTubeService,
+		ytdlService,
+	}
+}
+
+func (h HttpServer) Serve() *fiber.App {
+	feedDeps := h.getFeedDependencies()
+	rootDeps := h.getRootDependencies()
+	videoDeps := h.getVideoDependencies()
+
+	// define routes
+	h.server.Get("/", rootHandler(rootDeps))
+	h.server.Post("/", rootHandler(rootDeps))
+
+	videoGroup := h.server.Group("/video")
+	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDeps))
+	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDeps))
+
+	feedGroup := h.server.Group("/feed/channel")
+	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
+	feedGroup.Head("/:"+ParamChannelId, feedHandler(feedDeps))
+
+	// error found handler
+	h.server.Use(errorHandler)
+
+	//l.WithField("port", config.Cfg.Port).Infof("started")
+	return h.server
+}
+
+func (h HttpServer) getFeedDependencies() feed.Dependencies {
+	return feed.Dependencies{
+		YouTube: h.youTubeService,
+		YTDL:    h.ytdlService,
+	}
+}
+
+func (h HttpServer) getRootDependencies() rootDependencies {
+	return h.youTubeService
+}
+
+func (h HttpServer) getVideoDependencies() videoDependencies {
+	return h.ytdlService
+}
 
 type Dependencies struct {
 	YouTube app.YouTubeService
@@ -22,33 +79,6 @@ type Dependencies struct {
 }
 
 var l = logrus.WithField("source", "API")
-
-// Start creates and starts HTTP server
-func Start(deps Dependencies) *fiber.App {
-	serverHTTP := CreateHTTPServer()
-	feedDeps := CreateDependencies(deps)
-	rootDeps := CreateRootDependencies(deps)
-	videoDependencies := CreateVideoDependencies(deps)
-
-	// define routes
-	serverHTTP.Get("/", rootHandler(rootDeps))
-	serverHTTP.Post("/", rootHandler(rootDeps))
-
-	videoGroup := serverHTTP.Group("/video")
-	videoGroup.Get("/:videoId/track.mp3", videoHandler(videoDependencies))
-	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDependencies))
-
-	feedGroup := serverHTTP.Group("/feed/channel")
-	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
-	feedGroup.Head("/:"+ParamChannelId, feedHandler(feedDeps))
-
-	// error found handler
-	serverHTTP.Use(errorHandler)
-
-	l.WithField("port", config.Cfg.Port).Infof("started")
-
-	return serverHTTP
-}
 
 // CreateHTTPServer creates configured HTTP server
 func CreateHTTPServer() *fiber.App {
@@ -85,20 +115,4 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Static("/assets", "./web/static")
 
 	return serverHTTP
-}
-
-func CreateDependencies(deps Dependencies) feed.Dependencies {
-	fd := feed.Dependencies{
-		YouTube: deps.YouTube,
-		YTDL:    deps.YTDL,
-	}
-	return fd
-}
-
-func CreateRootDependencies(deps Dependencies) rootDependencies {
-	return deps.YouTube
-}
-
-func CreateVideoDependencies(deps Dependencies) videoDependencies {
-	return deps.YTDL
 }

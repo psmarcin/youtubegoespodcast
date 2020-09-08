@@ -1,4 +1,4 @@
-package api
+package ports
 
 import (
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
@@ -10,10 +10,10 @@ import (
 func Test_errorHandler_500(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodHead, "/asdas", nil)
 
-	deps := Dependencies{
-		YouTube: application.YouTubeService{},
-	}
-	app := Start(deps)
+	fiberServer := CreateHTTPServer()
+	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.YTDLService{})
+
+	app := h.Serve()
 
 	resp, err := app.Test(req, -1)
 	if err != nil {
