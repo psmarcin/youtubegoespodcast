@@ -2,7 +2,7 @@ package ports
 
 import (
 	"github.com/gofiber/fiber"
-	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"net/http"
 )
 
@@ -11,11 +11,11 @@ const (
 )
 
 // feedHandler is server route handler rss feed
-func feedHandler(dependencies feed.Dependencies) func(*fiber.Ctx) {
+func feedHandler(dependencies app.FeedService) func(*fiber.Ctx) {
 	return func(ctx *fiber.Ctx) {
 		channelID := ctx.Params(ParamChannelId)
 
-		f, err := feed.Create(channelID, dependencies)
+		f, err := dependencies.Create(channelID)
 		if err != nil {
 			l.WithError(err).Errorf("can't create feed for %s", channelID)
 			ctx.Next(err)
