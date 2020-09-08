@@ -1,4 +1,4 @@
-package api
+package ports
 
 import (
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
@@ -52,11 +52,9 @@ func TestHandler(t *testing.T) {
 		FileUrl:     u1,
 	}, nil)
 
-	deps := Dependencies{
-		YouTube: application.YouTubeService{},
-		YTDL:    ytdlM,
-	}
-	app := Start(deps)
+	fiberServer := CreateHTTPServer()
+	h := NewHttpServer(fiberServer, application.YouTubeService{}, ytdlM)
+	app := h.Serve()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

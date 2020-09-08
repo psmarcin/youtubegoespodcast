@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/psmarcin/youtubegoespodcast/internal/adapters"
-	application "github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/psmarcin/youtubegoespodcast/pkg/api"
-	"github.com/psmarcin/youtubegoespodcast/pkg/config"
-	"github.com/psmarcin/youtubegoespodcast/pkg/logger"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/psmarcin/youtubegoespodcast/internal/config"
+	"github.com/psmarcin/youtubegoespodcast/internal/logger"
+	"github.com/psmarcin/youtubegoespodcast/internal/ports"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		l.WithError(err).Fatalf("can't create cache repository")
 	}
-	cacheService := application.NewCacheService(&cacheRepository)
+	cacheService := app.NewCacheService(&cacheRepository)
 
 	// YouTube
 	yt, err := adapters.NewYouTube()
@@ -36,20 +36,16 @@ func main() {
 		l.WithError(err).Fatalf("can't create youtube request repository")
 	}
 
-	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
+	youTubeService := app.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
 
 	// YTDL
 	ytdlRepository := adapters.NewYTDLRepository()
-	ytdlService := application.NewYTDLService(ytdlRepository)
-
-	// API dependencies
-	deps := api.Dependencies{
-		YouTube: youTubeService,
-		YTDL:    ytdlService,
-	}
+	ytdlService := app.NewYTDLService(ytdlRepository)
 
 	// API
-	app := api.Start(deps)
+	fiberServer := ports.CreateHTTPServer()
+	h := ports.NewHttpServer(fiberServer, youTubeService, ytdlService)
+	app := h.Serve()
 
 	logrus.Fatal(app.Listen(config.Cfg.Port))
 }
