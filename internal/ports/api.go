@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/requestid"
 	"github.com/gofiber/template/html"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/psmarcin/youtubegoespodcast/pkg/feed"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -19,13 +18,13 @@ import (
 type HttpServer struct {
 	server         *fiber.App
 	youTubeService app.YouTubeService
-	ytdlService    feed.YTDLDependencies
+	ytdlService    app.YTDLDependencies
 }
 
 func NewHttpServer(
 	server *fiber.App,
 	youTubeService app.YouTubeService,
-	ytdlService feed.YTDLDependencies,
+	ytdlService app.YTDLDependencies,
 ) HttpServer {
 	return HttpServer{
 		server,
@@ -58,11 +57,8 @@ func (h HttpServer) Serve() *fiber.App {
 	return h.server
 }
 
-func (h HttpServer) getFeedDependencies() feed.Dependencies {
-	return feed.Dependencies{
-		YouTube: h.youTubeService,
-		YTDL:    h.ytdlService,
-	}
+func (h HttpServer) getFeedDependencies() app.FeedService {
+	return app.NewFeedService(h.youTubeService, h.ytdlService)
 }
 
 func (h HttpServer) getRootDependencies() rootDependencies {
@@ -75,7 +71,7 @@ func (h HttpServer) getVideoDependencies() videoDependencies {
 
 type Dependencies struct {
 	YouTube app.YouTubeService
-	YTDL    feed.YTDLDependencies
+	YTDL    app.YTDLDependencies
 }
 
 var l = logrus.WithField("source", "API")

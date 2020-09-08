@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/psmarcin/youtubegoespodcast/internal/adapters"
-	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	application "github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/psmarcin/youtubegoespodcast/internal/logger"
 	"github.com/psmarcin/youtubegoespodcast/internal/ports"
@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		l.WithError(err).Fatalf("can't create cache repository")
 	}
-	cacheService := app.NewCacheService(&cacheRepository)
+	cacheService := application.NewCacheService(&cacheRepository)
 
 	// YouTube
 	yt, err := adapters.NewYouTube()
@@ -36,11 +36,11 @@ func main() {
 		l.WithError(err).Fatalf("can't create youtube request repository")
 	}
 
-	youTubeService := app.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
+	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
 
 	// YTDL
 	ytdlRepository := adapters.NewYTDLRepository()
-	ytdlService := app.NewYTDLService(ytdlRepository)
+	ytdlService := application.NewYTDLService(ytdlRepository)
 
 	// API
 	fiberServer := ports.CreateHTTPServer()
