@@ -1,6 +1,6 @@
 <hr>
-<h2 align="center">YouTube Goes Podcast</h3>
-<h4 align="center">🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙</h3>
+<h2 align="center">YouTube Goes Podcast</h2>
+<h4 align="center">🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙</h4>
 <hr>
 
 Youtube Goes Podcast will convert any YouTube channel into podcast feed with audio version of videos. 

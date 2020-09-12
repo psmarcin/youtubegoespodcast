@@ -142,7 +142,6 @@ func TestCacheService_Get(t *testing.T) {
 }
 
 func TestCacheService_Set(t *testing.T) {
-	gofakeit.Seed(0)
 	cacheMock := new(CacheRepository)
 
 	type fields struct {
@@ -232,7 +231,6 @@ func TestCacheService_Set(t *testing.T) {
 }
 
 func TestCacheService_MarshalAndSet(t *testing.T) {
-	gofakeit.Seed(0)
 	cacheMock := new(CacheRepository)
 
 	type fields struct {

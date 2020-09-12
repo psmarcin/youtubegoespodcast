@@ -5,7 +5,6 @@ go 1.14
 require (
 	cloud.google.com/go/firestore v1.3.0
 	github.com/antchfx/xpath v1.1.10 // indirect
-	github.com/brianvoe/gofakeit/v5 v5.9.3
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/eduncan911/podcast v1.4.2
 	github.com/gofiber/cors v0.2.2

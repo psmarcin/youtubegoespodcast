@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
+	"google.golang.org/api/youtube/v3"
 	"net/url"
 	"time"
 )
