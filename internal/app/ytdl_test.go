@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -202,8 +203,8 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.
 
 	ytdlS := NewYTDLService(ytdlR)
 	_, err := ytdlS.GetFileInformation(id)
-	if err != errWanted {
-		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
+	if err != nil && !strings.Contains(err.Error(), errWanted.Error()) {
+		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, errWanted)
 		return
 	}
 }
