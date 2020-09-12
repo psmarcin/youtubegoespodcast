@@ -3,6 +3,7 @@ package adapters
 import (
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/youtube/v3"
 	"net/url"
 	"testing"
 	"time"
@@ -37,6 +38,9 @@ func Test_mapChannelItemToYouTubeChannels(t *testing.T) {
 						},
 						PublishedAt: "2006-01-02T15:04:05Z",
 					},
+					TopicDetails: &youtube.ChannelTopicDetails{
+						TopicCategories: []string{},
+					},
 				},
 			},
 			want: app.YouTubeChannel{
@@ -64,6 +68,9 @@ func Test_mapChannelItemToYouTubeChannels(t *testing.T) {
 							},
 						},
 						PublishedAt: "2006-01-02T15:04:05Z",
+					},
+					TopicDetails: &youtube.ChannelTopicDetails{
+						TopicCategories: []string{},
 					},
 				},
 			},
