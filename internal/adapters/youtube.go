@@ -98,6 +98,7 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 	}
 
 	category := feedDomain.SelectCategory(item.TopicDetails.TopicCategories)
+	l.WithField("category", category).Infof("found category for channel: %s", item.Id)
 
 	ytChannel = app.YouTubeChannel{
 		ChannelId:   item.Id,
