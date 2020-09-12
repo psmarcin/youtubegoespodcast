@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/brianvoe/gofakeit/v5"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

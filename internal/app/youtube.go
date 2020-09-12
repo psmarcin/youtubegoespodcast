@@ -48,6 +48,7 @@ type YouTubeChannel struct {
 	Thumbnail   YouTubeThumbnail
 	Title       string
 	Url         string
+	Category    string
 }
 
 type YouTubeService struct {
