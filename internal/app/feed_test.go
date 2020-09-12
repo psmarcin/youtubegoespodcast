@@ -276,7 +276,7 @@ func TestFeed_GetDetails(t *testing.T) {
 					Country:     "pl1",
 					Description: "d1",
 					PublishedAt: time.Date(2000, 11, 01, 1, 1, 1, 1, time.UTC),
-					Thumbnail:   "th1",
+					Thumbnail:   YouTubeThumbnail{},
 					Title:       "t1",
 					Url:         "u1",
 				}, nil)
@@ -305,15 +305,15 @@ func TestFeed_GetDetails(t *testing.T) {
 
 			tt.before()
 
-			pod, err := feedService.GetDetails(tt.args.channelID)
+			pod, err := feedService.GetFeedInformation(tt.args.channelID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetFeedInformation() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if pod.Title != tt.expect.Title &&
 				pod.Description != tt.expect.Description &&
 				pod.Link != tt.expect.Link {
-				t.Errorf("GetDetails() get = %v, want = %v", f.Content, tt.expect)
+				t.Errorf("GetFeedInformation() get = %v, want = %v", f.Content, tt.expect)
 			}
 		})
 	}
