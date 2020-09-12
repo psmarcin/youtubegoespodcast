@@ -66,6 +66,9 @@ func (y YTDLService) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
 
 	bestFormat := formats[0]
 	fileURL, err := y.ytdlRepository.GetDownloadURL(context.Background(), info, bestFormat)
+	if err != nil {
+		return u, errors.Wrapf(err, "can't get download url")
+	}
 
 	return *fileURL, err
 }
