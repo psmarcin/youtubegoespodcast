@@ -127,12 +127,12 @@ func (f FeedService) CreateItems(items []YouTubeFeedEntry) ([]FeedItem, error) {
 	for _, v := range items {
 		go func(video YouTubeFeedEntry) {
 			item := FeedItem{
-				ID:          v.ID,
-				GUID:        v.URL.String(),
-				Title:       v.Title,
-				Link:        &v.URL,
-				Description: v.Description,
-				PubDate:     v.Published,
+				ID:          video.ID,
+				GUID:        video.URL.String(),
+				Title:       video.Title,
+				Link:        &video.URL,
+				Description: video.Description,
+				PubDate:     video.Published,
 				FileType:    "mp3",
 				IsExplicit:  false,
 			}
