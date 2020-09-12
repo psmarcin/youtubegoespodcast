@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/eduncan911/podcast"
-	feed2 "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
+	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"github.com/rylio/ytdl"
 	"net/url"
 	"os"
@@ -59,7 +59,7 @@ func NewFeedService(
 }
 
 func (f FeedService) Create(channelID string) (Feed, error) {
-	podcastFeed, err := f.GetDetails(channelID)
+	podcastFeed, err := f.GetFeedInformation(channelID)
 	feed := Feed{
 		ChannelID: channelID,
 		Content:   podcastFeed,
@@ -92,13 +92,13 @@ func (f FeedService) Create(channelID string) (Feed, error) {
 		return feed, err
 	}
 
-	feed.Content.Items = feed2.SortByPubDate(feed.Content.Items)
+	feed.Content.Items = feedDomain.SortByPubDate(feed.Content.Items)
 	feed.Content.Generator = Generator
 
 	return feed, nil
 }
 
-func (f *FeedService) GetDetails(channelID string) (podcast.Podcast, error) {
+func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, error) {
 	var fee podcast.Podcast
 	channel, err := f.youtubeService.GetChannelCache(channelID)
 	if err != nil {
@@ -112,13 +112,12 @@ func (f *FeedService) GetDetails(channelID string) (podcast.Podcast, error) {
 	fee.AddCategory("Arts", []string{"Design"})
 	fee.Language = channel.Country
 	fee.Image = &podcast.Image{
-		URL:         channel.Thumbnail,
+		URL:         channel.Thumbnail.Url.String(),
 		Title:       channel.Title,
 		Link:        channel.Url,
 		Description: channel.Description,
-		//TODO: add width and height for thumbnail
-		Width:  0,
-		Height: 0,
+		Width:       channel.Thumbnail.Width,
+		Height:      channel.Thumbnail.Height,
 	}
 	fee.AddAuthor(channel.Author, channel.AuthorEmail)
 

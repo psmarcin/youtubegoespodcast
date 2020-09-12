@@ -28,10 +28,10 @@ type YouTubeFeedEntry struct {
 	Description string
 	Published   time.Time
 	URL         url.URL
-	Thumbnail   YouTubeFeedThumbnail
+	Thumbnail   YouTubeThumbnail
 }
 
-type YouTubeFeedThumbnail struct {
+type YouTubeThumbnail struct {
 	Height int
 	Width  int
 	Url    url.URL
@@ -45,7 +45,7 @@ type YouTubeChannel struct {
 	Country     string
 	Description string
 	PublishedAt time.Time
-	Thumbnail   string
+	Thumbnail   YouTubeThumbnail
 	Title       string
 	Url         string
 }
@@ -84,7 +84,7 @@ func (y YouTubeService) GetChannelCache(channelId string) (YouTubeChannel, error
 		return channel, nil
 	}
 
-	response, err := y.youTubeApiRepository.GetChannel(channelId)
+	response, err := y.GetChannel(channelId)
 	if err != nil {
 		return channel, errors.Wrapf(err, "unable value get channel for channel id: %s", channelId)
 	}
@@ -103,7 +103,7 @@ func (y YouTubeService) ListChannelCache(query string) ([]YouTubeChannel, error)
 		return channels, nil
 	}
 
-	response, err := y.youTubeApiRepository.ListChannel(query)
+	response, err := y.ListChannel(query)
 	if err != nil {
 		return channels, errors.Wrapf(err, "unable value list channel for query: %s", query)
 	}

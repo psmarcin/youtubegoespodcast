@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"google.golang.org/api/youtube/v3"
+	"net/url"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func (yt YouTubeAPIRepository) GetChannel(id string) (app.YouTubeChannel, error)
 	}
 
 	for _, item := range response.Items {
-		channel, err = mapChannelItemToYouTubeChannels(item)
+		channel, err = mapChannelToYouTubeChannel(item)
 		if err != nil {
 			return channel, err
 		}
@@ -71,7 +72,7 @@ func (yt YouTubeAPIRepository) ListChannel(query string) ([]app.YouTubeChannel, 
 	}
 
 	for _, item := range response.Items {
-		channel, err := mapSearchItemToYouTubeChannels(item)
+		channel, err := mapSearchItemToYouTubeChannel(item)
 		if err != nil {
 			return channels, err
 		}
@@ -81,9 +82,15 @@ func (yt YouTubeAPIRepository) ListChannel(query string) ([]app.YouTubeChannel, 
 	return channels, err
 }
 
-func mapChannelItemToYouTubeChannels(item *youtube.Channel) (app.YouTubeChannel, error) {
+func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, error) {
 	ytChannel := app.YouTubeChannel{}
+
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
+	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	if err != nil {
+		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
+	}
+
 	publishedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 	if err != nil {
 		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s", item.Snippet.PublishedAt, item.Id)
@@ -93,7 +100,11 @@ func mapChannelItemToYouTubeChannels(item *youtube.Channel) (app.YouTubeChannel,
 		Country:     item.Snippet.Country,
 		Description: item.Snippet.Description,
 		PublishedAt: publishedAt,
-		Thumbnail:   thumbnail.Url,
+		Thumbnail: app.YouTubeThumbnail{
+			Height: int(thumbnail.Height),
+			Width:  int(thumbnail.Width),
+			Url:    *thumbnailUrl,
+		},
 		Title:       item.Snippet.Title,
 		Url:         YouTubeChannelBaseURL + item.Id,
 		Author:      item.Snippet.CustomUrl,
@@ -103,9 +114,15 @@ func mapChannelItemToYouTubeChannels(item *youtube.Channel) (app.YouTubeChannel,
 	return ytChannel, nil
 }
 
-func mapSearchItemToYouTubeChannels(item *youtube.SearchResult) (app.YouTubeChannel, error) {
+func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChannel, error) {
 	ytChannel := app.YouTubeChannel{}
+
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
+	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	if err != nil {
+		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
+	}
+
 	publishedAt, err := time.Parse(time.RFC3339, item.Snippet.PublishedAt)
 	if err != nil {
 		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s", item.Snippet.PublishedAt, item.Id)
@@ -114,8 +131,12 @@ func mapSearchItemToYouTubeChannels(item *youtube.SearchResult) (app.YouTubeChan
 		ChannelId:   item.Id.ChannelId,
 		Description: item.Snippet.Description,
 		PublishedAt: publishedAt,
-		Thumbnail:   thumbnail.Url,
-		Title:       item.Snippet.Title,
+		Thumbnail: app.YouTubeThumbnail{
+			Height: int(thumbnail.Height),
+			Width:  int(thumbnail.Width),
+			Url:    *thumbnailUrl,
+		},
+		Title: item.Snippet.Title,
 	}
 
 	return ytChannel, nil
@@ -133,6 +154,9 @@ func getMaxThumbnailResolution(thumbnails youtube.ThumbnailDetails) youtube.Thum
 	}
 	if thumbnails.Standard != nil {
 		return *thumbnails.Standard
+	}
+	if thumbnails.Default != nil {
+		return *thumbnails.Default
 	}
 	return youtube.Thumbnail{}
 }

@@ -137,7 +137,7 @@ func mapFeedToYouTubeEntry(entry FeedEntry) (app.YouTubeFeedEntry, error) {
 		Description: entry.Group.Description,
 		Published:   publishedAt,
 		URL:         *u,
-		Thumbnail: app.YouTubeFeedThumbnail{
+		Thumbnail: app.YouTubeThumbnail{
 			Height: tHeight,
 			Width:  tWidth,
 			Url:    *tUrl,
