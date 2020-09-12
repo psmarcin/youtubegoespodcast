@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"google.golang.org/api/youtube/v3"
+	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"net/url"
 	"time"
 )
@@ -36,7 +36,7 @@ func (yt YouTubeAPIRepository) GetChannel(id string) (app.YouTubeChannel, error)
 	var channel app.YouTubeChannel
 
 	call := yt.api.Channels.
-		List([]string{"id", "snippet"}).
+		List([]string{"id", "snippet", "topicDetails"}).
 		MaxResults(1).
 		Id(id)
 
@@ -95,6 +95,9 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 	if err != nil {
 		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s", item.Snippet.PublishedAt, item.Id)
 	}
+
+	category := feedDomain.SelectCategory(item.TopicDetails.TopicCategories)
+
 	ytChannel = app.YouTubeChannel{
 		ChannelId:   item.Id,
 		Country:     item.Snippet.Country,
@@ -109,6 +112,7 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 		Url:         YouTubeChannelBaseURL + item.Id,
 		Author:      item.Snippet.CustomUrl,
 		AuthorEmail: "email@example.com",
+		Category:    category,
 	}
 
 	return ytChannel, nil
@@ -127,6 +131,9 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 	if err != nil {
 		return ytChannel, errors.Wrapf(err, "unable to parse: %s for channel: %s", item.Snippet.PublishedAt, item.Id)
 	}
+
+	category := feedDomain.SelectCategory([]string{})
+
 	ytChannel = app.YouTubeChannel{
 		ChannelId:   item.Id.ChannelId,
 		Description: item.Snippet.Description,
@@ -136,7 +143,8 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 			Width:  int(thumbnail.Width),
 			Url:    *thumbnailUrl,
 		},
-		Title: item.Snippet.Title,
+		Title:    item.Snippet.Title,
+		Category: category,
 	}
 
 	return ytChannel, nil

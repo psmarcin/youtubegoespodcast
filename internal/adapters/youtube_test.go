@@ -3,7 +3,6 @@ package adapters
 import (
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/youtube/v3"
 	"net/url"
 	"testing"
 	"time"

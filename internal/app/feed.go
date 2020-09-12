@@ -108,8 +108,7 @@ func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, err
 
 	fee = podcast.New(channel.Title, channel.Url, channel.Description, &channel.PublishedAt, &channel.PublishedAt)
 
-	// TODO: map categories from youtube to apple categories
-	fee.AddCategory("Arts", []string{"Design"})
+	fee.AddCategory(channel.Category, []string{})
 	fee.Language = channel.Country
 	fee.Image = &podcast.Image{
 		URL:         channel.Thumbnail.Url.String(),
