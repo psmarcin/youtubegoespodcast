@@ -3,14 +3,25 @@
 <h4 align="center">🎞 👉🎙 Put youtube channel get podcast audio feed 🎞 👉🎙</h4>
 <hr>
 
-Youtube Goes Podcast will convert any YouTube channel into podcast feed with audio version of videos. 
+Youtube Goes Podcast makes podcast feed from YouTube channel.
+
+1. open https://yt.psmarcin.dev 
+1. type channel name
+1. select from results
+1. copy generated feed url
+1. and use it in your favourite app
+
+It's that simple!
 
 ## Features/Roadmap
+* [x] UI for friendly usage
 * [x] Find channel using search field
 * [x] Automatically generate unique url for YouTube Channel
 * [x] Podcast app agnostics. Works well in Apple Podcast, Plex Podcasts and others!
 * [x] Live updates, you will get up-to-date list of latest items immediately! 
-* [ ] Support more then latest 15 videos
+* [x] Support more than latest 15 videos
+* [x] Daily updates
+* [x] Listen any video on your phone in background
 
 ### Examples
 Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
@@ -28,6 +39,7 @@ Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in 
 1. Go in version `>=1.9`, more: https://golang.org/dl/
 1. Docker, more: https://docs.docker.com/install/
 1. Modd (auto restart), more https://github.com/cortesi/modd
+1. Google Cloud Console or mocks 
 
 ### Environment variables
 Example environment variables
@@ -45,11 +57,9 @@ API_URL=http://localhost:8080/
 1. `make test`
 
 ### Develop
-1. `docker-compose up -d`
 1. `make dev`
 
 ### Debug
-1. `docker-compose up -d`
 1. `make debug`
 
 ## Credits
