@@ -7,6 +7,7 @@ import (
 	"github.com/rylio/ytdl"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -109,7 +110,8 @@ func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, err
 	fee = podcast.New(channel.Title, channel.Url, channel.Description, &channel.PublishedAt, &channel.PublishedAt)
 
 	fee.AddCategory(channel.Category, []string{})
-	fee.Language = channel.Country
+	fee.Language = strings.ToLower(channel.Country)
+	fee.AddImage(channel.Thumbnail.Url.String())
 	fee.Image = &podcast.Image{
 		URL:         channel.Thumbnail.Url.String(),
 		Title:       channel.Title,
@@ -119,6 +121,7 @@ func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, err
 		Height:      channel.Thumbnail.Height,
 	}
 	fee.AddAuthor(channel.Author, channel.AuthorEmail)
+	fee.IExplicit = "false"
 
 	return fee, nil
 }
