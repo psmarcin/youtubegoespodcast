@@ -1,16 +1,15 @@
 package ports
 
 import (
-	"github.com/gofiber/cors"
-	"github.com/gofiber/helmet"
-	"github.com/gofiber/logger"
-	"github.com/gofiber/recover"
-	"github.com/gofiber/requestid"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/gofiber/helmet/v2"
 	"github.com/gofiber/template/html"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"time"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
 )
@@ -80,7 +79,7 @@ var l = logrus.WithField("source", "API")
 func CreateHTTPServer() *fiber.App {
 	templateEngine := html.New("./web/templates", ".tmpl")
 
-	appConfig := fiber.Settings{
+	appConfig := fiber.Config{
 		CaseSensitive: true,
 		Immutable:     false,
 		ReadTimeout:   5 * time.Second,
@@ -88,21 +87,15 @@ func CreateHTTPServer() *fiber.App {
 		IdleTimeout:   1 * time.Second,
 		Views:         templateEngine,
 	}
-	corsConfig := cors.Config{
-		Filter:       nil,
-		AllowOrigins: config.Cfg.CorsOrigins,
-		AllowMethods: []string{"GET"},
-	}
 	logConfig := logger.Config{
 		Format:     config.Cfg.ApiRouterLoggerFormat,
 		TimeFormat: time.RFC3339,
 	}
 
 	// init fiber application
-	serverHTTP := fiber.New(&appConfig)
+	serverHTTP := fiber.New(appConfig)
 
 	// middleware
-	serverHTTP.Use(cors.New(corsConfig))
 	serverHTTP.Use(logger.New(logConfig))
 	serverHTTP.Use(recover.New())
 	serverHTTP.Use(requestid.New())
