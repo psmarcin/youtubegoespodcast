@@ -109,8 +109,12 @@ func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, err
 
 	fee = podcast.New(channel.Title, channel.Url, channel.Description, &channel.PublishedAt, &channel.PublishedAt)
 
+	lang := strings.ToLower(channel.Country)
+	if lang == "" {
+		lang = "en-us"
+	}
+	fee.Language = lang
 	fee.AddCategory(channel.Category, []string{})
-	fee.Language = strings.ToLower(channel.Country)
 	fee.AddImage(channel.Thumbnail.Url.String())
 	fee.Image = &podcast.Image{
 		URL:         channel.Thumbnail.Url.String(),
