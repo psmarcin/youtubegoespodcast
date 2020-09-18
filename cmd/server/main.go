@@ -47,5 +47,5 @@ func main() {
 	h := ports.NewHttpServer(fiberServer, youTubeService, ytdlService)
 	app := h.Serve()
 
-	logrus.Fatal(app.Listen(config.Cfg.Port))
+	logrus.Fatal(app.Listen(":" + config.Cfg.Port))
 }
