@@ -1,8 +1,7 @@
 package ports
 
 import (
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/requestid"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
@@ -12,26 +11,20 @@ const (
 )
 
 // errorHandler is server route handler for internal errors and not found routes
-func errorHandler(ctx *fiber.Ctx) {
+func errorHandler(ctx *fiber.Ctx) error {
 	status := http.StatusNotFound
 	message := error404Message
-	rId := requestid.Get(ctx)
-	err := ctx.Error()
-
-	if err != nil {
-		status = http.StatusInternalServerError
-		message = error500Message
-	}
 
 	ctx.Set("content-type", "text/html; charset=utf-8")
-	err = ctx.Status(status).Render("error", fiber.Map{
-		"requestID":    rId,
+	err := ctx.Status(status).Render("error", fiber.Map{
 		"errorCode":    status,
 		"errorMessage": message,
 	})
 
 	if err != nil {
 		l.WithError(err).Errorf("error while rendering template")
-		ctx.Next(err)
+		return err
 	}
+
+	return nil
 }
