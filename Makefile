@@ -11,7 +11,9 @@ dependencies:
 test: dependencies
 	go test ./...
 
-build: dependencies
+build: dependencies build-raw
+
+build-raw:
 	go build ./cmd/server
 
 debug:

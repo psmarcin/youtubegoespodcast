@@ -1,15 +1,23 @@
-FROM golang:1.14 as build-env
+FROM golang:1.15-buster as build-env
 
 ENV GO111MODULE=on
 ENV APP_ENV=production
 
 WORKDIR /app
 
+ADD go.mod go.sum Makefile /app/
+RUN make dependencies
+
+
 # Copy all files
 ADD . /app
-RUN GOOS=linux GOARCH=amd64 make build
 
-FROM gcr.io/distroless/base
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+RUN make build-raw
+
+FROM scratch
 COPY --from=build-env /app/server /server
 COPY --from=build-env /app/web /web
 
