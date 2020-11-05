@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
@@ -10,7 +11,7 @@ const (
 )
 
 type rootDependencies interface {
-	ListChannel(query string) ([]app.YouTubeChannel, error)
+	ListChannel(ctx context.Context, query string) ([]app.YouTubeChannel, error)
 }
 
 // rootHandler is server route handler for main page and interaction with user
@@ -26,7 +27,7 @@ func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
 
 		q := ctx.FormValue("q")
 		if q != "" {
-			channels, err = rootDependency.ListChannel(q)
+			channels, err = rootDependency.ListChannel(ctx.Context(), q)
 		}
 		if err != nil {
 			return err

@@ -1,13 +1,14 @@
 package ports
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"net/http"
 )
 
 type videoDependencies interface {
-	GetFileInformation(videoId string) (app.YTDLVideo, error)
+	GetFileInformation(ctx context.Context, videoId string) (app.YTDLVideo, error)
 }
 
 // videoHandler is server route handler for video redirection
@@ -15,7 +16,7 @@ func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
 		videoID := ctx.Params("videoId")
 
-		details, err := deps.GetFileInformation(videoID)
+		details, err := deps.GetFileInformation(ctx.Context(), videoID)
 		if err != nil {
 			l.WithError(err).Errorf("getting video url: %s", videoID)
 			return ctx.SendStatus(http.StatusNotFound)

@@ -14,6 +14,7 @@ type Config struct {
 	FirestoreCollection   string   `env:"FIRESTORE_COLLECTION" envDefault:"dev"`
 	GoogleAPIKey          string   `env:"GOOGLE_API_KEY,required"`
 	Port                  string   `env:"PORT" envDefault:"3000"`
+	ProjectID             string   `env:"PROJECT_ID" envDefault:"youtubegoespodcast"`
 }
 
 // Cfg stores config values

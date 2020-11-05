@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/rylio/ytdl"
 	"github.com/stretchr/testify/assert"
@@ -14,13 +15,13 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
-	args := m.Called(info)
+func (m *YTDLDependencyMock) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error) {
+	args := m.Called(mock.Anything, info)
 	return args.Get(0).(url.URL), args.Error(1)
 }
 
-func (m *YTDLDependencyMock) GetFileInformation(videoId string) (application.YTDLVideo, error) {
-	args := m.Called(videoId)
+func (m *YTDLDependencyMock) GetFileInformation(ctx context.Context, videoId string) (application.YTDLVideo, error) {
+	args := m.Called(mock.Anything, videoId)
 	return args.Get(0).(application.YTDLVideo), args.Error(1)
 }
 
@@ -44,7 +45,7 @@ func TestHandler(t *testing.T) {
 	}
 	u1, _ := url.Parse("http://yt.com")
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", "ulCdoCfw-bY").Return(application.YTDLVideo{
+	ytdlM.On("GetFileInformation", context.Background(), "ulCdoCfw-bY").Return(application.YTDLVideo{
 		ID:          "JZAunPKoHL0",
 		URL:         u1,
 		Description: "d2",

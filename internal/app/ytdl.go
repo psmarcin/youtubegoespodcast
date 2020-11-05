@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/domain/video"
 	"github.com/rylio/ytdl"
+	"go.opentelemetry.io/otel/label"
 	"net/url"
 	"time"
 )
@@ -44,7 +45,11 @@ func NewYTDLService(ytdl ytdlRepository) YTDLService {
 	}
 }
 
-func (y YTDLService) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
+func (y YTDLService) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error) {
+	ctx, span := tracer.Start(ctx, "ytdl-get-file-url")
+	span.SetAttributes(label.String("info", info.ID))
+	defer span.End()
+
 	var u url.URL
 
 	formats := info.Formats
@@ -61,19 +66,27 @@ func (y YTDLService) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
 	}
 
 	if len(formats) == 0 {
-		return u, errors.New(FormatsNotFound)
+		err := errors.New(FormatsNotFound)
+		span.RecordError(ctx, err)
+		return u, err
 	}
 
 	bestFormat := formats[0]
 	fileURL, err := y.ytdlRepository.GetDownloadURL(context.Background(), info, bestFormat)
 	if err != nil {
-		return u, errors.Wrapf(err, "can't get download url")
+		err := errors.Wrapf(err, "can't get download url")
+		span.RecordError(ctx, err)
+		return u, err
 	}
 
 	return *fileURL, err
 }
 
-func (y YTDLService) GetFileInformation(videoId string) (YTDLVideo, error) {
+func (y YTDLService) GetFileInformation(ctx context.Context, videoId string) (YTDLVideo, error) {
+	ctx, span := tracer.Start(ctx, "ytdl-get-file-information")
+	span.SetAttributes(label.String("videoId", videoId))
+	defer span.End()
+
 	video := YTDLVideo{}
 
 	u, err := url.Parse(YoutubeVideoBaseURL + videoId)
@@ -85,6 +98,7 @@ func (y YTDLService) GetFileInformation(videoId string) (YTDLVideo, error) {
 
 	info, err := y.ytdlRepository.GetVideoInfo(context.Background(), videoId)
 	if err != nil {
+		span.RecordError(ctx, err)
 		return video, err
 	}
 	video.ID = videoId
@@ -96,8 +110,9 @@ func (y YTDLService) GetFileInformation(videoId string) (YTDLVideo, error) {
 	video.Author = info.Uploader
 	video.Duration = info.Duration
 
-	fileUrl, err := y.GetFileURL(info)
+	fileUrl, err := y.GetFileURL(ctx, info)
 	if err != nil {
+		span.RecordError(ctx, err)
 		return video, err
 	}
 	video.FileUrl = &fileUrl
