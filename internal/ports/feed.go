@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"net/http"
@@ -15,7 +16,8 @@ func feedHandler(dependencies app.FeedService) func(*fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
 		channelID := ctx.Params(ParamChannelId)
 
-		f, err := dependencies.Create(channelID)
+		c := ctx.Locals("ctx").(context.Context)
+		f, err := dependencies.Create(c, channelID)
 		if err != nil {
 			l.WithError(err).Errorf("can't create feed for %s", channelID)
 			return err

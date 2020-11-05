@@ -14,6 +14,8 @@ var l = logrus.WithField("source", "cmd")
 func main() {
 	// Config
 	config.Init()
+	traceFlusher := config.InitTracer(config.Cfg)
+	defer traceFlusher()
 	// Logger
 	logger.Setup()
 

@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
+	"go.opentelemetry.io/otel/label"
 	"google.golang.org/api/youtube/v3"
 	"net/url"
 	"time"
@@ -33,8 +34,11 @@ func NewYouTubeAPIRepository(yt *youtube.Service) YouTubeAPIRepository {
 	return YouTubeAPIRepository{api: yt}
 }
 
-func (yt YouTubeAPIRepository) GetChannel(id string) (app.YouTubeChannel, error) {
+func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.YouTubeChannel, error) {
 	var channel app.YouTubeChannel
+	ctx, span := tracer.Start(ctx, "get-channel")
+	span.SetAttributes(label.String("id", id))
+	defer span.End()
 
 	call := yt.api.Channels.
 		List([]string{"id", "snippet", "topicDetails"}).
@@ -44,20 +48,25 @@ func (yt YouTubeAPIRepository) GetChannel(id string) (app.YouTubeChannel, error)
 	response, err := call.Do()
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
+		span.RecordError(ctx, err)
 		return channel, err
 	}
 
 	for _, item := range response.Items {
 		channel, err = mapChannelToYouTubeChannel(item)
 		if err != nil {
+			span.RecordError(ctx, err)
 			return channel, err
 		}
 	}
 	return channel, err
 }
 
-func (yt YouTubeAPIRepository) ListChannel(query string) ([]app.YouTubeChannel, error) {
+func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([]app.YouTubeChannel, error) {
 	var channels []app.YouTubeChannel
+	ctx, span := tracer.Start(ctx, "list-channel")
+	span.SetAttributes(label.String("query", query))
+	defer span.End()
 
 	call := yt.api.Search.
 		List([]string{"id", "snippet"}).
@@ -69,12 +78,14 @@ func (yt YouTubeAPIRepository) ListChannel(query string) ([]app.YouTubeChannel, 
 	response, err := call.Do()
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
+		span.RecordError(ctx, err)
 		return channels, err
 	}
 
 	for _, item := range response.Items {
 		channel, err := mapSearchItemToYouTubeChannel(item)
 		if err != nil {
+			span.RecordError(ctx, err)
 			return channels, err
 		}
 

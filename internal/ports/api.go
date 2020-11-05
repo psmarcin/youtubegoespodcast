@@ -96,6 +96,7 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP := fiber.New(appConfig)
 
 	// middleware
+	serverHTTP.Use(RequestContext())
 	serverHTTP.Use(logger.New(logConfig))
 	serverHTTP.Use(recover.New())
 	serverHTTP.Use(requestid.New())

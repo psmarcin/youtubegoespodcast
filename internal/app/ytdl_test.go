@@ -92,7 +92,7 @@ func TestVideo_GetFileURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.before()
-			got, err := ytdlS.GetFileURL(tt.arguments.videoInfo)
+			got, err := ytdlS.GetFileURL(context.Background(), tt.arguments.videoInfo)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFileURL() error = %v, wantErr %v", err, tt.wantErr)
@@ -120,7 +120,7 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnVideoInfoCall(t *testing.T)
 	errExpected := errors.New("weird error")
 	ytdlR.On("GetVideoInfo", ctx, u).Return(fileInformation, errExpected)
 
-	_, err := ytdlS.GetFileInformation(u)
+	_, err := ytdlS.GetFileInformation(context.Background(), u)
 	if err != errExpected {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, errExpected)
 		return
@@ -155,7 +155,7 @@ func TestVideo_GetFileInformation_ShouldVideoWithInformation(t *testing.T) {
 
 	ytdlS := NewYTDLService(ytdlR)
 
-	result, err := ytdlS.GetFileInformation(id)
+	result, err := ytdlS.GetFileInformation(context.Background(), id)
 	if err != nil {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, nil)
 		return
@@ -202,7 +202,7 @@ func TestVideo_GetFileInformation_ShouldReturnErrorOnGetFileUrlError(t *testing.
 	ytdlR.On("GetVideoInfo", ctx, id).Return(details, nil)
 
 	ytdlS := NewYTDLService(ytdlR)
-	_, err := ytdlS.GetFileInformation(id)
+	_, err := ytdlS.GetFileInformation(context.Background(), id)
 	if err != nil && !strings.Contains(err.Error(), errWanted.Error()) {
 		t.Errorf("GetFileInformation() error = %v, wantErr %v", err, errWanted)
 		return

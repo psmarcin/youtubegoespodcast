@@ -6,6 +6,8 @@ import (
 	"errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel/label"
 	"time"
 )
 
@@ -23,6 +25,7 @@ type CacheEntity struct {
 }
 
 var l = logrus.WithField("source", "adapter")
+var tracer = global.TracerProvider().Tracer("yt.psmarcin.dev/adapters")
 
 // NewCacheRepository establishes connection to Firebase and update singleton variable
 func NewCacheRepository() (Cache, error) {
@@ -42,10 +45,11 @@ func NewCacheRepository() (Cache, error) {
 }
 
 // SetKey saves value for key in cache store with expiration time
-func (c *Cache) SetKey(key, value string, exp time.Duration) error {
-	// todo: pass external context
-	ctx := context.Background()
-
+func (c *Cache) SetKey(ctx context.Context, key, value string, exp time.Duration) error {
+	ctx, span := tracer.Start(ctx, "set-key")
+	span.SetAttributes(label.String("key", key))
+	span.SetAttributes(label.String("value", value))
+	defer span.End()
 	_, err := c.collection.Doc(key).Set(ctx, CacheEntity{
 		Key:   key,
 		Value: value,
@@ -57,6 +61,7 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 			"value": value,
 			"exp":   exp.String(),
 		}).Errorf("set failed for %s", key)
+		span.RecordError(ctx, err)
 		return err
 	}
 
@@ -64,12 +69,15 @@ func (c *Cache) SetKey(key, value string, exp time.Duration) error {
 }
 
 // GetKey retrieve value by key from cache store
-func (c *Cache) GetKey(key string) (string, error) {
-	// todo: pass external context
-	ctx := context.Background()
+func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
+	ctx, span := tracer.Start(ctx, "get-key")
+	span.SetAttributes(label.String("key", key))
+	defer span.End()
+
 	raw, err := c.collection.Doc(key).Get(ctx)
 	if err != nil {
 		l.WithError(err).Warnf("can't get document %s", key)
+		span.RecordError(ctx, err)
 		return "", err
 	}
 
@@ -77,12 +85,14 @@ func (c *Cache) GetKey(key string) (string, error) {
 	err = raw.DataTo(&e)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse document %s", key)
+		span.RecordError(ctx, err)
 		return "", err
 	}
 
 	timeDiff := time.Now().Sub(raw.UpdateTime)
 	if timeDiff > e.Ttl {
 		l.Debugf("key expires, updated at %s, expires in %s", raw.UpdateTime.Format(time.RFC3339), e.Ttl.String())
+		span.RecordError(ctx, err)
 		return "", errors.New("Cache expires for " + key)
 	}
 

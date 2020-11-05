@@ -1,10 +1,12 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/eduncan911/podcast"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"github.com/rylio/ytdl"
+	"go.opentelemetry.io/otel/label"
 	"net/url"
 	"os"
 	"strings"
@@ -16,13 +18,13 @@ const (
 )
 
 type YouTubeDependency interface {
-	ListEntry(string) ([]YouTubeFeedEntry, error)
-	GetChannelCache(string) (YouTubeChannel, error)
+	ListEntry(context.Context, string) ([]YouTubeFeedEntry, error)
+	GetChannelCache(context.Context, string) (YouTubeChannel, error)
 }
 
 type YTDLDependencies interface {
-	GetFileURL(info *ytdl.VideoInfo) (url.URL, error)
-	GetFileInformation(videoId string) (YTDLVideo, error)
+	GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error)
+	GetFileInformation(ctx context.Context, videoId string) (YTDLVideo, error)
 }
 
 type FeedService struct {
@@ -59,26 +61,33 @@ func NewFeedService(
 	}
 }
 
-func (f FeedService) Create(channelID string) (Feed, error) {
-	podcastFeed, err := f.GetFeedInformation(channelID)
+func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error) {
+	ctx, span := tracer.Start(ctx, "feed-create")
+	span.SetAttributes(label.Any("channelID", channelID))
+	defer span.End()
+
+	podcastFeed, err := f.GetFeedInformation(ctx, channelID)
 	feed := Feed{
 		ChannelID: channelID,
 		Content:   podcastFeed,
 	}
 	if err != nil {
 		l.WithError(err).Errorf("can't get feed details for %s", channelID)
+		span.RecordError(ctx, err)
 		return feed, err
 	}
 
-	videos, err := f.youtubeService.ListEntry(feed.ChannelID)
+	videos, err := f.youtubeService.ListEntry(ctx, feed.ChannelID)
 	if err != nil {
 		l.WithError(err).Errorf("can't get video list for %s", channelID)
+		span.RecordError(ctx, err)
 		return feed, err
 	}
 
-	items, err := f.CreateItems(videos)
+	items, err := f.CreateItems(ctx, videos)
 	if err != nil {
 		l.WithError(err).Errorf("can't enrich videos")
+		span.RecordError(ctx, err)
 		return feed, err
 	}
 
@@ -90,6 +99,7 @@ func (f FeedService) Create(channelID string) (Feed, error) {
 
 	if err != nil {
 		l.WithError(err).Errorf("can't set videos for %s", channelID)
+		span.RecordError(ctx, err)
 		return feed, err
 	}
 
@@ -99,11 +109,16 @@ func (f FeedService) Create(channelID string) (Feed, error) {
 	return feed, nil
 }
 
-func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, error) {
+func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) (podcast.Podcast, error) {
+	ctx, span := tracer.Start(ctx, "feed-get-information")
+	span.SetAttributes(label.Any("channelID", channelID))
+	defer span.End()
+
 	var fee podcast.Podcast
-	channel, err := f.youtubeService.GetChannelCache(channelID)
+	channel, err := f.youtubeService.GetChannelCache(ctx, channelID)
 	if err != nil {
 		l.WithError(err).Error("can't get channel details")
+		span.RecordError(ctx, err)
 		return fee, err
 	}
 
@@ -129,7 +144,11 @@ func (f *FeedService) GetFeedInformation(channelID string) (podcast.Podcast, err
 
 	return fee, nil
 }
-func (f FeedService) CreateItems(items []YouTubeFeedEntry) ([]FeedItem, error) {
+func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) ([]FeedItem, error) {
+	ctx, span := tracer.Start(ctx, "feed-create-items")
+	span.SetAttributes(label.Any("items", label.ArrayValue(items)))
+	defer span.End()
+
 	stream := make(chan FeedItem, len(items))
 	for _, v := range items {
 		go func(video YouTubeFeedEntry) {
@@ -144,9 +163,10 @@ func (f FeedService) CreateItems(items []YouTubeFeedEntry) ([]FeedItem, error) {
 				IsExplicit:  false,
 			}
 
-			item, err := f.Enrich(item)
+			item, err := f.Enrich(ctx, item)
 			if err != nil {
 				l.WithError(err).WithField("video", video).Infof("can't create new item from video")
+				span.RecordError(ctx, err)
 			}
 			stream <- item
 		}(v)
@@ -170,8 +190,12 @@ func (f FeedService) CreateItems(items []YouTubeFeedEntry) ([]FeedItem, error) {
 	return is, nil
 }
 
-func (f *FeedService) Enrich(item FeedItem) (FeedItem, error) {
-	details, err := f.ytdlService.GetFileInformation(item.ID)
+func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, error) {
+	ctx, span := tracer.Start(ctx, "feed-enrich")
+	span.SetAttributes(label.Any("item", item.ID))
+	defer span.End()
+
+	details, err := f.ytdlService.GetFileInformation(ctx, item.ID)
 	if err != nil {
 		return item, err
 	}

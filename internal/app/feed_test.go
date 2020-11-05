@@ -18,13 +18,13 @@ type YouTubeDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YouTubeDependencyMock) ListEntry(s string) ([]YouTubeFeedEntry, error) {
-	args := m.Called(s)
+func (m *YouTubeDependencyMock) ListEntry(ctx context.Context, s string) ([]YouTubeFeedEntry, error) {
+	args := m.Called(mock.Anything, s)
 	return args.Get(0).([]YouTubeFeedEntry), args.Error(1)
 }
 
-func (m *YouTubeDependencyMock) GetChannelCache(s string) (YouTubeChannel, error) {
-	args := m.Called(s)
+func (m *YouTubeDependencyMock) GetChannelCache(ctx context.Context, s string) (YouTubeChannel, error) {
+	args := m.Called(mock.Anything, s)
 	return args.Get(0).(YouTubeChannel), args.Error(1)
 }
 
@@ -32,13 +32,13 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetFileURL(info *ytdl.VideoInfo) (url.URL, error) {
-	args := m.Called(info)
+func (m *YTDLDependencyMock) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error) {
+	args := m.Called(mock.Anything, info)
 	return args.Get(0).(url.URL), args.Error(1)
 }
 
-func (m *YTDLDependencyMock) GetFileInformation(videoId string) (YTDLVideo, error) {
-	args := m.Called(videoId)
+func (m *YTDLDependencyMock) GetFileInformation(ctx context.Context, videoId string) (YTDLVideo, error) {
+	args := m.Called(mock.Anything, videoId)
 	return args.Get(0).(YTDLVideo), args.Error(1)
 }
 
@@ -46,18 +46,18 @@ type DependencyVideoMock struct {
 	mock.Mock
 }
 
-func (d *DependencyVideoMock) Details(videoID string) (*http.Response, error) {
-	args := d.Called(videoID)
+func (d *DependencyVideoMock) Details(ctx context.Context, videoID string) (*http.Response, error) {
+	args := d.Called(mock.Anything, videoID)
 	return args.Get(0).(*http.Response), args.Error(1)
 }
 
-func (d *DependencyVideoMock) Info(cx context.Context, value interface{}) (*ytdl.VideoInfo, error) {
-	args := d.Called(cx, value)
+func (d *DependencyVideoMock) Info(ctx context.Context, value interface{}) (*ytdl.VideoInfo, error) {
+	args := d.Called(mock.Anything, value)
 	return args.Get(0).(*ytdl.VideoInfo), args.Error(1)
 }
 
-func (d *DependencyVideoMock) GetFileUrl(info *ytdl.VideoInfo) (*url.URL, error) {
-	args := d.Called(info)
+func (d *DependencyVideoMock) GetFileUrl(ctx context.Context, info *ytdl.VideoInfo) (*url.URL, error) {
+	args := d.Called(mock.Anything, info)
 	return args.Get(0).(*url.URL), args.Error(1)
 }
 
@@ -68,15 +68,15 @@ type YT struct {
 
 func TestFeed_serialize(t *testing.T) {
 	ytM := new(YouTubeDependencyMock)
-	ytM.On("ListEntry", "123").Return([]YouTubeFeedEntry{}, nil)
-	ytM.On("GetChannelCache", "123").Return(YouTubeChannel{}, nil)
+	ytM.On("ListEntry", context.Background(), "123").Return([]YouTubeFeedEntry{}, nil)
+	ytM.On("GetChannelCache", context.Background(), "123").Return(YouTubeChannel{}, nil)
 
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileURL", "123").Return([]YouTubeFeedEntry{}, nil)
-	ytdlM.On("GetFileInformation", "123").Return(YouTubeChannel{}, nil)
+	ytdlM.On("GetFileURL", context.Background(), "123").Return([]YouTubeFeedEntry{}, nil)
+	ytdlM.On("GetFileInformation", context.Background(), "123").Return(YouTubeChannel{}, nil)
 
 	feedService := NewFeedService(ytM, ytdlM)
-	f, _ := feedService.Create("123")
+	f, _ := feedService.Create(context.Background(), "123")
 	ti := time.Now()
 	f.Content = podcast.New("title", "http://onet", "description", &ti, &ti)
 	serialized, err := f.Serialize()
@@ -87,12 +87,12 @@ func TestFeed_serialize(t *testing.T) {
 
 func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	ytM := new(YouTubeDependencyMock)
-	ytM.On("ListEntry", "123").Return([]YouTubeFeedEntry{{
+	ytM.On("ListEntry", context.Background(), "123").Return([]YouTubeFeedEntry{{
 		ID:          "vi1",
 		Title:       "vt1",
 		Description: "vd1",
 	}}, nil)
-	ytM.On("GetChannelCache", "123").Return(YouTubeChannel{
+	ytM.On("GetChannelCache", context.Background(), "123").Return(YouTubeChannel{
 		ChannelId:   "123",
 		Country:     "pl",
 		Description: "d1",
@@ -113,8 +113,8 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	}
 
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileUrl", info).Return(fileURL, nil)
-	ytdlM.On("GetFileInformation", "vi1").Return(info, nil)
+	ytdlM.On("GetFileUrl", context.Background(), info).Return(fileURL, nil)
+	ytdlM.On("GetFileInformation", context.Background(), "vi1").Return(info, nil)
 	resp := httptest.NewRecorder()
 
 	resp.Header().Set("Content-Type", "mp3")
@@ -122,7 +122,7 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 	vd.On("Details", fileURLRaw).Return(resp.Result(), nil)
 
 	feedService := NewFeedService(ytM, ytdlM)
-	f, _ := feedService.Create("123")
+	f, _ := feedService.Create(context.Background(), "123")
 
 	assert.Equal(t, "123", f.ChannelID)
 	assert.Len(t, f.Content.Items, 1)
@@ -194,7 +194,7 @@ func TestItem_enrichPopulateAllDate(t *testing.T) {
 	id := "123"
 	u, _ := url.Parse(YoutubeVideoBaseURL + id)
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", id).Return(YTDLVideo{
+	ytdlM.On("GetFileInformation", context.Background(), id).Return(YTDLVideo{
 		ID:            "JZAunPKoHL0",
 		URL:           u,
 		Description:   "d2",
@@ -213,7 +213,7 @@ func TestItem_enrichPopulateAllDate(t *testing.T) {
 	}
 	feedService := NewFeedService(YouTubeService{}, ytdlM)
 
-	feedItem, err := feedService.Enrich(item)
+	feedItem, err := feedService.Enrich(context.Background(), item)
 	assert.NoError(t, err)
 	assert.EqualValues(t, feedItem, expectedItem)
 }
@@ -222,12 +222,12 @@ func TestItem_enrichReturnError(t *testing.T) {
 	errorMessage := "error message"
 	id := "123"
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", id).Return(YTDLVideo{}, errors.New(errorMessage))
+	ytdlM.On("GetFileInformation", context.Background(), id).Return(YTDLVideo{}, errors.New(errorMessage))
 
 	item := FeedItem{ID: id}
 	feedService := NewFeedService(YouTubeService{}, ytdlM)
 
-	_, err := feedService.Enrich(item)
+	_, err := feedService.Enrich(context.Background(), item)
 	assert.Error(t, err, err)
 }
 
@@ -271,7 +271,7 @@ func TestFeed_GetDetails(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				ytM.On("GetChannelCache", "1").Return(YouTubeChannel{
+				ytM.On("GetChannelCache", context.Background(), "1").Return(YouTubeChannel{
 					ChannelId:   "ch1",
 					Country:     "pl1",
 					Description: "d1",
@@ -292,7 +292,7 @@ func TestFeed_GetDetails(t *testing.T) {
 		},
 			wantErr: true,
 			before: func() {
-				ytM.On("GetChannelCache", "2").Return(YouTubeChannel{}, errors.New("can't get channel"))
+				ytM.On("GetChannelCache", context.Background(), "2").Return(YouTubeChannel{}, errors.New("can't get channel"))
 			},
 		},
 	}
@@ -305,7 +305,7 @@ func TestFeed_GetDetails(t *testing.T) {
 
 			tt.before()
 
-			pod, err := feedService.GetFeedInformation(tt.args.channelID)
+			pod, err := feedService.GetFeedInformation(context.Background(), tt.args.channelID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFeedInformation() error = %v, wantErr %v", err, tt.wantErr)
 			}

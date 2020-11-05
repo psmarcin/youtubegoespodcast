@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -12,13 +13,13 @@ type CacheRepository struct {
 	mock.Mock
 }
 
-func (c *CacheRepository) GetKey(key string) (string, error) {
-	args := c.Called(key)
+func (c *CacheRepository) GetKey(ctx context.Context, key string) (string, error) {
+	args := c.Called(mock.Anything, key)
 	return args.String(0), args.Error(1)
 }
 
-func (c *CacheRepository) SetKey(key string, value string, ex time.Duration) error {
-	args := c.Called(key, value, ex)
+func (c *CacheRepository) SetKey(ctx context.Context, key string, value string, ex time.Duration) error {
+	args := c.Called(mock.Anything, key, value, ex)
 	return args.Error(0)
 }
 
@@ -29,6 +30,8 @@ type ImportTo struct {
 func TestCacheService_Get(t *testing.T) {
 	cacheMock := new(CacheRepository)
 	to := ImportTo{}
+
+	ctx, _ := tracer.Start(context.Background(), "x")
 
 	type fields struct {
 		cache cacheRepository
@@ -57,7 +60,7 @@ func TestCacheService_Get(t *testing.T) {
 			wantErr: false,
 			before: func() {
 				to = ImportTo{}
-				cacheMock.On("GetKey", "1").Return(`{"test": "1"}`, nil)
+				cacheMock.On("GetKey", ctx, "1").Return(`{"test": "1"}`, nil)
 			},
 			toExpect: ImportTo{Test: "1"},
 		},
@@ -73,7 +76,7 @@ func TestCacheService_Get(t *testing.T) {
 			wantErr: false,
 			before: func() {
 				to = ImportTo{}
-				cacheMock.On("GetKey", "2").Return(`{}`, nil)
+				cacheMock.On("GetKey", ctx, "2").Return(`{}`, nil)
 			},
 			toExpect: ImportTo{Test: ""},
 		},
@@ -89,7 +92,7 @@ func TestCacheService_Get(t *testing.T) {
 			wantErr: true,
 			before: func() {
 				to = ImportTo{}
-				cacheMock.On("GetKey", "3").Return(``, nil)
+				cacheMock.On("GetKey", ctx, "3").Return(``, nil)
 			},
 			toExpect: ImportTo{Test: ""},
 		},
@@ -105,7 +108,7 @@ func TestCacheService_Get(t *testing.T) {
 			wantErr: true,
 			before: func() {
 				to = ImportTo{}
-				cacheMock.On("GetKey", "4").Return(``, errors.New("connection problem"))
+				cacheMock.On("GetKey", ctx, "4").Return(``, errors.New("connection problem"))
 			},
 			toExpect: ImportTo{Test: ""},
 		},
@@ -121,7 +124,7 @@ func TestCacheService_Get(t *testing.T) {
 			wantErr: false,
 			before: func() {
 				to = ImportTo{}
-				cacheMock.On("GetKey", "5").Return(`{"test": "5"}`, nil)
+				cacheMock.On("GetKey", ctx, "5").Return(`{"test": "5"}`, nil)
 			},
 			toExpect: ImportTo{Test: ""},
 		},
@@ -132,7 +135,7 @@ func TestCacheService_Get(t *testing.T) {
 				cache: tt.fields.cache,
 			}
 			tt.before()
-			if err := c.Get(tt.args.key, tt.args.to); (err != nil) != tt.wantErr {
+			if err := c.Get(ctx, tt.args.key, tt.args.to); (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -169,7 +172,7 @@ func TestCacheService_Set(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "1", "null", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "1", "null", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -183,7 +186,7 @@ func TestCacheService_Set(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "2", "\"aaa\"", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "2", "\"aaa\"", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -199,7 +202,7 @@ func TestCacheService_Set(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "3", "{\"test\":\"3\"}", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "3", "{\"test\":\"3\"}", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -213,7 +216,7 @@ func TestCacheService_Set(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "3", "null", CacheTTL).Return(errors.New("connection error"))
+				cacheMock.On("SetKey", context.Background(), "3", "null", CacheTTL).Return(errors.New("connection error"))
 			},
 		},
 	}
@@ -223,7 +226,7 @@ func TestCacheService_Set(t *testing.T) {
 				cache: tt.fields.cache,
 			}
 			tt.before()
-			if err := c.Set(tt.args.key, tt.args.value); (err != nil) != tt.wantErr {
+			if err := c.Set(context.Background(), tt.args.key, tt.args.value); (err != nil) != tt.wantErr {
 				t.Errorf("Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -258,7 +261,7 @@ func TestCacheService_MarshalAndSet(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "1", "\"null\"", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "1", "\"null\"", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -272,7 +275,7 @@ func TestCacheService_MarshalAndSet(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "2", "\"\\\"aaa\\\"\"", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "2", "\"\\\"aaa\\\"\"", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -288,7 +291,7 @@ func TestCacheService_MarshalAndSet(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "3", "\"{\\\"test\\\":\\\"3\\\"}\"", CacheTTL).Return(nil)
+				cacheMock.On("SetKey", context.Background(), "3", "\"{\\\"test\\\":\\\"3\\\"}\"", CacheTTL).Return(nil)
 			},
 		},
 		{
@@ -302,7 +305,7 @@ func TestCacheService_MarshalAndSet(t *testing.T) {
 			},
 			wantErr: false,
 			before: func() {
-				cacheMock.On("SetKey", "4", "\"null\"", CacheTTL).Return(errors.New("connection error"))
+				cacheMock.On("SetKey", context.Background(), "4", "\"null\"", CacheTTL).Return(errors.New("connection error"))
 			},
 		},
 	}
@@ -312,7 +315,7 @@ func TestCacheService_MarshalAndSet(t *testing.T) {
 				cache: tt.fields.cache,
 			}
 			tt.before()
-			if err := c.MarshalAndSet(tt.args.key, tt.args.value); (err != nil) != tt.wantErr {
+			if err := c.MarshalAndSet(context.Background(), tt.args.key, tt.args.value); (err != nil) != tt.wantErr {
 				t.Errorf("MarshalAndSet() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

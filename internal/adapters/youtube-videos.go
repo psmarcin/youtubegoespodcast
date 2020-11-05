@@ -1,9 +1,11 @@
 package adapters
 
 import (
+	"context"
 	"encoding/xml"
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	"go.opentelemetry.io/otel/label"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -63,9 +65,12 @@ func init() {
 	FeedUrl = feedUrl
 }
 
-func (y YouTubeRepository) ListEntry(channelId string) ([]app.YouTubeFeedEntry, error) {
+func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]app.YouTubeFeedEntry, error) {
 	var entries []app.YouTubeFeedEntry
 	var f Feed
+	ctx, span := tracer.Start(ctx, "list-entry")
+	span.SetAttributes(label.String("channel-id", channelId))
+	defer span.End()
 
 	u := *FeedUrl
 	q := u.Query()
@@ -75,6 +80,7 @@ func (y YouTubeRepository) ListEntry(channelId string) ([]app.YouTubeFeedEntry, 
 	resp, err := http.Get(u.String())
 	if err != nil {
 		l.WithError(err).Errorf("can't get channel feed")
+		span.RecordError(ctx, err)
 		return nil, err
 	}
 
@@ -83,18 +89,21 @@ func (y YouTubeRepository) ListEntry(channelId string) ([]app.YouTubeFeedEntry, 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse channel feed")
+		span.RecordError(ctx, err)
 		return nil, err
 	}
 
 	err = xml.Unmarshal(body, &f)
 	if err != nil {
 		l.WithError(err).WithField("body", string(body)).Errorf("can't unmarshal channel feed")
+		span.RecordError(ctx, err)
 		return nil, err
 	}
 
 	for _, entry := range f.Entry {
 		ytFeedEntry, err := mapFeedToYouTubeEntry(entry)
 		if err != nil {
+			span.RecordError(ctx, err)
 			return entries, errors.Wrapf(err, "unable to map FeedEntry to YouTubeEntry")
 		}
 		entries = append(entries, ytFeedEntry)
