@@ -1,11 +1,10 @@
 package ports
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/api/trace"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/semconv"
 )
 
 func RequestContext() func(c *fiber.Ctx) error {
@@ -15,10 +14,19 @@ func RequestContext() func(c *fiber.Ctx) error {
 	)
 
 	return func(c *fiber.Ctx) error {
-		ctx, span := tracer.Start(c.Context(), fmt.Sprintf("%s %s", c.Method(), c.Path()), trace.WithAttributes(label.String("HTTP Method", c.Method())))
+		ctx, span := tracer.Start(
+			c.Context(),
+			"yt.psmarcin.dev/http/request",
+			trace.WithSpanKind(trace.SpanKindClient),
+			trace.WithAttributes(semconv.HTTPMethodKey.String(c.Method())),
+			trace.WithAttributes(semconv.HTTPUrlKey.String(c.OriginalURL())),
+		)
 		c.Locals("ctx", ctx)
 		defer span.End()
-		return c.Next()
+		c.Next()
 
+		span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(c.Response().StatusCode())...)
+
+		return nil
 	}
 }
