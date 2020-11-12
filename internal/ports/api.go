@@ -82,6 +82,7 @@ func CreateHTTPServer() *fiber.App {
 	appConfig := fiber.Config{
 		CaseSensitive: true,
 		Immutable:     false,
+		Prefork:       false,
 		ReadTimeout:   5 * time.Second,
 		WriteTimeout:  3 * time.Second,
 		IdleTimeout:   1 * time.Second,

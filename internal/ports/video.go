@@ -29,6 +29,11 @@ func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
 			return ctx.SendStatus(http.StatusNotFound)
 		}
 
-		return ctx.Redirect(url, http.StatusFound)
+		resp, err := http.Get(url)
+		if err != nil {
+			return fiber.NewError(http.StatusInternalServerError, err.Error())
+		}
+
+		return ctx.Redirect(resp.Request.URL.String(), http.StatusFound)
 	}
 }
