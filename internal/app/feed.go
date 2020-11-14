@@ -146,12 +146,16 @@ func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) 
 }
 func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) ([]FeedItem, error) {
 	ctx, span := tracer.Start(ctx, "feed-create-items")
-	span.SetAttributes(label.Any("items", label.ArrayValue(items)))
+	span.SetAttributes(label.Any("itemsCount", len(items)))
 	defer span.End()
 
 	stream := make(chan FeedItem, len(items))
 	for _, v := range items {
 		go func(video YouTubeFeedEntry) {
+			span.AddEvent(ctx, "add-item", label.KeyValue{
+				Key:   label.Key(fmt.Sprintf("video-%s", video.ID)),
+				Value: label.StringValue(video.URL.String()),
+			})
 			item := FeedItem{
 				ID:          video.ID,
 				GUID:        video.URL.String(),
@@ -166,7 +170,6 @@ func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) 
 			item, err := f.Enrich(ctx, item)
 			if err != nil {
 				l.WithError(err).WithField("video", video).Infof("can't create new item from video")
-				span.RecordError(ctx, err)
 			}
 			stream <- item
 		}(v)
@@ -197,6 +200,7 @@ func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, erro
 
 	details, err := f.ytdlService.GetFileInformation(ctx, item.ID)
 	if err != nil {
+		span.RecordError(ctx, err)
 		return item, err
 	}
 
