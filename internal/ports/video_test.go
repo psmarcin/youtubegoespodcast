@@ -43,7 +43,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 	}
-	u1, _ := url.Parse("http://yt.com")
+	u1, _ := url.Parse("http://youtube.com")
 	ytdlM := new(YTDLDependencyMock)
 	ytdlM.On("GetFileInformation", context.Background(), "ulCdoCfw-bY").Return(application.YTDLVideo{
 		ID:          "JZAunPKoHL0",
