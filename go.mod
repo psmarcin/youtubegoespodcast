@@ -10,12 +10,13 @@ require (
 	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/eduncan911/podcast v1.4.2
-	github.com/gofiber/fiber/v2 v2.1.4
+	github.com/gofiber/fiber/v2 v2.2.0
 	github.com/gofiber/helmet/v2 v2.0.1
 	github.com/gofiber/template v1.6.4
 	github.com/joho/godotenv v1.3.0
 	github.com/klauspost/compress v1.11.2 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/psmarcin/fiber-opentelemetry v0.1.3
 	github.com/rs/zerolog v1.20.0 // indirect
 	github.com/rylio/ytdl v0.6.4
 	github.com/sirupsen/logrus v1.7.0
