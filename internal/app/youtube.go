@@ -93,7 +93,7 @@ func (y YouTubeService) GetChannelCache(ctx context.Context, channelId string) (
 
 	response, err := y.GetChannel(ctx, channelId)
 	if err != nil {
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return channel, errors.Wrapf(err, "unable value get channel for channel id: %s", channelId)
 	}
 
@@ -117,7 +117,7 @@ func (y YouTubeService) ListChannelCache(ctx context.Context, query string) ([]Y
 
 	response, err := y.ListChannel(ctx, query)
 	if err != nil {
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return channels, errors.Wrapf(err, "unable value list channel for query: %s", query)
 	}
 

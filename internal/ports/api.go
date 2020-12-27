@@ -6,10 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
 	"github.com/gofiber/template/html"
-	fiber_opentelemetry "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-opentelemetry"
+	fiberOtel "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-otel"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -100,8 +100,8 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP := fiber.New(appConfig)
 
 	// middleware
-	serverHTTP.Use(fiber_opentelemetry.New(fiber_opentelemetry.Config{
-		Tracer: global.TracerProvider().Tracer(
+	serverHTTP.Use(fiberOtel.New(fiberOtel.Config{
+		Tracer: otel.GetTracerProvider().Tracer(
 			"yt.psmarcin.dev/api",
 			trace.WithInstrumentationVersion("1.0.0"),
 		),

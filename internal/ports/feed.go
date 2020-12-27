@@ -2,8 +2,8 @@ package ports
 
 import (
 	"github.com/gofiber/fiber/v2"
+	fiber_opentelemetry "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-otel"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	fiber_opentelemetry "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-opentelemetry"
 	"net/http"
 )
 

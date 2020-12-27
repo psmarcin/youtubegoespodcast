@@ -67,7 +67,7 @@ func (y YTDLService) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.
 
 	if len(formats) == 0 {
 		err := errors.New(FormatsNotFound)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return u, err
 	}
 
@@ -75,7 +75,7 @@ func (y YTDLService) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.
 	fileURL, err := y.ytdlRepository.GetDownloadURL(context.Background(), info, bestFormat)
 	if err != nil {
 		err := errors.Wrapf(err, "can't get download url")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return u, err
 	}
 
@@ -98,7 +98,7 @@ func (y YTDLService) GetFileInformation(ctx context.Context, videoId string) (YT
 
 	info, err := y.ytdlRepository.GetVideoInfo(context.Background(), videoId)
 	if err != nil {
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return video, err
 	}
 	video.ID = videoId
@@ -112,7 +112,7 @@ func (y YTDLService) GetFileInformation(ctx context.Context, videoId string) (YT
 
 	fileUrl, err := y.GetFileURL(ctx, info)
 	if err != nil {
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return video, err
 	}
 	video.FileUrl = &fileUrl
