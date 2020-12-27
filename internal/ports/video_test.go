@@ -3,7 +3,6 @@ package ports
 import (
 	"context"
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/rylio/ytdl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"net/http"
@@ -15,14 +14,9 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error) {
-	args := m.Called(mock.Anything, info)
-	return args.Get(0).(url.URL), args.Error(1)
-}
-
-func (m *YTDLDependencyMock) GetFileInformation(ctx context.Context, videoId string) (application.YTDLVideo, error) {
+func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoId string) (application.Details, error) {
 	args := m.Called(mock.Anything, videoId)
-	return args.Get(0).(application.YTDLVideo), args.Error(1)
+	return args.Get(0).(application.Details), args.Error(1)
 }
 
 func TestHandler(t *testing.T) {
@@ -45,16 +39,12 @@ func TestHandler(t *testing.T) {
 	}
 	u1, _ := url.Parse("http://youtube.com")
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", context.Background(), "ulCdoCfw-bY").Return(application.YTDLVideo{
-		ID:          "JZAunPKoHL0",
-		URL:         u1,
-		Description: "d2",
-		Title:       "t1",
-		FileUrl:     u1,
+	ytdlM.On("GetFileInformation", context.Background(), "ulCdoCfw-bY").Return(application.Details{
+		Url: *u1,
 	}, nil)
 
 	fiberServer := CreateHTTPServer()
-	h := NewHttpServer(fiberServer, application.YouTubeService{}, ytdlM)
+	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.NewFileService())
 	app := h.Serve()
 
 	for _, tt := range tests {

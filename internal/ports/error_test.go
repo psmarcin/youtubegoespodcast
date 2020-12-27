@@ -11,7 +11,7 @@ func Test_errorHandler_500(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodHead, "/asdas", nil)
 
 	fiberServer := CreateHTTPServer()
-	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.YTDLService{})
+	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.NewFileService())
 
 	app := h.Serve()
 

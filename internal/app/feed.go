@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/eduncan911/podcast"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
-	"github.com/rylio/ytdl"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/trace"
 	"net/url"
@@ -24,13 +23,12 @@ type YouTubeDependency interface {
 }
 
 type YTDLDependencies interface {
-	GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error)
-	GetFileInformation(ctx context.Context, videoId string) (YTDLVideo, error)
+	GetDetails(ctx context.Context, videoId string) (Details, error)
 }
 
 type FeedService struct {
 	youtubeService YouTubeDependency
-	ytdlService    YTDLDependencies
+	fileService    YTDLDependencies
 }
 
 type Feed struct {
@@ -54,11 +52,11 @@ type FeedItem struct {
 
 func NewFeedService(
 	youtubeService YouTubeDependency,
-	ytdlService YTDLDependencies,
+	fileService YTDLDependencies,
 ) FeedService {
 	return FeedService{
 		youtubeService: youtubeService,
-		ytdlService:    ytdlService,
+		fileService:    fileService,
 	}
 }
 
@@ -199,15 +197,15 @@ func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, erro
 	span.SetAttributes(label.Any("item", item.ID))
 	defer span.End()
 
-	details, err := f.ytdlService.GetFileInformation(ctx, item.ID)
+	details, err := f.fileService.GetDetails(ctx, item.ID)
 	if err != nil {
 		span.RecordError(err)
 		return item, err
 	}
 
-	item.FileURL = details.FileUrl
-	item.Duration = details.Duration
-	item.FileLength = details.ContentLength
+	item.FileURL = &details.Url
+	item.Duration = 0
+	item.FileLength = 0
 
 	return item, nil
 }

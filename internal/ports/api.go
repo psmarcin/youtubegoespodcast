@@ -20,18 +20,18 @@ import (
 type HttpServer struct {
 	server         *fiber.App
 	youTubeService app.YouTubeService
-	ytdlService    app.YTDLDependencies
+	fileService    app.FileService
 }
 
 func NewHttpServer(
 	server *fiber.App,
 	youTubeService app.YouTubeService,
-	ytdlService app.YTDLDependencies,
+	fileService app.FileService,
 ) HttpServer {
 	return HttpServer{
 		server,
 		youTubeService,
-		ytdlService,
+		fileService,
 	}
 }
 
@@ -60,7 +60,7 @@ func (h HttpServer) Serve() *fiber.App {
 }
 
 func (h HttpServer) getFeedDependencies() app.FeedService {
-	return app.NewFeedService(h.youTubeService, h.ytdlService)
+	return app.NewFeedService(h.youTubeService, h.fileService)
 }
 
 func (h HttpServer) getRootDependencies() rootDependencies {
@@ -68,7 +68,7 @@ func (h HttpServer) getRootDependencies() rootDependencies {
 }
 
 func (h HttpServer) getVideoDependencies() videoDependencies {
-	return h.ytdlService
+	return h.fileService
 }
 
 type Dependencies struct {

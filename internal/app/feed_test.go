@@ -4,10 +4,8 @@ import (
 	"context"
 	"github.com/eduncan911/podcast"
 	"github.com/pkg/errors"
-	"github.com/rylio/ytdl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -32,38 +30,9 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetFileURL(ctx context.Context, info *ytdl.VideoInfo) (url.URL, error) {
-	args := m.Called(mock.Anything, info)
-	return args.Get(0).(url.URL), args.Error(1)
-}
-
-func (m *YTDLDependencyMock) GetFileInformation(ctx context.Context, videoId string) (YTDLVideo, error) {
+func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoId string) (Details, error) {
 	args := m.Called(mock.Anything, videoId)
-	return args.Get(0).(YTDLVideo), args.Error(1)
-}
-
-type DependencyVideoMock struct {
-	mock.Mock
-}
-
-func (d *DependencyVideoMock) Details(ctx context.Context, videoID string) (*http.Response, error) {
-	args := d.Called(mock.Anything, videoID)
-	return args.Get(0).(*http.Response), args.Error(1)
-}
-
-func (d *DependencyVideoMock) Info(ctx context.Context, value interface{}) (*ytdl.VideoInfo, error) {
-	args := d.Called(mock.Anything, value)
-	return args.Get(0).(*ytdl.VideoInfo), args.Error(1)
-}
-
-func (d *DependencyVideoMock) GetFileUrl(ctx context.Context, info *ytdl.VideoInfo) (*url.URL, error) {
-	args := d.Called(mock.Anything, info)
-	return args.Get(0).(*url.URL), args.Error(1)
-}
-
-type YT struct {
-	returnChannel YouTubeChannel
-	returnError   error
+	return args.Get(0).(Details), args.Error(1)
 }
 
 func TestFeed_serialize(t *testing.T) {
@@ -100,26 +69,12 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 		Url:         "u1",
 	}, nil)
 
-	vd := new(DependencyVideoMock)
-	fileURLRaw := "http://onet.pl"
-	fileURL, _ := url.Parse(fileURLRaw)
-	info := YTDLVideo{
-		ID:            "",
-		Title:         "Title Video",
-		Description:   "Description Video",
-		DatePublished: time.Time{},
-		Keywords:      nil,
-		Duration:      0,
-	}
-
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileUrl", context.Background(), info).Return(fileURL, nil)
-	ytdlM.On("GetFileInformation", context.Background(), "vi1").Return(info, nil)
+	ytdlM.On("GetDetails", context.Background(), "vi1").Return(Details{}, nil)
 	resp := httptest.NewRecorder()
 
 	resp.Header().Set("Content-Type", "mp3")
 	resp.Header().Set("Content-Length", "123")
-	vd.On("Details", fileURLRaw).Return(resp.Result(), nil)
 
 	feedService := NewFeedService(ytM, ytdlM)
 	f, _ := feedService.Create(context.Background(), "123")
@@ -194,22 +149,16 @@ func TestItem_enrichPopulateAllDate(t *testing.T) {
 	id := "123"
 	u, _ := url.Parse(YoutubeVideoBaseURL + id)
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", context.Background(), id).Return(YTDLVideo{
-		ID:            "JZAunPKoHL0",
-		URL:           u,
-		Description:   "d2",
-		Title:         "title",
-		Duration:      time.Hour,
-		FileUrl:       u,
-		ContentLength: 10000,
+	ytdlM.On("GetDetails", context.Background(), id).Return(Details{
+		Url: *u,
 	}, nil)
 
 	item := FeedItem{ID: id}
 	expectedItem := FeedItem{
 		ID:         id,
 		FileURL:    u,
-		Duration:   time.Hour,
-		FileLength: 10000,
+		Duration:   0,
+		FileLength: 0,
 	}
 	feedService := NewFeedService(YouTubeService{}, ytdlM)
 
@@ -222,7 +171,7 @@ func TestItem_enrichReturnError(t *testing.T) {
 	errorMessage := "error message"
 	id := "123"
 	ytdlM := new(YTDLDependencyMock)
-	ytdlM.On("GetFileInformation", context.Background(), id).Return(YTDLVideo{}, errors.New(errorMessage))
+	ytdlM.On("GetDetails", context.Background(), id).Return(Details{}, errors.New(errorMessage))
 
 	item := FeedItem{ID: id}
 	feedService := NewFeedService(YouTubeService{}, ytdlM)
@@ -231,14 +180,11 @@ func TestItem_enrichReturnError(t *testing.T) {
 	assert.Error(t, err, err)
 }
 
-func (yt YT) GetChannelCache(_ string) (YouTubeChannel, error) {
-	return yt.returnChannel, yt.returnError
-}
-
 func TestFeed_GetDetails(t *testing.T) {
 	ytM := new(YouTubeDependencyMock)
+	file := NewFileService()
 
-	feedService := NewFeedService(ytM, YTDLService{})
+	feedService := NewFeedService(ytM, file)
 
 	type fields struct {
 		ChannelID string

@@ -61,6 +61,3 @@ API_URL=http://localhost:8080/
 
 ### Debug
 1. `make debug`
-
-## Credits
-This project uses big part of https://github.com/rylio/ytdl. I couldn't use it as dependencies because there was conflict with `logrus`. Will use it as dependency as soon as it will fix that problem.

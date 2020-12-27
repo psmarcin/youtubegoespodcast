@@ -41,12 +41,15 @@ func main() {
 	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
 
 	// YTDL
-	ytdlRepository := adapters.NewYTDLRepository()
-	ytdlService := application.NewYTDLService(ytdlRepository)
+	//ytdlRepository := adapters.NewYTDLRepository()
+	//ytdlService := application.NewYTDLService(ytdlRepository)
+
+	// Video
+	fileService := application.NewFileService()
 
 	// API
 	fiberServer := ports.CreateHTTPServer()
-	h := ports.NewHttpServer(fiberServer, youTubeService, ytdlService)
+	h := ports.NewHttpServer(fiberServer, youTubeService, fileService)
 	app := h.Serve()
 
 	logrus.Fatal(app.Listen(":" + config.Cfg.Port))
