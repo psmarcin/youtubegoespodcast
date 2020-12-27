@@ -48,14 +48,14 @@ func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.Y
 	response, err := call.Do()
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return channel, err
 	}
 
 	for _, item := range response.Items {
 		channel, err = mapChannelToYouTubeChannel(item)
 		if err != nil {
-			span.RecordError(ctx, err)
+			span.RecordError(err)
 			return channel, err
 		}
 	}
@@ -78,14 +78,14 @@ func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([
 	response, err := call.Do()
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return channels, err
 	}
 
 	for _, item := range response.Items {
 		channel, err := mapSearchItemToYouTubeChannel(item)
 		if err != nil {
-			span.RecordError(ctx, err)
+			span.RecordError(err)
 			return channels, err
 		}
 

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
 	"time"
 )
@@ -25,7 +25,7 @@ type CacheEntity struct {
 }
 
 var l = logrus.WithField("source", "adapter")
-var tracer = global.TracerProvider().Tracer("yt.psmarcin.dev/adapters")
+var tracer = otel.GetTracerProvider().Tracer("yt.psmarcin.dev/adapters")
 
 // NewCacheRepository establishes connection to Firebase and update singleton variable
 func NewCacheRepository() (Cache, error) {
@@ -61,7 +61,7 @@ func (c *Cache) SetKey(ctx context.Context, key, value string, exp time.Duration
 			"value": value,
 			"exp":   exp.String(),
 		}).Errorf("set failed for %s", key)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return err
 	}
 
@@ -77,7 +77,7 @@ func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
 	raw, err := c.collection.Doc(key).Get(ctx)
 	if err != nil {
 		l.WithError(err).Warnf("can't get document %s", key)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return "", err
 	}
 
@@ -85,14 +85,14 @@ func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
 	err = raw.DataTo(&e)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse document %s", key)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return "", err
 	}
 
 	timeDiff := time.Now().Sub(raw.UpdateTime)
 	if timeDiff > e.Ttl {
 		l.Debugf("key expires, updated at %s, expires in %s", raw.UpdateTime.Format(time.RFC3339), e.Ttl.String())
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return "", errors.New("Cache expires for " + key)
 	}
 

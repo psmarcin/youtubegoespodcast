@@ -7,6 +7,7 @@ import (
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"github.com/rylio/ytdl"
 	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/trace"
 	"net/url"
 	"os"
 	"strings"
@@ -73,21 +74,21 @@ func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error)
 	}
 	if err != nil {
 		l.WithError(err).Errorf("can't get feed details for %s", channelID)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return feed, err
 	}
 
 	videos, err := f.youtubeService.ListEntry(ctx, feed.ChannelID)
 	if err != nil {
 		l.WithError(err).Errorf("can't get video list for %s", channelID)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return feed, err
 	}
 
 	items, err := f.CreateItems(ctx, videos)
 	if err != nil {
 		l.WithError(err).Errorf("can't enrich videos")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return feed, err
 	}
 
@@ -99,7 +100,7 @@ func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error)
 
 	if err != nil {
 		l.WithError(err).Errorf("can't set videos for %s", channelID)
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return feed, err
 	}
 
@@ -118,7 +119,7 @@ func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) 
 	channel, err := f.youtubeService.GetChannelCache(ctx, channelID)
 	if err != nil {
 		l.WithError(err).Error("can't get channel details")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return fee, err
 	}
 
@@ -152,10 +153,10 @@ func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) 
 	stream := make(chan FeedItem, len(items))
 	for _, v := range items {
 		go func(video YouTubeFeedEntry) {
-			span.AddEvent(ctx, "add-item", label.KeyValue{
+			span.AddEvent("add-item", trace.WithAttributes(label.KeyValue{
 				Key:   label.Key(fmt.Sprintf("video-%s", video.ID)),
 				Value: label.StringValue(video.URL.String()),
-			})
+			}))
 			item := FeedItem{
 				ID:          video.ID,
 				GUID:        video.URL.String(),
@@ -200,7 +201,7 @@ func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, erro
 
 	details, err := f.ytdlService.GetFileInformation(ctx, item.ID)
 	if err != nil {
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return item, err
 	}
 

@@ -80,7 +80,7 @@ func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]a
 	resp, err := http.Get(u.String())
 	if err != nil {
 		l.WithError(err).Errorf("can't get channel feed")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return nil, err
 	}
 
@@ -89,21 +89,21 @@ func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]a
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse channel feed")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return nil, err
 	}
 
 	err = xml.Unmarshal(body, &f)
 	if err != nil {
 		l.WithError(err).WithField("body", string(body)).Errorf("can't unmarshal channel feed")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return nil, err
 	}
 
 	for _, entry := range f.Entry {
 		ytFeedEntry, err := mapFeedToYouTubeEntry(entry)
 		if err != nil {
-			span.RecordError(ctx, err)
+			span.RecordError(err)
 			return entries, errors.Wrapf(err, "unable to map FeedEntry to YouTubeEntry")
 		}
 		entries = append(entries, ytFeedEntry)

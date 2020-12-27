@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
 	"time"
 )
@@ -15,7 +15,7 @@ const (
 )
 
 var l = logrus.WithField("source", "app")
-var tracer = global.TracerProvider().Tracer("yt.psmarcin.dev/app")
+var tracer = otel.GetTracerProvider().Tracer("yt.psmarcin.dev/app")
 
 type cacheRepository interface {
 	SetKey(context.Context, string, string, time.Duration) error
@@ -46,13 +46,13 @@ func (c *CacheService) Set(ctx context.Context, key string, value interface{}) e
 	marshaled, err := json.Marshal(value)
 	if err != nil {
 		l.WithError(err).WithField("value", value).WithField("key", key).Errorf("can't marshal")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 		return err
 	}
 	err = c.cache.SetKey(ctx, key, string(marshaled), CacheTTL)
 	if err != nil {
 		l.WithError(err).Error("can't set marshaled value")
-		span.RecordError(ctx, err)
+		span.RecordError(err)
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (c *CacheService) Get(ctx context.Context, key string, to interface{}) erro
 
 	entity, err := c.cache.GetKey(tCtx, key)
 	if err != nil {
-		span.RecordError(tCtx, err)
+		span.RecordError(err)
 		return errors.Wrap(err, "can't get cache for CacheService")
 	}
 
@@ -74,7 +74,7 @@ func (c *CacheService) Get(ctx context.Context, key string, to interface{}) erro
 	}
 
 	if err != nil {
-		span.RecordError(tCtx, err)
+		span.RecordError(err)
 		return errors.Wrapf(err, "can't unmarshal value for key %s", key)
 	}
 
@@ -91,13 +91,13 @@ func (c *CacheService) MarshalAndSet(ctx context.Context, key string, value inte
 	marshaled, err := json.Marshal(value)
 	if err != nil {
 		l.WithError(err).WithField("value", value).WithField("key", key).Errorf("can't marshal")
-		span.RecordError(tCtx, err)
+		span.RecordError(err)
 		return err
 	}
 	err = c.Set(tCtx, key, string(marshaled))
 	if err != nil {
 		l.WithError(err).Error("can't set marshaled value")
-		span.RecordError(tCtx, err)
+		span.RecordError(err)
 	}
 	return nil
 }
