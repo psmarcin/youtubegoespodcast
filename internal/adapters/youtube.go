@@ -2,13 +2,14 @@ package adapters
 
 import (
 	"context"
+	"net/url"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"go.opentelemetry.io/otel/label"
 	"google.golang.org/api/youtube/v3"
-	"net/url"
-	"time"
 )
 
 const (

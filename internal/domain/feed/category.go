@@ -1,8 +1,9 @@
 package feed
 
 import (
-	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"strings"
+
+	"github.com/texttheater/golang-levenshtein/levenshtein"
 )
 
 const (

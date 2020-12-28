@@ -3,10 +3,15 @@ package app
 import (
 	"context"
 	"errors"
-	"github.com/kkdai/youtube"
-	"go.opentelemetry.io/otel/label"
+	"net"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
+
+	"github.com/kkdai/youtube"
+	"github.com/kkdai/youtube/pkg/decipher"
+	"go.opentelemetry.io/otel/label"
 )
 
 const (
@@ -31,6 +36,7 @@ func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, e
 	defer span.End()
 
 	yt := youtube.NewYoutube(true, true)
+
 	err := yt.DecodeURL(YoutubeVideoBaseURL + videoId)
 	if err != nil {
 		return details, err
@@ -41,7 +47,12 @@ func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, e
 		return details, err
 	}
 
-	audioStreamUrl, err := url.Parse(audioStream.URL)
+	audioStreamRawUrl, err := getStreamUrl(videoId, audioStream)
+	if err != nil {
+		return details, err
+	}
+
+	audioStreamUrl, err := url.Parse(audioStreamRawUrl)
 	if err != nil {
 		return details, err
 	}
@@ -52,7 +63,7 @@ func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, e
 
 func getAudioStream(streams []youtube.Stream) (youtube.Stream, error) {
 	for _, stream := range streams {
-		if strings.HasPrefix(stream.MimeType, "audio" ) {
+		if strings.HasPrefix(stream.MimeType, "audio") {
 			return stream, nil
 		}
 	}
@@ -62,4 +73,39 @@ func getAudioStream(streams []youtube.Stream) (youtube.Stream, error) {
 	}
 
 	return youtube.Stream{}, errors.New("can't find audio")
+}
+
+func getStreamUrl(videoId string, stream youtube.Stream) (string, error) {
+	streamURL := stream.URL
+	if streamURL == "" {
+		cipher := stream.Cipher
+		if cipher == "" {
+			return "", errors.New("no cipher")
+		}
+		client := getHTTPClient()
+		d := decipher.NewDecipher(client)
+		decipherUrl, err := d.Url(videoId, cipher)
+		if err != nil {
+			return "", err
+		}
+		streamURL = decipherUrl
+	}
+	return streamURL, nil
+}
+
+func getHTTPClient() *http.Client {
+	// setup a http client
+	httpTransport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		IdleConnTimeout:       60 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	httpClient := &http.Client{Transport: httpTransport}
+
+	return httpClient
 }

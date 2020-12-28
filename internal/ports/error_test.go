@@ -1,10 +1,11 @@
 package ports
 
 import (
-	application "github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	application "github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_errorHandler_500(t *testing.T) {

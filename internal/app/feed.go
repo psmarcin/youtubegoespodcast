@@ -3,14 +3,15 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/eduncan911/podcast"
-	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
-	"go.opentelemetry.io/otel/label"
-	"go.opentelemetry.io/otel/trace"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/eduncan911/podcast"
+	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
+	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (

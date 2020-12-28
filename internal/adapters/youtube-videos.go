@@ -3,14 +3,15 @@ package adapters
 import (
 	"context"
 	"encoding/xml"
-	"github.com/pkg/errors"
-	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"go.opentelemetry.io/otel/label"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	"go.opentelemetry.io/otel/label"
 )
 
 const (

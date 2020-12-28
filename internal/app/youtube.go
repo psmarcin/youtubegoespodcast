@@ -2,10 +2,11 @@ package app
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel/label"
 	"net/url"
 	"time"
+
+	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/label"
 )
 
 const (

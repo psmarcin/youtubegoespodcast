@@ -1,10 +1,11 @@
 package ports
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	fiber_opentelemetry "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-otel"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"net/http"
 )
 
 const (

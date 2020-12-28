@@ -2,12 +2,13 @@ package ports
 
 import (
 	"context"
-	application "github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/url"
 	"testing"
+
+	application "github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type YTDLDependencyMock struct {

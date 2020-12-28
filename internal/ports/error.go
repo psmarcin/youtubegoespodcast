@@ -1,8 +1,9 @@
 package ports
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 const (
