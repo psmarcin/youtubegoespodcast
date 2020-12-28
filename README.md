@@ -14,14 +14,15 @@ Youtube Goes Podcast makes podcast feed from YouTube channel.
 It's that simple!
 
 ## Features/Roadmap
-* [x] UI for friendly usage
-* [x] Find channel using search field
+* [x] **UI** for friendly usage
+* [x] Find channel using **search** field
 * [x] Automatically generate unique url for YouTube Channel
-* [x] Podcast app agnostics. Works well in Apple Podcast, Plex Podcasts and others!
-* [x] Live updates, you will get up-to-date list of latest items immediately! 
+* [x] **Podcast app agnostics**. Works well in Apple Podcast, Plex Podcasts and others!
+* [x] Live updates, you will get up-to-date list of the latest items immediately! 
 * [x] Support more than latest 15 videos
 * [x] Daily updates
 * [x] Listen any video on your phone in background
+* [x] **Works only for videos with "embed" enabled** 
 
 ### Examples
 Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in your favorite podcast app. It works on desktop and mobile too. Tested on:
