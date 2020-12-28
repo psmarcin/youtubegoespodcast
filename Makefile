@@ -5,6 +5,10 @@ IMAGE_TAG=gcr.io/$(PROJECT_ID)/$(NAME)
 dev:
 	modd
 
+lint:
+	gofmt -w -s .
+	goimports -w .
+
 dependencies:
 	go mod download
 
