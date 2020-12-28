@@ -41,6 +41,7 @@ Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in 
 1. Docker, more: https://docs.docker.com/install/
 1. Modd (auto restart), more https://github.com/cortesi/modd
 1. Google Cloud Console or mocks 
+1. goimports: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
 
 ### Environment variables
 Example environment variables

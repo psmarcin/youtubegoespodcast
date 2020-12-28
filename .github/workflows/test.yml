@@ -1,5 +1,5 @@
 name: Test
-on: [push]
+on: [ push ]
 jobs:
   build:
     name: Build
@@ -13,6 +13,12 @@ jobs:
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
+
+      - name: Install goimports
+        run: GO111MODULE=off go get golang.org/x/tools/cmd/goimports
+
+      - name: Lint
+        run: make lint
 
       - name: Build
         run: make build
