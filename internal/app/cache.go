@@ -3,11 +3,12 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
-	"time"
 )
 
 const (

@@ -2,9 +2,10 @@ package ports
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"net/http"
 )
 
 type videoDependencies interface {

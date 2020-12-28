@@ -1,9 +1,10 @@
 package feed
 
 import (
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_findCategory(t *testing.T) {
@@ -123,8 +124,7 @@ func TestSelectCategory(t *testing.T) {
 		{
 			name: "should find empty string for empty list of categories",
 			args: args{
-				rawCategories: []string{
-				},
+				rawCategories: []string{},
 			},
 			want: "",
 		},

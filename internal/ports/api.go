@@ -1,6 +1,8 @@
 package ports
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -10,7 +12,6 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"

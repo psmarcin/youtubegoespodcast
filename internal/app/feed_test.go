@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
-	"github.com/eduncan911/podcast"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/eduncan911/podcast"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type YouTubeDependencyMock struct {
@@ -234,8 +235,8 @@ func TestFeed_GetDetails(t *testing.T) {
 				ChannelID: "",
 				Content:   podcast.Podcast{},
 			}, args: args{
-			channelID: "2",
-		},
+				channelID: "2",
+			},
 			wantErr: true,
 			before: func() {
 				ytM.On("GetChannelCache", context.Background(), "2").Return(YouTubeChannel{}, errors.New("can't get channel"))

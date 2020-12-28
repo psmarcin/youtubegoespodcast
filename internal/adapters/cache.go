@@ -1,14 +1,15 @@
 package adapters
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
+	"time"
+
+	"cloud.google.com/go/firestore"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
-	"time"
 )
 
 // Cache keeps firestore client and collection

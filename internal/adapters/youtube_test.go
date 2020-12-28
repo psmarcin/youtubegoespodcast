@@ -1,12 +1,13 @@
 package adapters
 
 import (
-	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/youtube/v3"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/psmarcin/youtubegoespodcast/internal/app"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/youtube/v3"
 )
 
 func Test_mapChannelItemToYouTubeChannels(t *testing.T) {
