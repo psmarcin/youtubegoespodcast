@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"errors"
+	"github.com/cockroachdb/errors"
 	"net"
 	"net/http"
 	"net/url"
@@ -36,25 +36,25 @@ func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, e
 	defer span.End()
 
 	yt := youtube.NewYoutube(true, true)
-
-	err := yt.DecodeURL(YoutubeVideoBaseURL + videoId)
+	fullUrl := YoutubeVideoBaseURL + videoId
+	err := yt.DecodeURL(fullUrl)
 	if err != nil {
-		return details, err
+		return details, errors.Wrapf(err, "can't decode url: %s", fullUrl)
 	}
 
 	audioStream, err := getAudioStream(yt.GetStreamInfo().Streams)
 	if err != nil {
-		return details, err
+		return details, errors.Wrapf(err, "can't get audio stream url: %s", fullUrl)
 	}
 
 	audioStreamRawUrl, err := getStreamUrl(videoId, audioStream)
 	if err != nil {
-		return details, err
+		return details, errors.Wrapf(err, "can't get stream url for stream: %+v, url: %s", audioStream, fullUrl)
 	}
 
 	audioStreamUrl, err := url.Parse(audioStreamRawUrl)
 	if err != nil {
-		return details, err
+		return details, errors.Wrapf(err, "can't parse audio stream url: %s", audioStreamRawUrl)
 	}
 	details.Url = *audioStreamUrl
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
@@ -48,7 +48,7 @@ func (c *CacheService) Set(ctx context.Context, key string, value interface{}) e
 	if err != nil {
 		l.WithError(err).WithField("value", value).WithField("key", key).Errorf("can't marshal")
 		span.RecordError(err)
-		return err
+		return errors.Wrapf(err, "can't serialize value: %+v for key: %s", value, key)
 	}
 	err = c.cache.SetKey(ctx, key, string(marshaled), CacheTTL)
 	if err != nil {
@@ -93,7 +93,7 @@ func (c *CacheService) MarshalAndSet(ctx context.Context, key string, value inte
 	if err != nil {
 		l.WithError(err).WithField("value", value).WithField("key", key).Errorf("can't marshal")
 		span.RecordError(err)
-		return err
+		return errors.Wrapf(err, "can't serialize value: %+v for key: %s", value, key)
 	}
 	err = c.Set(tCtx, key, string(marshaled))
 	if err != nil {
