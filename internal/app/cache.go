@@ -83,7 +83,7 @@ func (c *CacheService) Get(ctx context.Context, key string, to interface{}) erro
 }
 
 // MarshalAndSetKey is the same as SetKey but before that it marshals value. Simple helper
-func (c *CacheService) MarshalAndSet(ctx context.Context, key string, value interface{}) error {
+func (c *CacheService) MarshalAndSet(ctx context.Context, key string, value interface{}) {
 	tCtx, span := tracer.Start(ctx, "marshal-and-set")
 	span.SetAttributes(label.String("key", key))
 	span.SetAttributes(label.Any("value", value))
@@ -93,12 +93,11 @@ func (c *CacheService) MarshalAndSet(ctx context.Context, key string, value inte
 	if err != nil {
 		l.WithError(err).WithField("value", value).WithField("key", key).Errorf("can't marshal")
 		span.RecordError(err)
-		return errors.Wrapf(err, "can't serialize value: %+v for key: %s", value, key)
+		return
 	}
 	err = c.Set(tCtx, key, string(marshaled))
 	if err != nil {
 		l.WithError(err).Error("can't set marshaled value")
 		span.RecordError(err)
 	}
-	return nil
 }

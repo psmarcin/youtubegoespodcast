@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eduncan911/podcast"
 	"github.com/cockroachdb/errors"
+	"github.com/eduncan911/podcast"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

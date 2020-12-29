@@ -2,8 +2,9 @@ package adapters
 
 import (
 	"context"
-	"github.com/cockroachdb/errors"
 	"time"
+
+	"github.com/cockroachdb/errors"
 
 	"cloud.google.com/go/firestore"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
@@ -89,7 +90,7 @@ func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
 		return "", errors.Wrap(err, "can't parse raw data")
 	}
 
-	timeDiff := time.Now().Sub(raw.UpdateTime)
+	timeDiff := time.Since(raw.UpdateTime)
 	if timeDiff > e.Ttl {
 		l.Debugf("key expires, updated at %s, expires in %s", raw.UpdateTime.Format(time.RFC3339), e.Ttl.String())
 		span.RecordError(err)

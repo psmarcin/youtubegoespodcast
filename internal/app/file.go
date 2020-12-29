@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
-	"github.com/cockroachdb/errors"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/cockroachdb/errors"
 
 	"github.com/kkdai/youtube"
 	"github.com/kkdai/youtube/pkg/decipher"
@@ -31,7 +32,7 @@ func NewFileService() FileService {
 
 func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, error) {
 	details := Details{}
-	ctx, span := tracer.Start(ctx, "file-get-details")
+	_, span := tracer.Start(ctx, "file-get-details")
 	span.SetAttributes(label.String("videoId", videoId))
 	defer span.End()
 
