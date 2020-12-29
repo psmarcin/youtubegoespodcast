@@ -5,9 +5,11 @@ IMAGE_TAG=gcr.io/$(PROJECT_ID)/$(NAME)
 dev:
 	modd
 
-lint:
+lint-ci:
 	gofmt -w -s .
 	goimports -w .
+
+lint: lint-ci
 	golangci-lint run --fix
 
 dependencies:
