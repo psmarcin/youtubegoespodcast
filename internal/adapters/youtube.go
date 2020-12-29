@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
 	"go.opentelemetry.io/otel/label"
@@ -25,8 +25,8 @@ func NewYouTube() (*youtube.Service, error) {
 	ctx := context.Background()
 	youtubeService, err := youtube.NewService(ctx)
 	if err != nil {
-		l.WithError(err).Errorf("Can't create youtube service")
-		return youtubeService, err
+		l.WithError(err).Errorf("can't create youtube service")
+		return youtubeService, errors.Wrap(err, "can't create youtube service")
 	}
 	return youtubeService, nil
 }
@@ -50,17 +50,17 @@ func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.Y
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
 		span.RecordError(err)
-		return channel, err
+		return channel, errors.Wrap(err,"can't make youtube api request to get channel")
 	}
 
 	for _, item := range response.Items {
 		channel, err = mapChannelToYouTubeChannel(item)
 		if err != nil {
 			span.RecordError(err)
-			return channel, err
+			return channel, errors.Wrap(err, "can't parse youtube api response item to channel")
 		}
 	}
-	return channel, err
+	return channel, nil
 }
 
 func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([]app.YouTubeChannel, error) {
@@ -80,19 +80,19 @@ func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
 		span.RecordError(err)
-		return channels, err
+		return channels, errors.Wrap(err, "can't make youtube api request to list channel")
 	}
 
 	for _, item := range response.Items {
 		channel, err := mapSearchItemToYouTubeChannel(item)
 		if err != nil {
 			span.RecordError(err)
-			return channels, err
+			return channels, errors.Wrap(err, "can't parse youtube api response search item to channel")
 		}
 
 		channels = append(channels, channel)
 	}
-	return channels, err
+	return channels, nil
 }
 
 func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, error) {

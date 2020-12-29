@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	"go.opentelemetry.io/otel/label"
 )

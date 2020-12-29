@@ -5,15 +5,13 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"go.opentelemetry.io/otel/label"
 )
 
 const (
 	CacheGetChannelPrefix  = "youtube-channel-"
-	CacheGetChannelTtl     = time.Hour * 24 * 31
 	CacheListChannelPrefix = "youtube-channels-q-"
-	CacheListChannelTtl    = time.Hour * 24
 )
 
 type youTubeRepository interface {
