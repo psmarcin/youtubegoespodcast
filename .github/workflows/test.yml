@@ -18,7 +18,7 @@ jobs:
         run: GO111MODULE=off go get golang.org/x/tools/cmd/goimports
 
       - name: Lint
-        run: make lint
+        run: make lint-ci
 
       - name: Build
         run: make build
