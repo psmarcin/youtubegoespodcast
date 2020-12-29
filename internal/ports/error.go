@@ -8,7 +8,6 @@ import (
 
 const (
 	error404Message = "I'm so sorry, didn't find page that you are looking for. Please try again in a bit."
-	error500Message = "I'm so sorry, we have technical problem, please try again in a bit."
 )
 
 // errorHandler is server route handler for internal errors and not found routes

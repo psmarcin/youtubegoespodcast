@@ -42,6 +42,7 @@ Use this url `https://yt.psmarcin.dev/feed/channel/UCblfuW_4rakIf2h6aqANefA` in 
 1. Modd (auto restart), more https://github.com/cortesi/modd
 1. Google Cloud Console or mocks 
 1. goimports: https://pkg.go.dev/golang.org/x/tools/cmd/goimports
+1. golangci-lint: https://golangci-lint.run/usage/install/
 
 ### Environment variables
 Example environment variables

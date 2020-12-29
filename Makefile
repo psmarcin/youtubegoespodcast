@@ -8,11 +8,12 @@ dev:
 lint:
 	gofmt -w -s .
 	goimports -w .
+	golangci-lint run --fix
 
 dependencies:
 	go mod download
 
-test: dependencies
+test:
 	go test ./...
 
 build: dependencies build-raw

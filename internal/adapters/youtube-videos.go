@@ -69,7 +69,7 @@ func init() {
 func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]app.YouTubeFeedEntry, error) {
 	var entries []app.YouTubeFeedEntry
 	var f Feed
-	ctx, span := tracer.Start(ctx, "list-entry")
+	_, span := tracer.Start(ctx, "list-entry")
 	span.SetAttributes(label.String("channel-id", channelId))
 	defer span.End()
 

@@ -37,7 +37,7 @@ func NewYouTubeAPIRepository(yt *youtube.Service) YouTubeAPIRepository {
 
 func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.YouTubeChannel, error) {
 	var channel app.YouTubeChannel
-	ctx, span := tracer.Start(ctx, "get-channel")
+	_, span := tracer.Start(ctx, "get-channel")
 	span.SetAttributes(label.String("id", id))
 	defer span.End()
 
@@ -50,7 +50,7 @@ func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.Y
 	if err != nil {
 		l.WithError(err).Errorf("youtube api request failed")
 		span.RecordError(err)
-		return channel, errors.Wrap(err,"can't make youtube api request to get channel")
+		return channel, errors.Wrap(err, "can't make youtube api request to get channel")
 	}
 
 	for _, item := range response.Items {
@@ -65,7 +65,7 @@ func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.Y
 
 func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([]app.YouTubeChannel, error) {
 	var channels []app.YouTubeChannel
-	ctx, span := tracer.Start(ctx, "list-channel")
+	_, span := tracer.Start(ctx, "list-channel")
 	span.SetAttributes(label.String("query", query))
 	defer span.End()
 
