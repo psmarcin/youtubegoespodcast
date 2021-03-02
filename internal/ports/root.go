@@ -35,7 +35,7 @@ func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
 		}
 
 		ctx.Set("content-type", "text/html; charset=utf-8")
-		err = ctx.Render("index", fiber.Map{
+		err = ctx.Render("templates/index", fiber.Map{
 			"Channels":  channels,
 			"ChannelId": channelId,
 		})

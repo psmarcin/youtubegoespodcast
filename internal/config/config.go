@@ -9,7 +9,7 @@ import (
 // Config stores all data from env variables
 type Config struct {
 	ApiRouterLoggerFormat string   `env:"ROUTER_LOGGER_FORMAT" envDefault:"{\"severity\": \"INFO\", \"time\": \"${time}\", \"level\":\"info\", \"source\": \"router\", \"path\": \"${route}\", \"url\": \"${url}\", \"method\": \"${method}\", \"latency\": \"${latency}\"}\n"`
-	AppEnv                string   `env:"APP_ENV,required" envDefault:"development"`
+	AppEnv                string   `env:"APP_ENV" envDefault:"development"`
 	CorsOrigins           []string `env:"CORS_ORIGINS" envDefault:"http://localhost:8080" envSeparator:","`
 	FirestoreCollection   string   `env:"FIRESTORE_COLLECTION" envDefault:"dev"`
 	GoogleAPIKey          string   `env:"GOOGLE_API_KEY,required"`

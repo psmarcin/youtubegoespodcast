@@ -1,6 +1,9 @@
 package ports
 
 import (
+	"embed"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -77,11 +80,16 @@ type Dependencies struct {
 	YTDL    app.YTDLDependencies
 }
 
+//go:embed templates/*
+var templatesFs embed.FS
+
+//go:embed static/*
+var staticFS embed.FS
 var l = logrus.WithField("source", "API")
 
 // CreateHTTPServer creates configured HTTP server
 func CreateHTTPServer() *fiber.App {
-	templateEngine := html.New("./web/templates", ".tmpl")
+	templateEngine := html.NewFileSystem(http.FS(templatesFs), ".tmpl")
 
 	appConfig := fiber.Config{
 		CaseSensitive: true,
@@ -112,7 +120,9 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Use(requestid.New())
 	serverHTTP.Use(helmet.New())
 
-	serverHTTP.Static("/assets", "./web/static")
+	serverHTTP.Use("/assets", filesystem.New(filesystem.Config{
+		Root: http.FS(staticFS),
+	}))
 
 	return serverHTTP
 }
