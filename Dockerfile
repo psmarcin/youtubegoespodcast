@@ -1,4 +1,4 @@
-FROM golang:1.15-buster as build-env
+FROM golang:1.16-buster as build-env
 
 ENV GO111MODULE=on
 ENV APP_ENV=production
@@ -26,7 +26,6 @@ RUN zip -q -r -0 /zoneinfo.zip .
 
 FROM scratch
 COPY --from=build-env /app/server /server
-COPY --from=build-env /app/web /web
 
 ENV ZONEINFO /zoneinfo.zip
 COPY --from=alpine /zoneinfo.zip /

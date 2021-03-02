@@ -13,7 +13,7 @@ lint: lint-ci
 	golangci-lint run --fix
 
 dependencies:
-	go mod download
+	go get ./...
 
 test:
 	go test ./...
