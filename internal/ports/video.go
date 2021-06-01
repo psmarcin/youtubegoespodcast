@@ -3,13 +3,18 @@ package ports
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
 
+const (
+	HTTPClientTimeout = 3 * time.Second
+)
+
 type videoDependencies interface {
-	GetDetails(ctx context.Context, videoId string) (app.Details, error)
+	GetDetails(ctx context.Context, videoID string) (app.Details, error)
 }
 
 // videoHandler is server route handler for video redirection
@@ -23,17 +28,20 @@ func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
 			return ctx.SendStatus(http.StatusNotFound)
 		}
 
-		url := details.Url.String()
+		url := details.URL.String()
 
 		if url == "" {
 			l.Infof("didn't find video (%s) with audio", videoID)
 			return ctx.SendStatus(http.StatusNotFound)
 		}
-
-		resp, err := http.Get(url)
+		client := http.Client{
+			Timeout: HTTPClientTimeout,
+		}
+		resp, err := client.Get(url)
 		if err != nil {
 			return fiber.NewError(http.StatusInternalServerError, err.Error())
 		}
+		defer resp.Body.Close()
 
 		return ctx.Redirect(resp.Request.URL.String(), http.StatusFound)
 	}

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
@@ -18,7 +18,7 @@ type youTubeRepository interface {
 	ListEntry(context.Context, string) ([]YouTubeFeedEntry, error)
 }
 
-type youTubeApiRepository interface {
+type youTubeAPIRepository interface {
 	GetChannel(context.Context, string) (YouTubeChannel, error)
 	ListChannel(context.Context, string) ([]YouTubeChannel, error)
 }
@@ -35,65 +35,65 @@ type YouTubeFeedEntry struct {
 type YouTubeThumbnail struct {
 	Height int
 	Width  int
-	Url    url.URL
+	URL    url.URL
 }
 
 // YouTubeChannel holds metadata about channel
 type YouTubeChannel struct {
 	Author      string
 	AuthorEmail string
-	ChannelId   string
+	ChannelID   string
 	Country     string
 	Description string
 	PublishedAt time.Time
 	Thumbnail   YouTubeThumbnail
 	Title       string
-	Url         string
+	URL         string
 	Category    string
 }
 
 type YouTubeService struct {
 	youTubeRepository    youTubeRepository
-	youTubeApiRepository youTubeApiRepository
+	youTubeAPIRepository youTubeAPIRepository
 	cache                CacheService
 }
 
-func NewYouTubeService(ytRepo youTubeRepository, ytApiRepo youTubeApiRepository, cache CacheService) YouTubeService {
+func NewYouTubeService(ytRepo youTubeRepository, ytAPIRepo youTubeAPIRepository, cache CacheService) YouTubeService {
 	return YouTubeService{
 		youTubeRepository:    ytRepo,
-		youTubeApiRepository: ytApiRepo,
+		youTubeAPIRepository: ytAPIRepo,
 		cache:                cache,
 	}
 }
 
-func (y YouTubeService) ListEntry(ctx context.Context, channelId string) ([]YouTubeFeedEntry, error) {
-	return y.youTubeRepository.ListEntry(ctx, channelId)
+func (y YouTubeService) ListEntry(ctx context.Context, channelID string) ([]YouTubeFeedEntry, error) {
+	return y.youTubeRepository.ListEntry(ctx, channelID)
 }
 
-func (y YouTubeService) GetChannel(ctx context.Context, channelId string) (YouTubeChannel, error) {
-	return y.youTubeApiRepository.GetChannel(ctx, channelId)
+func (y YouTubeService) GetChannel(ctx context.Context, channelID string) (YouTubeChannel, error) {
+	return y.youTubeAPIRepository.GetChannel(ctx, channelID)
 }
 
 func (y YouTubeService) ListChannel(ctx context.Context, query string) ([]YouTubeChannel, error) {
-	return y.youTubeApiRepository.ListChannel(ctx, query)
+	return y.youTubeAPIRepository.ListChannel(ctx, query)
 }
 
-func (y YouTubeService) GetChannelCache(ctx context.Context, channelId string) (YouTubeChannel, error) {
+func (y YouTubeService) GetChannelCache(ctx context.Context, channelID string) (YouTubeChannel, error) {
 	ctx, span := tracer.Start(ctx, "youtube-get-channel-cache")
-	span.SetAttributes(label.Any("channelId", channelId))
+	span.SetAttributes(attribute.Any("channelID", channelID))
 	defer span.End()
 
 	var channel YouTubeChannel
-	cacheKey := CacheGetChannelPrefix + channelId
+	cacheKey := CacheGetChannelPrefix + channelID
 	err := y.cache.Get(ctx, cacheKey, &channel)
 	if err == nil {
 		return channel, nil
 	}
 
-	response, err := y.GetChannel(ctx, channelId)
+	response, err := y.GetChannel(ctx, channelID)
 	if err != nil {
 		span.RecordError(err)
-		return channel, errors.Wrapf(err, "unable value get channel for channel id: %s", channelId)
+		return channel, errors.Wrapf(err, "unable value get channel for channel id: %s", channelID)
 	}
 
 	go y.cache.MarshalAndSet(ctx, cacheKey, response)
@@ -103,7 +103,7 @@ func (y YouTubeService) GetChannelCache(ctx context.Context, channelId string) (
 
 func (y YouTubeService) ListChannelCache(ctx context.Context, query string) ([]YouTubeChannel, error) {
 	ctx, span := tracer.Start(ctx, "youtube-list-channel-chache")
-	span.SetAttributes(label.Any("query", query))
+	span.SetAttributes(attribute.Any("query", query))
 	defer span.End()
 
 	var channels []YouTubeChannel

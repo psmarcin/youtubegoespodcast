@@ -8,7 +8,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/api/youtube/v3"
 )
 
@@ -38,7 +38,7 @@ func NewYouTubeAPIRepository(yt *youtube.Service) YouTubeAPIRepository {
 func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.YouTubeChannel, error) {
 	var channel app.YouTubeChannel
 	_, span := tracer.Start(ctx, "get-channel")
-	span.SetAttributes(label.String("id", id))
+	span.SetAttributes(attribute.String("id", id))
 	defer span.End()
 
 	call := yt.api.Channels.
@@ -66,7 +66,7 @@ func (yt YouTubeAPIRepository) GetChannel(ctx context.Context, id string) (app.Y
 func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([]app.YouTubeChannel, error) {
 	var channels []app.YouTubeChannel
 	_, span := tracer.Start(ctx, "list-channel")
-	span.SetAttributes(label.String("query", query))
+	span.SetAttributes(attribute.String("query", query))
 	defer span.End()
 
 	call := yt.api.Search.
@@ -99,7 +99,7 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 	ytChannel := app.YouTubeChannel{}
 
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
-	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	thumbnailURL, err := url.Parse(thumbnail.Url)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
 	}
@@ -113,17 +113,17 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 	l.WithField("category", category).Infof("found category for channel: %s", item.Id)
 
 	ytChannel = app.YouTubeChannel{
-		ChannelId:   item.Id,
+		ChannelID:   item.Id,
 		Country:     item.Snippet.Country,
 		Description: item.Snippet.Description,
 		PublishedAt: publishedAt,
 		Thumbnail: app.YouTubeThumbnail{
 			Height: int(thumbnail.Height),
 			Width:  int(thumbnail.Width),
-			Url:    *thumbnailUrl,
+			URL:    *thumbnailURL,
 		},
 		Title:       item.Snippet.Title,
-		Url:         YouTubeChannelBaseURL + item.Id,
+		URL:         YouTubeChannelBaseURL + item.Id,
 		Author:      item.Snippet.CustomUrl,
 		AuthorEmail: "email@example.com",
 		Category:    category,
@@ -136,7 +136,7 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 	ytChannel := app.YouTubeChannel{}
 
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
-	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	thumbnailURL, err := url.Parse(thumbnail.Url)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
 	}
@@ -149,13 +149,13 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 	category := feedDomain.SelectCategory([]string{})
 
 	ytChannel = app.YouTubeChannel{
-		ChannelId:   item.Id.ChannelId,
+		ChannelID:   item.Id.ChannelId,
 		Description: item.Snippet.Description,
 		PublishedAt: publishedAt,
 		Thumbnail: app.YouTubeThumbnail{
 			Height: int(thumbnail.Height),
 			Width:  int(thumbnail.Width),
-			Url:    *thumbnailUrl,
+			URL:    *thumbnailURL,
 		},
 		Title:    item.Snippet.Title,
 		Category: category,

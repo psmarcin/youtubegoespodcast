@@ -11,15 +11,16 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
-	BaseUrl     = "https://www.youtube.com/"
-	FeedUrlBase = BaseUrl + "feeds/videos.xml"
+	BaseURL           = "https://www.youtube.com/"
+	FeedURLBase       = BaseURL + "feeds/videos.xml"
+	HTTPClientTimeout = time.Second * 5
 )
 
-var FeedUrl *url.URL
+var FeedURL *url.URL
 
 type Feed struct {
 	Entry []FeedEntry `xml:"entry"`
@@ -27,7 +28,7 @@ type Feed struct {
 
 type FeedEntry struct {
 	ID      string `xml:"id"`
-	VideoId string `xml:"videoId"`
+	VideoID string `xml:"videoId"`
 	Title   string `xml:"title"`
 	Link    struct {
 		Text string `xml:",chardata"`
@@ -46,45 +47,52 @@ type FeedEntry struct {
 }
 
 type YouTubeRepository struct {
-	FeedURL *url.URL
+	FeedURL    *url.URL
+	HTTPClient *http.Client
 }
 
 func NewYouTubeRepository() (YouTubeRepository, error) {
-	feedUrl, err := url.Parse(FeedUrlBase)
+	feedURL, err := url.Parse(FeedURLBase)
+	FeedURL = feedURL
 	if err != nil {
 		return YouTubeRepository{}, errors.Wrap(err, "can't parse feed base url")
 	}
+
+	client := &http.Client{
+		Timeout: HTTPClientTimeout,
+	}
+
 	return YouTubeRepository{
-		FeedURL: feedUrl,
+		FeedURL:    feedURL,
+		HTTPClient: client,
 	}, nil
 }
-func init() {
-	feedUrl, err := url.Parse(FeedUrlBase)
-	if err != nil {
-		l.WithError(err).Fatalf("can't parse feed base url")
-	}
-	FeedUrl = feedUrl
-}
 
-func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]app.YouTubeFeedEntry, error) {
+func (y YouTubeRepository) ListEntry(ctx context.Context, channelID string) ([]app.YouTubeFeedEntry, error) {
 	var entries []app.YouTubeFeedEntry
 	var f Feed
 	_, span := tracer.Start(ctx, "list-entry")
-	span.SetAttributes(label.String("channel-id", channelId))
+	span.SetAttributes(attribute.String("channel-id", channelID))
 	defer span.End()
 
-	u := *FeedUrl
+	u := *FeedURL
 	q := u.Query()
-	q.Add("channel_id", channelId)
+	q.Add("channel_id", channelID)
 	u.RawQuery = q.Encode()
 
-	resp, err := http.Get(u.String())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
-		l.WithError(err).Errorf("can't get channel feed")
+		l.WithError(err).Errorf("can't get create request to get feed")
 		span.RecordError(err)
 		return nil, err
 	}
 
+	resp, err := y.HTTPClient.Do(req)
+	if err != nil {
+		l.WithError(err).Errorf("can't do request to get feed")
+		span.RecordError(err)
+		return nil, err
+	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -111,7 +119,6 @@ func (y YouTubeRepository) ListEntry(ctx context.Context, channelId string) ([]a
 	}
 
 	return entries, nil
-
 }
 
 func mapFeedToYouTubeEntry(entry FeedEntry) (app.YouTubeFeedEntry, error) {
@@ -126,7 +133,7 @@ func mapFeedToYouTubeEntry(entry FeedEntry) (app.YouTubeFeedEntry, error) {
 		return ytFeedEntry, errors.Wrapf(err, "unable to parse url: %s for video id: %s", entry.Link.Href, entry.ID)
 	}
 
-	tUrl, err := url.Parse(entry.Link.Href)
+	tURL, err := url.Parse(entry.Link.Href)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse video %s thumbnail url %s", entry.ID, entry.Group.Thumbnail.URL)
 	}
@@ -142,7 +149,7 @@ func mapFeedToYouTubeEntry(entry FeedEntry) (app.YouTubeFeedEntry, error) {
 	}
 
 	ytFeedEntry = app.YouTubeFeedEntry{
-		ID:          entry.VideoId,
+		ID:          entry.VideoID,
 		Title:       entry.Title,
 		Description: entry.Group.Description,
 		Published:   publishedAt,
@@ -150,7 +157,7 @@ func mapFeedToYouTubeEntry(entry FeedEntry) (app.YouTubeFeedEntry, error) {
 		Thumbnail: app.YouTubeThumbnail{
 			Height: tHeight,
 			Width:  tWidth,
-			Url:    *tUrl,
+			URL:    *tURL,
 		},
 	}
 

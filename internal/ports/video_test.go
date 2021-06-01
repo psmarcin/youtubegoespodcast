@@ -15,8 +15,8 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoId string) (application.Details, error) {
-	args := m.Called(mock.Anything, videoId)
+func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoID string) (application.Details, error) {
+	args := m.Called(mock.Anything, videoID)
 	return args.Get(0).(application.Details), args.Error(1)
 }
 
@@ -41,11 +41,11 @@ func TestHandler(t *testing.T) {
 	u1, _ := url.Parse("http://youtube.com")
 	ytdlM := new(YTDLDependencyMock)
 	ytdlM.On("GetFileInformation", context.Background(), "ulCdoCfw-bY").Return(application.Details{
-		Url: *u1,
+		URL: *u1,
 	}, nil)
 
 	fiberServer := CreateHTTPServer()
-	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.NewFileService())
+	h := NewHTTPServer(fiberServer, application.YouTubeService{}, application.NewFileService())
 	app := h.Serve()
 
 	for _, tt := range tests {
@@ -54,6 +54,7 @@ func TestHandler(t *testing.T) {
 			if err != nil {
 				t.Errorf("should not throw error on app start")
 			}
+			defer resp.Body.Close()
 			assert.Equal(t, http.StatusFound, resp.StatusCode)
 		})
 	}

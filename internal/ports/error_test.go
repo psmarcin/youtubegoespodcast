@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -9,10 +10,9 @@ import (
 )
 
 func Test_errorHandler_500(t *testing.T) {
-	req, _ := http.NewRequest(http.MethodHead, "/asdas", nil)
-
+	req, _ := http.NewRequestWithContext(context.Background(), http.MethodHead, "/asdas", nil)
 	fiberServer := CreateHTTPServer()
-	h := NewHttpServer(fiberServer, application.YouTubeService{}, application.NewFileService())
+	h := NewHTTPServer(fiberServer, application.YouTubeService{}, application.NewFileService())
 
 	app := h.Serve()
 
@@ -20,6 +20,7 @@ func Test_errorHandler_500(t *testing.T) {
 	if err != nil {
 		t.Errorf("should not throw error on app start")
 	}
+	defer resp.Body.Close()
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
