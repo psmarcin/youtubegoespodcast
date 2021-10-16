@@ -50,9 +50,9 @@ func Test_mapChannelItemToYouTubeChannels(t *testing.T) {
 				Thumbnail: app.YouTubeThumbnail{
 					Height: 500,
 					Width:  300,
-					Url:    *urlParsed,
+					URL:    *urlParsed,
 				},
-				Url: YouTubeChannelBaseURL,
+				URL: YouTubeChannelBaseURL,
 			},
 			wantErr: false,
 		},
@@ -81,11 +81,11 @@ func Test_mapChannelItemToYouTubeChannels(t *testing.T) {
 				Thumbnail: app.YouTubeThumbnail{
 					Height: 500,
 					Width:  300,
-					Url: url.URL{
+					URL: url.URL{
 						Path: "x",
 					},
 				},
-				Url: YouTubeChannelBaseURL,
+				URL: YouTubeChannelBaseURL,
 			},
 			wantErr: false,
 		},
@@ -137,12 +137,12 @@ func Test_mapSearchItemToYouTubeChannel(t *testing.T) {
 				},
 			},
 			want: app.YouTubeChannel{
-				ChannelId:   "1",
+				ChannelID:   "1",
 				PublishedAt: pubTime,
 				Thumbnail: app.YouTubeThumbnail{
 					Height: 500,
 					Width:  1,
-					Url:    *urlParsed,
+					URL:    *urlParsed,
 				},
 			},
 			wantErr: false,
@@ -167,12 +167,12 @@ func Test_mapSearchItemToYouTubeChannel(t *testing.T) {
 				},
 			},
 			want: app.YouTubeChannel{
-				ChannelId:   "1",
+				ChannelID:   "1",
 				PublishedAt: pubTime,
 				Thumbnail: app.YouTubeThumbnail{
 					Height: 500,
 					Width:  1,
-					Url: url.URL{
+					URL: url.URL{
 						Path: "x",
 					},
 				},

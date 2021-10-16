@@ -2,9 +2,10 @@ package ports
 
 import (
 	"embed"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"net/http"
 	"time"
+
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -21,25 +22,31 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type HttpServer struct {
+const (
+	ReadTimeout  = 5
+	WriteTimeout = 3
+	IdleTimeout  = 1
+)
+
+type HTTPServer struct {
 	server         *fiber.App
 	youTubeService app.YouTubeService
 	fileService    app.FileService
 }
 
-func NewHttpServer(
+func NewHTTPServer(
 	server *fiber.App,
 	youTubeService app.YouTubeService,
 	fileService app.FileService,
-) HttpServer {
-	return HttpServer{
+) HTTPServer {
+	return HTTPServer{
 		server,
 		youTubeService,
 		fileService,
 	}
 }
 
-func (h HttpServer) Serve() *fiber.App {
+func (h HTTPServer) Serve() *fiber.App {
 	feedDeps := h.getFeedDependencies()
 	rootDeps := h.getRootDependencies()
 	videoDeps := h.getVideoDependencies()
@@ -53,25 +60,25 @@ func (h HttpServer) Serve() *fiber.App {
 	videoGroup.Head("/:videoId/track.mp3", videoHandler(videoDeps))
 
 	feedGroup := h.server.Group("/feed/channel")
-	feedGroup.Get("/:"+ParamChannelId, feedHandler(feedDeps))
-	feedGroup.Head("/:"+ParamChannelId, feedHandler(feedDeps))
+	feedGroup.Get("/:"+ParamChannelID, feedHandler(feedDeps))
+	feedGroup.Head("/:"+ParamChannelID, feedHandler(feedDeps))
 
 	// error found handler
 	h.server.Use(errorHandler)
 
-	//l.WithField("port", config.Cfg.Port).Infof("started")
+	// l.WithField("port", config.Cfg.Port).Infof("started")
 	return h.server
 }
 
-func (h HttpServer) getFeedDependencies() app.FeedService {
+func (h HTTPServer) getFeedDependencies() app.FeedService {
 	return app.NewFeedService(h.youTubeService, h.fileService)
 }
 
-func (h HttpServer) getRootDependencies() rootDependencies {
+func (h HTTPServer) getRootDependencies() rootDependencies {
 	return h.youTubeService
 }
 
-func (h HttpServer) getVideoDependencies() videoDependencies {
+func (h HTTPServer) getVideoDependencies() videoDependencies {
 	return h.fileService
 }
 
@@ -95,13 +102,13 @@ func CreateHTTPServer() *fiber.App {
 		CaseSensitive: true,
 		Immutable:     false,
 		Prefork:       false,
-		ReadTimeout:   5 * time.Second,
-		WriteTimeout:  3 * time.Second,
-		IdleTimeout:   1 * time.Second,
+		ReadTimeout:   ReadTimeout * time.Second,
+		WriteTimeout:  WriteTimeout * time.Second,
+		IdleTimeout:   IdleTimeout * time.Second,
 		Views:         templateEngine,
 	}
 	logConfig := logger.Config{
-		Format:     config.Cfg.ApiRouterLoggerFormat,
+		Format:     config.Cfg.APIRouterLoggerFormat,
 		TimeFormat: time.RFC3339,
 	}
 

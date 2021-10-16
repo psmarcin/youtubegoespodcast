@@ -74,7 +74,6 @@ func (yt YouTubeAPIRepository) ListChannel(ctx context.Context, query string) ([
 		MaxResults(YouTubeChannelsMaxResults).
 		Type("channel").
 		Q(query)
-		//Order("viewCount")
 
 	response, err := call.Do()
 	if err != nil {
@@ -99,7 +98,7 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 	ytChannel := app.YouTubeChannel{}
 
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
-	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	thumbnailURL, err := url.Parse(thumbnail.Url)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
 	}
@@ -120,7 +119,7 @@ func mapChannelToYouTubeChannel(item *youtube.Channel) (app.YouTubeChannel, erro
 		Thumbnail: app.YouTubeThumbnail{
 			Height: int(thumbnail.Height),
 			Width:  int(thumbnail.Width),
-			URL:    *thumbnailUrl,
+			URL:    *thumbnailURL,
 		},
 		Title:       item.Snippet.Title,
 		URL:         YouTubeChannelBaseURL + item.Id,
@@ -136,7 +135,7 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 	ytChannel := app.YouTubeChannel{}
 
 	thumbnail := getMaxThumbnailResolution(*item.Snippet.Thumbnails)
-	thumbnailUrl, err := url.Parse(thumbnail.Url)
+	thumbnailURL, err := url.Parse(thumbnail.Url)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse thumbnail url: %s", thumbnail.Url)
 	}
@@ -155,7 +154,7 @@ func mapSearchItemToYouTubeChannel(item *youtube.SearchResult) (app.YouTubeChann
 		Thumbnail: app.YouTubeThumbnail{
 			Height: int(thumbnail.Height),
 			Width:  int(thumbnail.Width),
-			URL:    *thumbnailUrl,
+			URL:    *thumbnailURL,
 		},
 		Title:    item.Snippet.Title,
 		Category: category,

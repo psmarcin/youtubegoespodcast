@@ -197,7 +197,7 @@ func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, erro
 		return item, err
 	}
 
-	item.FileURL = &details.Url
+	item.FileURL = &details.URL
 	item.Duration = 0
 	item.FileLength = 0
 

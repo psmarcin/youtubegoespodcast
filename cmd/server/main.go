@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/psmarcin/youtubegoespodcast/internal/adapters"
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
@@ -19,7 +20,10 @@ func main() {
 	ctx := context.Background()
 
 	traceFlusher := config.InitTracer(config.Cfg)
-	defer traceFlusher(ctx)
+	defer func() {
+		err := traceFlusher(ctx)
+		l.WithError(err).Fatalf("can't flush traces")
+	}()
 	// Logger
 	logger.Setup()
 
@@ -53,7 +57,7 @@ func main() {
 
 	// API
 	fiberServer := ports.CreateHTTPServer()
-	h := ports.NewHttpServer(fiberServer, youTubeService, fileService)
+	h := ports.NewHTTPServer(fiberServer, youTubeService, fileService)
 	app := h.Serve()
 
 	logrus.Fatal(app.Listen(":" + config.Cfg.Port))
