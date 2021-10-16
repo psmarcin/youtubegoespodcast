@@ -10,8 +10,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 
-	"github.com/kkdai/youtube"
-	"github.com/kkdai/youtube/pkg/decipher"
+	"github.com/kkdai/youtube/v2"
 	"go.opentelemetry.io/otel/attribute"
 )
 
@@ -41,22 +40,18 @@ func (f FileService) GetDetails(ctx context.Context, videoID string) (Details, e
 	span.SetAttributes(attribute.String("videoId", videoID))
 	defer span.End()
 
-	yt := youtube.NewYoutube(true, true)
+	c := getYTClient()
 	fullURL := YoutubeVideoBaseURL + videoID
-	err := yt.DecodeURL(fullURL)
+	v, err := c.GetVideo(fullURL)
 	if err != nil {
 		return details, errors.Wrapf(err, "can't decode url: %s", fullURL)
 	}
 
-	audioStream, err := getAudioStream(yt.GetStreamInfo().Streams)
+	audioStream, err := getAudioStream(v.Formats)
 	if err != nil {
 		return details, errors.Wrapf(err, "can't get audio stream url: %s", fullURL)
 	}
-
-	audioStreamRawURL, err := getStreamURL(videoID, audioStream)
-	if err != nil {
-		return details, errors.Wrapf(err, "can't get stream url for stream: %+v, url: %s", audioStream, fullURL)
-	}
+	audioStreamRawURL := audioStream.URL
 
 	audioStreamURL, err := url.Parse(audioStreamRawURL)
 	if err != nil {
@@ -67,36 +62,18 @@ func (f FileService) GetDetails(ctx context.Context, videoID string) (Details, e
 	return details, nil
 }
 
-func getAudioStream(streams []youtube.Stream) (youtube.Stream, error) {
-	for _, stream := range streams {
-		if strings.HasPrefix(stream.MimeType, "audio") {
-			return stream, nil
+func getAudioStream(formats []youtube.Format) (youtube.Format, error) {
+	for _, format := range formats {
+		if strings.HasPrefix(format.MimeType, "audio") {
+			return format, nil
 		}
 	}
 
-	if len(streams) > 0 {
-		return streams[0], nil
+	if len(formats) > 0 {
+		return formats[0], nil
 	}
 
-	return youtube.Stream{}, errors.New("can't find audio")
-}
-
-func getStreamURL(videoID string, stream youtube.Stream) (string, error) {
-	streamURL := stream.URL
-	if streamURL == "" {
-		cipher := stream.Cipher
-		if cipher == "" {
-			return "", errors.New("no cipher")
-		}
-		client := getHTTPClient()
-		d := decipher.NewDecipher(client)
-		decipherURL, err := d.Url(videoID, cipher)
-		if err != nil {
-			return "", err
-		}
-		streamURL = decipherURL
-	}
-	return streamURL, nil
+	return youtube.Format{}, errors.New("can't find audio")
 }
 
 func getHTTPClient() *http.Client {
@@ -114,4 +91,15 @@ func getHTTPClient() *http.Client {
 	httpClient := &http.Client{Transport: httpTransport}
 
 	return httpClient
+}
+
+func getYTClient() youtube.Client {
+	httpClient := getHTTPClient()
+
+	client := youtube.Client{
+		Debug:      false,
+		HTTPClient: httpClient,
+	}
+
+	return client
 }
