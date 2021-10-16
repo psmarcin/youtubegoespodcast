@@ -151,7 +151,7 @@ func TestItem_enrichPopulateAllDate(t *testing.T) {
 	u, _ := url.Parse(YoutubeVideoBaseURL + id)
 	ytdlM := new(YTDLDependencyMock)
 	ytdlM.On("GetDetails", context.Background(), id).Return(Details{
-		Url: *u,
+		URL: *u,
 	}, nil)
 
 	item := FeedItem{ID: id}

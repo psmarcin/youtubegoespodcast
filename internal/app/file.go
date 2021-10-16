@@ -16,13 +16,18 @@ import (
 )
 
 const (
-	YoutubeVideoBaseURL = "https://www.youtube.com/watch?v="
+	YoutubeVideoBaseURL   = "https://www.youtube.com/watch?v="
+	DialTimeout           = 30
+	DialKeepAlive         = 30
+	IdleConnTimeout       = 60
+	TLSHandshakeTimeout   = 10
+	ExpectContinueTimeout = 1
 )
 
 type FileService struct{}
 
 type Details struct {
-	Url     url.URL
+	URL     url.URL
 	Quality string
 }
 
@@ -30,34 +35,34 @@ func NewFileService() FileService {
 	return FileService{}
 }
 
-func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, error) {
+func (f FileService) GetDetails(ctx context.Context, videoID string) (Details, error) {
 	details := Details{}
 	_, span := tracer.Start(ctx, "file-get-details")
-	span.SetAttributes(attribute.String("videoId", videoId))
+	span.SetAttributes(attribute.String("videoId", videoID))
 	defer span.End()
 
 	yt := youtube.NewYoutube(true, true)
-	fullUrl := YoutubeVideoBaseURL + videoId
-	err := yt.DecodeURL(fullUrl)
+	fullURL := YoutubeVideoBaseURL + videoID
+	err := yt.DecodeURL(fullURL)
 	if err != nil {
-		return details, errors.Wrapf(err, "can't decode url: %s", fullUrl)
+		return details, errors.Wrapf(err, "can't decode url: %s", fullURL)
 	}
 
 	audioStream, err := getAudioStream(yt.GetStreamInfo().Streams)
 	if err != nil {
-		return details, errors.Wrapf(err, "can't get audio stream url: %s", fullUrl)
+		return details, errors.Wrapf(err, "can't get audio stream url: %s", fullURL)
 	}
 
-	audioStreamRawUrl, err := getStreamUrl(videoId, audioStream)
+	audioStreamRawURL, err := getStreamURL(videoID, audioStream)
 	if err != nil {
-		return details, errors.Wrapf(err, "can't get stream url for stream: %+v, url: %s", audioStream, fullUrl)
+		return details, errors.Wrapf(err, "can't get stream url for stream: %+v, url: %s", audioStream, fullURL)
 	}
 
-	audioStreamUrl, err := url.Parse(audioStreamRawUrl)
+	audioStreamURL, err := url.Parse(audioStreamRawURL)
 	if err != nil {
-		return details, errors.Wrapf(err, "can't parse audio stream url: %s", audioStreamRawUrl)
+		return details, errors.Wrapf(err, "can't parse audio stream url: %s", audioStreamRawURL)
 	}
-	details.Url = *audioStreamUrl
+	details.URL = *audioStreamURL
 
 	return details, nil
 }
@@ -76,7 +81,7 @@ func getAudioStream(streams []youtube.Stream) (youtube.Stream, error) {
 	return youtube.Stream{}, errors.New("can't find audio")
 }
 
-func getStreamUrl(videoId string, stream youtube.Stream) (string, error) {
+func getStreamURL(videoID string, stream youtube.Stream) (string, error) {
 	streamURL := stream.URL
 	if streamURL == "" {
 		cipher := stream.Cipher
@@ -85,11 +90,11 @@ func getStreamUrl(videoId string, stream youtube.Stream) (string, error) {
 		}
 		client := getHTTPClient()
 		d := decipher.NewDecipher(client)
-		decipherUrl, err := d.Url(videoId, cipher)
+		decipherURL, err := d.Url(videoID, cipher)
 		if err != nil {
 			return "", err
 		}
-		streamURL = decipherUrl
+		streamURL = decipherURL
 	}
 	return streamURL, nil
 }
@@ -98,12 +103,12 @@ func getHTTPClient() *http.Client {
 	// setup a http client
 	httpTransport := &http.Transport{
 		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout:   DialTimeout * time.Second,
+			KeepAlive: DialKeepAlive * time.Second,
 		}).DialContext,
-		IdleConnTimeout:       60 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		IdleConnTimeout:       IdleConnTimeout * time.Second,
+		TLSHandshakeTimeout:   TLSHandshakeTimeout * time.Second,
+		ExpectContinueTimeout: ExpectContinueTimeout * time.Second,
 	}
 
 	httpClient := &http.Client{Transport: httpTransport}

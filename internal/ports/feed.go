@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	ParamChannelId = "channelId"
+	ParamChannelID = "channelId"
 )
 
 // feedHandler is server route handler rss feed
 func feedHandler(dependencies app.FeedService) func(*fiber.Ctx) error {
 	return func(ctx *fiber.Ctx) error {
-		channelID := ctx.Params(ParamChannelId)
+		channelID := ctx.Params(ParamChannelID)
 
 		c := fiber_opentelemetry.FromCtx(ctx)
 		f, err := dependencies.Create(c, channelID)

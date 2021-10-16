@@ -9,7 +9,7 @@ import (
 )
 
 type videoDependencies interface {
-	GetDetails(ctx context.Context, videoId string) (app.Details, error)
+	GetDetails(context.Context, string) (app.Details, error)
 }
 
 // videoHandler is server route handler for video redirection
@@ -23,14 +23,14 @@ func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
 			return ctx.SendStatus(http.StatusNotFound)
 		}
 
-		url := details.Url.String()
+		url := details.URL.String()
 
 		if url == "" {
 			l.Infof("didn't find video (%s) with audio", videoID)
 			return ctx.SendStatus(http.StatusNotFound)
 		}
 
-		resp, err := http.Get(url)
+		resp, err := http.Get(url) //nolint
 		if err != nil {
 			return fiber.NewError(http.StatusInternalServerError, err.Error())
 		}

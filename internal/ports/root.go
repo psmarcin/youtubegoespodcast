@@ -21,9 +21,9 @@ func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
 		var err error
 		var channels []app.YouTubeChannel
 
-		channelId := ctx.FormValue("channelId")
-		if channelId != "" {
-			channelId = BaseFeedURL + channelId
+		channelID := ctx.FormValue("channelId")
+		if channelID != "" {
+			channelID = BaseFeedURL + channelID
 		}
 
 		q := ctx.FormValue("q")
@@ -37,7 +37,7 @@ func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
 		ctx.Set("content-type", "text/html; charset=utf-8")
 		err = ctx.Render("templates/index", fiber.Map{
 			"Channels":  channels,
-			"ChannelId": channelId,
+			"ChannelId": channelID,
 		})
 
 		if err != nil {

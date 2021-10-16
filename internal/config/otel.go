@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
