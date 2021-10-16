@@ -7,7 +7,6 @@ dev:
 
 lint-ci:
 	gofmt -w -s .
-	goimports -w .
 
 lint: lint-ci
 	golangci-lint run --fix

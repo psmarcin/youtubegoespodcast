@@ -10,7 +10,7 @@ import (
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // Cache keeps firestore client and collection
@@ -23,7 +23,7 @@ type Cache struct {
 type CacheEntity struct {
 	Key   string        `firestore:"key"`
 	Value string        `firestore:"value"`
-	Ttl   time.Duration `firestore:"ttl"`
+	TTL   time.Duration `firestore:"ttl"`
 }
 
 var l = logrus.WithField("source", "adapter")
@@ -48,13 +48,13 @@ func NewCacheRepository() (Cache, error) {
 // SetKey saves value for key in cache store with expiration time
 func (c *Cache) SetKey(ctx context.Context, key, value string, exp time.Duration) error {
 	ctx, span := tracer.Start(ctx, "set-key")
-	span.SetAttributes(label.String("key", key))
-	span.SetAttributes(label.String("value", value))
+	span.SetAttributes(attribute.String("key", key))
+	span.SetAttributes(attribute.String("value", value))
 	defer span.End()
 	_, err := c.collection.Doc(key).Set(ctx, CacheEntity{
 		Key:   key,
 		Value: value,
-		Ttl:   exp,
+		TTL:   exp,
 	})
 	if err != nil {
 		l.WithError(err).WithFields(logrus.Fields{
@@ -72,7 +72,7 @@ func (c *Cache) SetKey(ctx context.Context, key, value string, exp time.Duration
 // GetKey retrieve value by key from cache store
 func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
 	ctx, span := tracer.Start(ctx, "get-key")
-	span.SetAttributes(label.String("key", key))
+	span.SetAttributes(attribute.String("key", key))
 	defer span.End()
 
 	raw, err := c.collection.Doc(key).Get(ctx)
@@ -91,8 +91,8 @@ func (c *Cache) GetKey(ctx context.Context, key string) (string, error) {
 	}
 
 	timeDiff := time.Since(raw.UpdateTime)
-	if timeDiff > e.Ttl {
-		l.Debugf("key expires, updated at %s, expires in %s", raw.UpdateTime.Format(time.RFC3339), e.Ttl.String())
+	if timeDiff > e.TTL {
+		l.Debugf("key expires, updated at %s, expires in %s", raw.UpdateTime.Format(time.RFC3339), e.TTL.String())
 		span.RecordError(err)
 		return "", errors.Newf("Cache expires for %s", key)
 	}

@@ -12,7 +12,7 @@ import (
 
 	"github.com/kkdai/youtube"
 	"github.com/kkdai/youtube/pkg/decipher"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
@@ -33,7 +33,7 @@ func NewFileService() FileService {
 func (f FileService) GetDetails(ctx context.Context, videoId string) (Details, error) {
 	details := Details{}
 	_, span := tracer.Start(ctx, "file-get-details")
-	span.SetAttributes(label.String("videoId", videoId))
+	span.SetAttributes(attribute.String("videoId", videoId))
 	defer span.End()
 
 	yt := youtube.NewYoutube(true, true)

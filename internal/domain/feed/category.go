@@ -71,7 +71,8 @@ func findCategory(category string) Category {
 	var found Category
 
 	for _, cat := range Categories {
-		distance := levenshtein.DistanceForStrings([]rune(strings.ToLower(cat.Name)), []rune(category), levenshtein.DefaultOptions)
+		distance := levenshtein.
+			DistanceForStrings([]rune(strings.ToLower(cat.Name)), []rune(category), levenshtein.DefaultOptions)
 		cat.Score = uint32(distance)
 
 		if cat.Score < found.Score || found.Name == "" {
