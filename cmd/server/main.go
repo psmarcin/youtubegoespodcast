@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/psmarcin/youtubegoespodcast/internal/adapters"
 	application "github.com/psmarcin/youtubegoespodcast/internal/app"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
@@ -14,8 +15,11 @@ var l = logrus.WithField("source", "cmd")
 func main() {
 	// Config
 	config.Init()
+
+	ctx := context.Background()
+
 	traceFlusher := config.InitTracer(config.Cfg)
-	defer traceFlusher()
+	defer traceFlusher(ctx)
 	// Logger
 	logger.Setup()
 
@@ -41,8 +45,8 @@ func main() {
 	youTubeService := application.NewYouTubeService(youTubeRepository, youTubeAPIRepository, cacheService)
 
 	// YTDL
-	//ytdlRepository := adapters.NewYTDLRepository()
-	//ytdlService := application.NewYTDLService(ytdlRepository)
+	// ytdlRepository := adapters.NewYTDLRepository()
+	// ytdlService := application.NewYTDLService(ytdlRepository)
 
 	// Video
 	fileService := application.NewFileService()

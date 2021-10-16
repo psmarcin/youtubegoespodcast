@@ -10,7 +10,7 @@ import (
 
 	"github.com/eduncan911/podcast"
 	feedDomain "github.com/psmarcin/youtubegoespodcast/internal/domain/feed"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -24,7 +24,7 @@ type YouTubeDependency interface {
 }
 
 type YTDLDependencies interface {
-	GetDetails(ctx context.Context, videoId string) (Details, error)
+	GetDetails(ctx context.Context, videoID string) (Details, error)
 }
 
 type FeedService struct {
@@ -63,7 +63,7 @@ func NewFeedService(
 
 func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error) {
 	ctx, span := tracer.Start(ctx, "feed-create")
-	span.SetAttributes(label.Any("channelID", channelID))
+	span.SetAttributes(attribute.String("channelID", channelID))
 	defer span.End()
 
 	podcastFeed, err := f.GetFeedInformation(ctx, channelID)
@@ -95,14 +95,7 @@ func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error)
 	feed.Content.PubDate = lastPubDate
 	feed.Content.LastBuildDate = lastPubDate
 
-	feed.Content.Items, err = mapFeedItemToPodcastItem(items)
-
-	if err != nil {
-		l.WithError(err).Errorf("can't set videos for %s", channelID)
-		span.RecordError(err)
-		return feed, err
-	}
-
+	feed.Content.Items = mapFeedItemToPodcastItem(items)
 	feed.Content.Items = feedDomain.SortByPubDate(feed.Content.Items)
 	feed.Content.Generator = Generator
 
@@ -111,7 +104,7 @@ func (f FeedService) Create(ctx context.Context, channelID string) (Feed, error)
 
 func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) (podcast.Podcast, error) {
 	ctx, span := tracer.Start(ctx, "feed-get-information")
-	span.SetAttributes(label.Any("channelID", channelID))
+	span.SetAttributes(attribute.String("channelID", channelID))
 	defer span.End()
 
 	var fee podcast.Podcast
@@ -122,7 +115,7 @@ func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) 
 		return fee, err
 	}
 
-	fee = podcast.New(channel.Title, channel.Url, channel.Description, &channel.PublishedAt, &channel.PublishedAt)
+	fee = podcast.New(channel.Title, channel.URL, channel.Description, &channel.PublishedAt, &channel.PublishedAt)
 
 	lang := strings.ToLower(channel.Country)
 	if lang == "" {
@@ -130,11 +123,11 @@ func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) 
 	}
 	fee.Language = lang
 	fee.AddCategory(channel.Category, []string{})
-	fee.AddImage(channel.Thumbnail.Url.String())
+	fee.AddImage(channel.Thumbnail.URL.String())
 	fee.Image = &podcast.Image{
-		URL:         channel.Thumbnail.Url.String(),
+		URL:         channel.Thumbnail.URL.String(),
 		Title:       channel.Title,
-		Link:        channel.Url,
+		Link:        channel.URL,
 		Description: channel.Description,
 		Width:       channel.Thumbnail.Width,
 		Height:      channel.Thumbnail.Height,
@@ -146,15 +139,15 @@ func (f *FeedService) GetFeedInformation(ctx context.Context, channelID string) 
 }
 func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) ([]FeedItem, error) {
 	ctx, span := tracer.Start(ctx, "feed-create-items")
-	span.SetAttributes(label.Any("itemsCount", len(items)))
+	span.SetAttributes(attribute.Int("itemsCount", len(items)))
 	defer span.End()
 
 	stream := make(chan FeedItem, len(items))
 	for _, v := range items {
 		go func(video YouTubeFeedEntry) {
-			span.AddEvent("add-item", trace.WithAttributes(label.KeyValue{
-				Key:   label.Key(fmt.Sprintf("video-%s", video.ID)),
-				Value: label.StringValue(video.URL.String()),
+			span.AddEvent("add-item", trace.WithAttributes(attribute.KeyValue{
+				Key:   attribute.Key(fmt.Sprintf("video-%s", video.ID)),
+				Value: attribute.StringValue(video.URL.String()),
 			}))
 			item := FeedItem{
 				ID:          video.ID,
@@ -195,7 +188,7 @@ func (f FeedService) CreateItems(ctx context.Context, items []YouTubeFeedEntry) 
 
 func (f *FeedService) Enrich(ctx context.Context, item FeedItem) (FeedItem, error) {
 	ctx, span := tracer.Start(ctx, "feed-enrich")
-	span.SetAttributes(label.Any("item", item.ID))
+	span.SetAttributes(attribute.String("item", item.ID))
 	defer span.End()
 
 	details, err := f.fileService.GetDetails(ctx, item.ID)
@@ -224,18 +217,20 @@ func getLatestPubDate(sourceItems []FeedItem) time.Time {
 	return time.Now()
 }
 
-func mapFeedItemToPodcastItem(sourceItems []FeedItem) ([]*podcast.Item, error) {
+func mapFeedItemToPodcastItem(sourceItems []FeedItem) []*podcast.Item {
 	var items []*podcast.Item
 
 	for _, item := range sourceItems {
 		videoURL := os.Getenv("API_URL") + "video/" + item.ID + "/track.mp3"
+
+		pubDate := item.PubDate
 
 		items = append(items, &podcast.Item{
 			GUID:        item.GUID,
 			Title:       item.Title,
 			Link:        item.Link.String(),
 			Description: item.Description,
-			PubDate:     &item.PubDate,
+			PubDate:     &pubDate,
 			Enclosure: &podcast.Enclosure{
 				URL:    videoURL,
 				Length: item.FileLength,
@@ -244,10 +239,9 @@ func mapFeedItemToPodcastItem(sourceItems []FeedItem) ([]*podcast.Item, error) {
 			IDuration: fmt.Sprintf("%f", item.Duration.Seconds()),
 			IExplicit: "no",
 		})
-
 	}
 
-	return items, nil
+	return items
 }
 
 func (item FeedItem) IsValid() bool {

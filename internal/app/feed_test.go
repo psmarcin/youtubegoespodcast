@@ -31,8 +31,8 @@ type YTDLDependencyMock struct {
 	mock.Mock
 }
 
-func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoId string) (Details, error) {
-	args := m.Called(mock.Anything, videoId)
+func (m *YTDLDependencyMock) GetDetails(ctx context.Context, videoID string) (Details, error) {
+	args := m.Called(mock.Anything, videoID)
 	return args.Get(0).(Details), args.Error(1)
 }
 
@@ -63,11 +63,11 @@ func TestCreateShouldReturnFeedWithVideo1(t *testing.T) {
 		Description: "vd1",
 	}}, nil)
 	ytM.On("GetChannelCache", context.Background(), "123").Return(YouTubeChannel{
-		ChannelId:   "123",
+		ChannelID:   "123",
 		Country:     "pl",
 		Description: "d1",
 		Title:       "t1",
-		Url:         "u1",
+		URL:         "u1",
 	}, nil)
 
 	ytdlM := new(YTDLDependencyMock)
@@ -219,13 +219,13 @@ func TestFeed_GetDetails(t *testing.T) {
 			wantErr: false,
 			before: func() {
 				ytM.On("GetChannelCache", context.Background(), "1").Return(YouTubeChannel{
-					ChannelId:   "ch1",
+					ChannelID:   "ch1",
 					Country:     "pl1",
 					Description: "d1",
 					PublishedAt: time.Date(2000, 11, 01, 1, 1, 1, 1, time.UTC),
 					Thumbnail:   YouTubeThumbnail{},
 					Title:       "t1",
-					Url:         "u1",
+					URL:         "u1",
 				}, nil)
 			},
 		},

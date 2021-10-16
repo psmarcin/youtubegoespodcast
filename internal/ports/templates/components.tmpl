@@ -3,10 +3,10 @@
             <h5> Results: </h5>
             <space></space>
             {{ range . }}
-                <a href="/?channelId={{ .ChannelId }}" class="tile padded ygp-channel-links">
+                <a href="/?channelId={{ .ChannelID }}" class="tile padded ygp-channel-links">
                     <div class="tile__icon">
                         <figure class="avatar padded">
-                            <img src="{{ .Thumbnail.Url.String }}">
+                            <img src="{{ .Thumbnail.URL.String }}">
                         </figure>
                     </div>
                     <div class="tile__container">
