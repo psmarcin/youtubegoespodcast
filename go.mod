@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/firestore v1.6.0
 	cloud.google.com/go/trace v1.0.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.0.0
-	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/cockroachdb/errors v1.8.6
@@ -16,20 +15,16 @@ require (
 	github.com/gofiber/fiber/v2 v2.20.2
 	github.com/gofiber/helmet/v2 v2.2.3
 	github.com/gofiber/template v1.6.18
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/joho/godotenv v1.4.0
-	github.com/kkdai/youtube v1.2.4
+	github.com/kkdai/youtube/v2 v2.7.4
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/psmarcin/fiber-opentelemetry v0.7.0
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/texttheater/golang-levenshtein v1.0.1
 	github.com/valyala/fasthttp v1.31.0 // indirect
-	github.com/vbauerster/mpb/v5 v5.4.0 // indirect
 	go.opentelemetry.io/otel v1.0.1
 	go.opentelemetry.io/otel/sdk v1.0.1
 	go.opentelemetry.io/otel/trace v1.0.1
