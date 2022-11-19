@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"github.com/gofiber/helmet/v2"
+	hel "github.com/gofiber/helmet/v2"
 	"github.com/gofiber/template/html"
 	fiberOtel "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-otel"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
@@ -125,7 +125,7 @@ func CreateHTTPServer() *fiber.App {
 	serverHTTP.Use(logger.New(logConfig))
 	serverHTTP.Use(recover.New())
 	serverHTTP.Use(requestid.New())
-	serverHTTP.Use(helmet.New())
+	serverHTTP.Use(hel.New())
 
 	serverHTTP.Use("/assets", filesystem.New(filesystem.Config{
 		Root: http.FS(staticFS),
