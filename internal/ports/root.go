@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/gofiber/fiber/v2"
+	fib "github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
 
@@ -16,8 +16,8 @@ type rootDependencies interface {
 }
 
 // rootHandler is server route handler for main page and interaction with user
-func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
-	return func(ctx *fiber.Ctx) error {
+func rootHandler(rootDependency rootDependencies) func(*fib.Ctx) error {
+	return func(ctx *fib.Ctx) error {
 		var err error
 		var channels []app.YouTubeChannel
 
@@ -35,7 +35,7 @@ func rootHandler(rootDependency rootDependencies) func(*fiber.Ctx) error {
 		}
 
 		ctx.Set("content-type", "text/html; charset=utf-8")
-		err = ctx.Render("templates/index", fiber.Map{
+		err = ctx.Render("templates/index", fib.Map{
 			"Channels":  channels,
 			"ChannelId": channelID,
 		})

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fib "github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
 
@@ -13,8 +13,8 @@ type videoDependencies interface {
 }
 
 // videoHandler is server route handler for video redirection
-func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
-	return func(ctx *fiber.Ctx) error {
+func videoHandler(deps videoDependencies) func(ctx *fib.Ctx) error {
+	return func(ctx *fib.Ctx) error {
 		videoID := ctx.Params("videoId")
 
 		details, err := deps.GetDetails(ctx.Context(), videoID)
@@ -32,7 +32,7 @@ func videoHandler(deps videoDependencies) func(ctx *fiber.Ctx) error {
 
 		resp, err := http.Get(url) //nolint
 		if err != nil {
-			return fiber.NewError(http.StatusInternalServerError, err.Error())
+			return fib.NewError(http.StatusInternalServerError, err.Error())
 		}
 
 		return ctx.Redirect(resp.Request.URL.String(), http.StatusFound)

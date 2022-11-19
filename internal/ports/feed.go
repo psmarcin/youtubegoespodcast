@@ -3,7 +3,7 @@ package ports
 import (
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fib "github.com/gofiber/fiber/v2"
 	fiber_opentelemetry "github.com/psmarcin/fiber-opentelemetry/pkg/fiber-otel"
 	"github.com/psmarcin/youtubegoespodcast/internal/app"
 )
@@ -13,8 +13,8 @@ const (
 )
 
 // feedHandler is server route handler rss feed
-func feedHandler(dependencies app.FeedService) func(*fiber.Ctx) error {
-	return func(ctx *fiber.Ctx) error {
+func feedHandler(dependencies app.FeedService) func(*fib.Ctx) error {
+	return func(ctx *fib.Ctx) error {
 		channelID := ctx.Params(ParamChannelID)
 
 		c := fiber_opentelemetry.FromCtx(ctx)
