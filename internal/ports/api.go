@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/gofiber/fiber/v2"
+	fib "github.com/gofiber/fiber/v2"
 	"github.com/psmarcin/youtubegoespodcast/internal/config"
 	"github.com/sirupsen/logrus"
 )
@@ -29,13 +29,13 @@ const (
 )
 
 type HTTPServer struct {
-	server         *fiber.App
+	server         *fib.App
 	youTubeService app.YouTubeService
 	fileService    app.FileService
 }
 
 func NewHTTPServer(
-	server *fiber.App,
+	server *fib.App,
 	youTubeService app.YouTubeService,
 	fileService app.FileService,
 ) HTTPServer {
@@ -46,7 +46,7 @@ func NewHTTPServer(
 	}
 }
 
-func (h HTTPServer) Serve() *fiber.App {
+func (h HTTPServer) Serve() *fib.App {
 	feedDeps := h.getFeedDependencies()
 	rootDeps := h.getRootDependencies()
 	videoDeps := h.getVideoDependencies()
@@ -95,10 +95,10 @@ var staticFS embed.FS
 var l = logrus.WithField("source", "API")
 
 // CreateHTTPServer creates configured HTTP server
-func CreateHTTPServer() *fiber.App {
+func CreateHTTPServer() *fib.App {
 	templateEngine := html.NewFileSystem(http.FS(templatesFs), ".tmpl")
 
-	appConfig := fiber.Config{
+	appConfig := fib.Config{
 		CaseSensitive: true,
 		Immutable:     false,
 		Prefork:       false,
@@ -113,7 +113,7 @@ func CreateHTTPServer() *fiber.App {
 	}
 
 	// init fiber application
-	serverHTTP := fiber.New(appConfig)
+	serverHTTP := fib.New(appConfig)
 
 	// middleware
 	serverHTTP.Use(fiberOtel.New(fiberOtel.Config{
