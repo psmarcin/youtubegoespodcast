@@ -1,4 +1,4 @@
-FROM golang:1.16-buster as build-env
+FROM golang:1.19 as build-env
 
 ENV GO111MODULE=on
 ENV APP_ENV=production
