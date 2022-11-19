@@ -3,7 +3,7 @@ package adapters
 import (
 	"context"
 	"encoding/xml"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -95,7 +95,7 @@ func (y YouTubeRepository) ListEntry(ctx context.Context, channelID string) ([]a
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		l.WithError(err).Errorf("can't parse channel feed")
 		span.RecordError(err)
