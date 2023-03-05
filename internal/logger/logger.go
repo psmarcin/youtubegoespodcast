@@ -8,7 +8,13 @@ import (
 
 // Setup set default values for logrus
 func Setup() {
-	if os.Getenv("APP_ENV") == "production" {
+	loggerType := os.Getenv("LOGGER_TYPE")
+
+	switch loggerType {
+	case "text":
+		log.SetFormatter(&log.TextFormatter{})
+		return
+	default:
 		log.SetFormatter(&log.JSONFormatter{
 			FieldMap: log.FieldMap{
 				log.FieldKeyTime:  "time",
@@ -16,7 +22,6 @@ func Setup() {
 				log.FieldKeyMsg:   "message",
 			},
 		})
-	} else {
-		log.SetFormatter(&log.TextFormatter{})
+		return
 	}
 }
